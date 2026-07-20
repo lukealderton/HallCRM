@@ -1,9 +1,9 @@
 ﻿using CRM.Core.Companies.Domain;
 using CRM.Core.Contacts.Domain;
 using CRM.Core.Entities.Domain;
+using CRM.Core.Jobs.Domain;
 using CRM.Core.Logging.Domain;
 using CRM.Core.Notes.Domain;
-using CRM.Core.Opportunities.Domain;
 using CRM.Core.Tickets.Domain;
 using CRM.Core.Users.Domain;
 using CRM.Infrastructure.Companies.Configurations;
@@ -41,7 +41,7 @@ namespace CRM.Infrastructure.Data
 
         public DbSet<Company> Companies => Set<Company>();
         public DbSet<Contact> Contacts => Set<Contact>();
-        public DbSet<Opportunity> Opportunities => Set<Opportunity>();
+        public DbSet<Job> Jobs => Set<Job>();
         public DbSet<Note> Notes => Set<Note>();
         public DbSet<Log> Logs => Set<Log>();
 
@@ -68,7 +68,7 @@ namespace CRM.Infrastructure.Data
 
             objModelBuilder.ApplyConfiguration(new CompanyConfiguration());
             objModelBuilder.ApplyConfiguration(new ContactConfiguration());
-            objModelBuilder.ApplyConfiguration(new OpportunityConfiguration());
+            objModelBuilder.ApplyConfiguration(new JobsConfiguration());
             objModelBuilder.ApplyConfiguration(new LogConfiguration());
             objModelBuilder.ApplyConfiguration(new NoteConfiguration());
 

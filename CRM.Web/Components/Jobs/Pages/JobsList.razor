@@ -1,58 +1,58 @@
-﻿@page "/opportunities"
+﻿@page "/jobs"
 @attribute [Authorize]
 @rendermode InteractiveServer
 
-@using CRM.Core.Opportunities.Abstractions
-@using CRM.Core.Opportunities.Domain
+@using CRM.Core.Jobs.Domain
+@using CRM.Core.Jobs.Abstractions
 @using CRM.Web.State
 
-@inject IOpportunityService OpportunityService
+@inject IJobService JobService
 @inject NavigationManager Navigation
 @inject PageHeaderState HeaderState
 
-<PageTitle>Opportunities - 101CRM</PageTitle>
+<PageTitle>Jobs - 101CRM</PageTitle>
 
-<section class="opportunities-page">
-    <div class="crm-card opportunities-toolbar">
-        <div class="opportunities-search">
+<section class="jobs-page">
+    <div class="crm-card jobs-toolbar">
+        <div class="jobs-search">
             <div class="input-group">
                 <span class="input-group-text">
                     <span class="material-symbols-outlined">search</span>
                 </span>
 
-                <input id="opportunitySearch"
+                <input id="jobSearch"
                        class="form-control"
-                       placeholder="Search opportunities, companies or contacts..."
+                       placeholder="Search jobs, companies or contacts..."
                        @bind="strSearch"
                        @bind:event="oninput" />
             </div>
         </div>
 
-        <div class="opportunities-filters">
-            <select class="form-select opportunities-stage-filter"
+        <div class="jobs-filters">
+            <select class="form-select jobs-stage-filter"
                     @bind="strSelectedStage"
-                    @bind:after="LoadOpportunitiesAsync">
+                    @bind:after="LoadJobsAsync">
                 <option value="">All stages</option>
 
-                @foreach (OpportunityStage enmStage in Enum.GetValues<OpportunityStage>())
+                @foreach (JobStage enmStage in Enum.GetValues<JobStage>())
                 {
-                    <option value="@enmStage.ToString()">@GetStageName(enmStage)</option>
+                    <option value="@enmStage.ToString()">@enmStage.GetDisplay().Name</option>
                 }
             </select>
 
-            <div class="opportunities-filter-divider"></div>
+            <div class="jobs-filter-divider"></div>
 
             <div class="form-check form-switch">
                 <input id="includeArchived"
                        class="form-check-input"
                        type="checkbox"
                        @bind="blnIncludeArchived"
-                       @bind:after="LoadOpportunitiesAsync" />
+                       @bind:after="LoadJobsAsync" />
                 <label class="form-check-label" for="includeArchived">Include archived</label>
             </div>
         </div>
 
-        <div class="opportunities-toolbar-actions">
+        <div class="jobs-toolbar-actions">
             <button class="btn btn-primary" type="button" @onclick="SearchAsync">
                 <span class="material-symbols-outlined">search</span>
                 Search
@@ -60,29 +60,29 @@
         </div>
     </div>
 
-    <div class="opportunities-summary row g-3">
+    <div class="jobs-summary row g-3">
         <div class="col-12 col-md-6 col-xl-3">
-            <div class="opportunities-summary-card opportunities-summary-card-primary">
+            <div class="jobs-summary-card jobs-summary-card-primary">
                 <span class="material-symbols-outlined">track_changes</span>
 
                 <div>
                     <small>Open shown</small>
-                    <strong>@intOpenOpportunities</strong>
-                    <span class="opportunities-summary-note">
-                        @intTotalOpportunities total result@(GetPlural(intTotalOpportunities))
+                    <strong>@intOpenJobs</strong>
+                    <span class="jobs-summary-note">
+                        @intTotalJobs total result@(GetPlural(intTotalJobs))
                     </span>
                 </div>
             </div>
         </div>
 
         <div class="col-12 col-md-6 col-xl-3">
-            <div class="opportunities-summary-card opportunities-summary-card-success">
+            <div class="jobs-summary-card jobs-summary-card-success">
                 <span class="material-symbols-outlined">payments</span>
 
                 <div>
                     <small>Open pipeline</small>
                     <strong>@FormatMoney(dcmOpenPipelineValue)</strong>
-                    <span class="opportunities-summary-note">
+                    <span class="jobs-summary-note">
                         Active non-won/lost value
                     </span>
                 </div>
@@ -90,13 +90,13 @@
         </div>
 
         <div class="col-12 col-md-6 col-xl-3">
-            <div class="opportunities-summary-card opportunities-summary-card-warning">
+            <div class="jobs-summary-card jobs-summary-card-warning">
                 <span class="material-symbols-outlined">event_upcoming</span>
 
                 <div>
                     <small>Closing soon</small>
-                    <strong>@intClosingSoonOpportunities</strong>
-                    <span class="opportunities-summary-note">
+                    <strong>@intClosingSoonJobs</strong>
+                    <span class="jobs-summary-note">
                         Due before @dteClosingSoonCutoffUtc.ToLocalTime().ToString("dd MMM")
                     </span>
                 </div>
@@ -104,13 +104,13 @@
         </div>
 
         <div class="col-12 col-md-6 col-xl-3">
-            <div class="opportunities-summary-card opportunities-summary-card-info">
+            <div class="jobs-summary-card jobs-summary-card-info">
                 <span class="material-symbols-outlined">emoji_events</span>
 
                 <div>
                     <small>Won shown</small>
-                    <strong>@intWonOpportunities</strong>
-                    <span class="opportunities-summary-note">
+                    <strong>@intWonJobs</strong>
+                    <span class="jobs-summary-note">
                         @FormatMoney(dcmWonValue) won value
                     </span>
                 </div>
@@ -120,21 +120,21 @@
 
     @if (blnShowErrorAlert && !String.IsNullOrWhiteSpace(strErrorMessage))
     {
-        <div class="alert alert-danger opportunities-alert" role="alert">
+        <div class="alert alert-danger jobs-alert" role="alert">
             <span class="material-symbols-outlined">error</span>
 
             <div class="alert-content">
-                <strong class="alert-title">Unable to load opportunities</strong>
+                <strong class="alert-title">Unable to load jobs</strong>
                 <p>@strErrorMessage</p>
             </div>
 
             <div class="alert-actions">
-                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="LoadOpportunitiesAsync">
+                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="LoadJobsAsync">
                     <span class="material-symbols-outlined">refresh</span>
                     Try again
                 </button>
 
-                <button class="btn btn-soft-danger btn-sm opportunities-alert-close" type="button" @onclick="DismissErrorAlert">
+                <button class="btn btn-soft-danger btn-sm jobs-alert-close" type="button" @onclick="DismissErrorAlert">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
@@ -144,7 +144,7 @@
     <div class="crm-card">
         <div class="crm-card-header">
             <div>
-                <h3>Opportunity records</h3>
+                <h3>Job records</h3>
                 <p>@strResultSummary</p>
             </div>
 
@@ -164,26 +164,26 @@
                 Loading opportunities...
             </div>
         }
-        else if (!colOpportunities.Any())
+        else if (!colJobs.Any())
         {
             <div class="crm-empty-state">
                 <span class="material-symbols-outlined">empty_dashboard</span>
-                <h4>No opportunities found</h4>
-                <p>Create your first deal or adjust the filters.</p>
+                <h4>No jobs found</h4>
+                <p>Create your first job or adjust the filters.</p>
 
-                <a class="btn btn-primary" href="/opportunities/add">
+                <a class="btn btn-primary" href="/jobs/add">
                     <span class="material-symbols-outlined">add_circle</span>
-                    Add opportunity
+                    Add job
                 </a>
             </div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle crm-table opportunities-table">
+                <table class="table table-hover align-middle crm-table jobs-table">
                     <thead>
                         <tr>
-                            <th>Opportunity</th>
+                            <th>Job</th>
                             <th>Company</th>
                             <th>Contact</th>
                             <th>Stage</th>
@@ -195,24 +195,24 @@
                     </thead>
 
                     <tbody>
-                        @foreach (Opportunity objOpportunity in colOpportunities)
+                        @foreach (Job objJob in colJobs)
                         {
-                            <tr class="@GetOpportunityRowClass(objOpportunity)">
+                            <tr class="@GetJobRowClass(objJob)">
                                 <td>
-                                    <div class="opportunities-opportunity-cell">
-                                        <div class="opportunities-avatar">
-                                            @GetOpportunityInitial(objOpportunity)
+                                    <div class="jobs-job-cell">
+                                        <div class="jobs-avatar">
+                                            @GetJobInitial(objJob)
                                         </div>
 
                                         <div>
-                                            <a class="opportunities-name-link" href="@GetOpportunityUrl(objOpportunity.Id)">
-                                                @objOpportunity.Name
+                                            <a class="jobs-name-link" href="@GetJobUrl(objJob.Id)">
+                                                @objJob.Name
                                             </a>
 
-                                            @if (!String.IsNullOrWhiteSpace(objOpportunity.Source))
+                                            @if (!String.IsNullOrWhiteSpace(objJob.Source))
                                             {
                                                 <small class="d-block text-muted">
-                                                    Source: @objOpportunity.Source
+                                                    Source: @objJob.Source
                                                 </small>
                                             }
                                         </div>
@@ -220,10 +220,10 @@
                                 </td>
 
                                 <td>
-                                    @if (objOpportunity.Company != null)
+                                    @if (objJob.Company != null)
                                     {
-                                        <a class="opportunities-company-link" href="@GetCompanyUrl(objOpportunity.Company.Id)">
-                                            @objOpportunity.Company.Name
+                                        <a class="jobs-company-link" href="@GetCompanyUrl(objJob.Company.Id)">
+                                            @objJob.Company.Name
                                         </a>
                                     }
                                     else
@@ -233,10 +233,10 @@
                                 </td>
 
                                 <td>
-                                    @if (objOpportunity.Contact != null)
+                                    @if (objJob.Contact != null)
                                     {
-                                        <a class="opportunities-contact-link" href="@GetContactUrl(objOpportunity.Contact.Id)">
-                                            @objOpportunity.Contact.Entity.DisplayName
+                                        <a class="jobs-contact-link" href="@GetContactUrl(objJob.Contact.Id)">
+                                            @objJob.Contact.Entity.DisplayName
                                         </a>
                                     }
                                     else
@@ -246,21 +246,21 @@
                                 </td>
 
                                 <td>
-                                    <span class="@GetStageBadgeClass(objOpportunity.Stage)">
-                                        @GetStageName(objOpportunity.Stage)
+                                    <span class="@GetStageBadgeClass(objJob.Stage)">
+                                        @objJob.Stage.GetDisplay().Name
                                     </span>
                                 </td>
 
-                                <td>@FormatMoney(objOpportunity.Value)</td>
+                                <td>@FormatMoney(objJob.Value)</td>
 
                                 <td>
-                                    <span class="@GetCloseDateClass(objOpportunity)">
-                                        @FormatDate(objOpportunity.ExpectedCloseDateUtc)
+                                    <span class="@GetCloseDateClass(objJob)">
+                                        @FormatDate(objJob.ExpectedCloseDateUtc)
                                     </span>
                                 </td>
 
                                 <td>
-                                    @if (objOpportunity.Entity.ArchivedUtc.HasValue)
+                                    @if (objJob.IsArchived)
                                     {
                                         <span class="badge text-bg-secondary">Archived</span>
                                     }
@@ -271,13 +271,13 @@
                                 </td>
 
                                 <td class="text-end">
-                                    <div class="opportunities-row-actions">
-                                        <a href="@GetOpportunityUrl(objOpportunity.Id)" class="btn btn-soft-primary btn-sm">
+                                    <div class="jobs-row-actions">
+                                        <a href="@GetJobUrl(objJob.Id)" class="btn btn-soft-primary btn-sm">
                                             <span class="material-symbols-outlined">visibility</span>
                                             View
                                         </a>
 
-                                        <a href="@($"/opportunities/{objOpportunity.Id}/edit")" class="btn btn-soft-secondary btn-sm">
+                                        <a href="@($"/jobs/{objJob.Id}/edit")" class="btn btn-soft-secondary btn-sm">
                                             <span class="material-symbols-outlined">edit</span>
                                             Edit
                                         </a>
@@ -293,23 +293,23 @@
 </section>
 
 @code {
-    private List<Opportunity> colOpportunities = [];
+    private List<Job> colJobs = [];
 
     private String? strSearch;
     private String? strErrorMessage;
     private String strSelectedStage = String.Empty;
-    private String strResultSummary = "Showing active opportunity records.";
+    private String strResultSummary = "Showing active job records.";
 
     private Boolean blnIncludeArchived;
     private Boolean blnLoading = true;
     private Boolean blnShowErrorAlert = true;
 
-    private Int32 intTotalOpportunities;
-    private Int32 intActiveOpportunities;
-    private Int32 intArchivedOpportunities;
-    private Int32 intOpenOpportunities;
-    private Int32 intClosingSoonOpportunities;
-    private Int32 intWonOpportunities;
+    private Int32 intTotalJobs;
+    private Int32 intActiveJobs;
+    private Int32 intArchivedJobs;
+    private Int32 intOpenJobs;
+    private Int32 intClosingSoonJobs;
+    private Int32 intWonJobs;
 
     private Decimal dcmOpenPipelineValue;
     private Decimal dcmWonValue;
@@ -321,11 +321,11 @@
         !String.IsNullOrWhiteSpace(strSelectedStage) ||
         blnIncludeArchived;
 
-    private OpportunityStage? SelectedStage
+    private JobStage? SelectedStage
     {
         get
         {
-            if (Enum.TryParse(strSelectedStage, out OpportunityStage enmStage))
+            if (Enum.TryParse(strSelectedStage, out JobStage enmStage))
             {
                 return enmStage;
             }
@@ -341,23 +341,23 @@
             "Track deals, pipeline value and expected close dates.",
             GetHeaderActions());
 
-        await LoadOpportunitiesAsync();
+        await LoadJobsAsync();
     }
 
     private RenderFragment GetHeaderActions()
     {
-        return @<a class="btn btn-primary" href="/opportunities/add">
+        return @<a class="btn btn-primary" href="/jobs/add">
             <span class="material-symbols-outlined">add_circle</span>
-            Add opportunity
+            Add job
         </a>;
     }
 
     private Task SearchAsync()
     {
-        return LoadOpportunitiesAsync();
+        return LoadJobsAsync();
     }
 
-    private async Task LoadOpportunitiesAsync()
+    private async Task LoadJobsAsync()
     {
         blnLoading = true;
         strErrorMessage = null;
@@ -365,28 +365,28 @@
 
         try
         {
-            colOpportunities = await OpportunityService.GetOpportunitiesAsync(
+            colJobs = await JobService.GetJobsAsync(
                 strSearch,
                 SelectedStage,
                 null,
                 blnIncludeArchived,
                 false);
 
-            SetOpportunityStats();
+            SetJobStats();
             SetResultSummary();
         }
         catch (Exception objError)
         {
-            strErrorMessage = "We couldn’t retrieve the opportunity records right now. " + objError.Message;
+            strErrorMessage = "We couldn’t retrieve the job records right now. " + objError.Message;
 
-            colOpportunities = [];
+            colJobs = [];
 
-            intTotalOpportunities = 0;
-            intActiveOpportunities = 0;
-            intArchivedOpportunities = 0;
-            intOpenOpportunities = 0;
-            intClosingSoonOpportunities = 0;
-            intWonOpportunities = 0;
+            intTotalJobs = 0;
+            intActiveJobs = 0;
+            intArchivedJobs = 0;
+            intOpenJobs = 0;
+            intClosingSoonJobs = 0;
+            intWonJobs = 0;
             dcmOpenPipelineValue = 0;
             dcmWonValue = 0;
 
@@ -404,7 +404,7 @@
         strSelectedStage = String.Empty;
         blnIncludeArchived = false;
 
-        await LoadOpportunitiesAsync();
+        await LoadJobsAsync();
     }
 
     private void DismissErrorAlert()
@@ -412,40 +412,40 @@
         blnShowErrorAlert = false;
     }
 
-    private void SetOpportunityStats()
+    private void SetJobStats()
     {
         DateTime dteTodayUtc = DateTime.UtcNow.Date;
         dteClosingSoonCutoffUtc = dteTodayUtc.AddDays(30);
 
-        intTotalOpportunities = colOpportunities.Count;
+        intTotalJobs = colJobs.Count;
 
-        intArchivedOpportunities = colOpportunities.Count(objOpportunity =>
-            objOpportunity.Entity.ArchivedUtc.HasValue);
+        intArchivedJobs = colJobs.Count(objJob =>
+            objJob.Entity.ArchivedUtc.HasValue);
 
-        intActiveOpportunities = colOpportunities.Count(objOpportunity =>
-            !objOpportunity.Entity.ArchivedUtc.HasValue);
+        intActiveJobs = colJobs.Count(objJob =>
+            !objJob.Entity.ArchivedUtc.HasValue);
 
-        intOpenOpportunities = colOpportunities.Count(IsOpenOpportunity);
+        intOpenJobs = colJobs.Count(IsOpenJob);
 
-        dcmOpenPipelineValue = colOpportunities
-            .Where(IsOpenOpportunity)
-            .Sum(objOpportunity => objOpportunity.Value ?? 0);
+        dcmOpenPipelineValue = colJobs
+            .Where(IsOpenJob)
+            .Sum(objJob => objJob.Value ?? 0);
 
-        intClosingSoonOpportunities = colOpportunities.Count(objOpportunity =>
-            IsOpenOpportunity(objOpportunity) &&
-            objOpportunity.ExpectedCloseDateUtc.HasValue &&
-            objOpportunity.ExpectedCloseDateUtc.Value.Date >= dteTodayUtc &&
-            objOpportunity.ExpectedCloseDateUtc.Value.Date <= dteClosingSoonCutoffUtc);
+        intClosingSoonJobs = colJobs.Count(objJob =>
+            IsOpenJob(objJob) &&
+            objJob.ExpectedCloseDateUtc.HasValue &&
+            objJob.ExpectedCloseDateUtc.Value.Date >= dteTodayUtc &&
+            objJob.ExpectedCloseDateUtc.Value.Date <= dteClosingSoonCutoffUtc);
 
-        intWonOpportunities = colOpportunities.Count(objOpportunity =>
-            !objOpportunity.Entity.ArchivedUtc.HasValue &&
-            objOpportunity.Stage == OpportunityStage.Won);
+        intWonJobs = colJobs.Count(objJob =>
+            !objJob.Entity.ArchivedUtc.HasValue &&
+            objJob.Stage == JobStage.Paid);
 
-        dcmWonValue = colOpportunities
-            .Where(objOpportunity =>
-                !objOpportunity.Entity.ArchivedUtc.HasValue &&
-                objOpportunity.Stage == OpportunityStage.Won)
-            .Sum(objOpportunity => objOpportunity.Value ?? 0);
+        dcmWonValue = colJobs
+            .Where(objJob =>
+                !objJob.Entity.ArchivedUtc.HasValue &&
+                objJob.Stage == JobStage.Paid)
+            .Sum(objJob => objJob.Value ?? 0);
     }
 
     private void SetResultSummary()
@@ -459,7 +459,7 @@
 
         if (SelectedStage.HasValue)
         {
-            colFilters.Add($"in {GetStageName(SelectedStage.Value)}");
+            colFilters.Add($"in {SelectedStage.Value.GetDisplay().Name}");
         }
 
         if (blnIncludeArchived)
@@ -469,18 +469,18 @@
 
         if (!colFilters.Any())
         {
-            strResultSummary = $"Showing {intTotalOpportunities} opportunity record{GetPlural(intTotalOpportunities)}.";
+            strResultSummary = $"Showing {intTotalJobs} job record{GetPlural(intTotalJobs)}.";
             return;
         }
 
-        strResultSummary = $"Showing {intTotalOpportunities} result{GetPlural(intTotalOpportunities)} {String.Join(", ", colFilters)}.";
+        strResultSummary = $"Showing {intTotalJobs} result{GetPlural(intTotalJobs)} {String.Join(", ", colFilters)}.";
     }
 
-    private static Boolean IsOpenOpportunity(Opportunity objOpportunity)
+    private static Boolean IsOpenJob(Job objJob)
     {
-        return !objOpportunity.Entity.ArchivedUtc.HasValue &&
-               objOpportunity.Stage != OpportunityStage.Won &&
-               objOpportunity.Stage != OpportunityStage.Lost;
+        return !objJob.Entity.ArchivedUtc.HasValue &&
+               objJob.Stage != JobStage.Paid &&
+               objJob.Stage != JobStage.Lost;
     }
 
     private static String GetPlural(Int32 intCount)
@@ -488,9 +488,9 @@
         return intCount == 1 ? String.Empty : "s";
     }
 
-    private static String GetOpportunityUrl(Guid objOpportunityId)
+    private static String GetJobUrl(Guid objJobId)
     {
-        return $"/opportunities/{objOpportunityId}";
+        return $"/jobs/{objJobId}";
     }
 
     private static String GetCompanyUrl(Guid objCompanyId)
@@ -503,61 +503,47 @@
         return $"/contacts/{objContactId}";
     }
 
-    private static String GetOpportunityInitial(Opportunity objOpportunity)
+    private static String GetJobInitial(Job objJob)
     {
-        if (String.IsNullOrWhiteSpace(objOpportunity.Name))
+        if (String.IsNullOrWhiteSpace(objJob.Name))
         {
             return "?";
         }
 
-        return objOpportunity.Name.Trim().Substring(0, 1).ToUpperInvariant();
+        return objJob.Name.Trim().Substring(0, 1).ToUpperInvariant();
     }
 
-    private static String GetStageName(OpportunityStage enmStage)
+    private static String GetStageBadgeClass(JobStage enmStage)
     {
         return enmStage switch
         {
-            OpportunityStage.New => "New",
-            OpportunityStage.Qualified => "Qualified",
-            OpportunityStage.Proposal => "Proposal",
-            OpportunityStage.Negotiation => "Negotiation",
-            OpportunityStage.Won => "Won",
-            OpportunityStage.Lost => "Lost",
-            _ => enmStage.ToString()
+            JobStage.New => "job-stage job-stage-new",
+            JobStage.Lost => "job-stage job-stage-lost",
+            JobStage.Quoted => "job-stage job-stage-quoted",
+            JobStage.ToDo => "job-stage job-stage-todo",
+            JobStage.Paid => "job-stage job-stage-paid",
+            _ => "job-stage"
         };
     }
 
-    private static String GetStageBadgeClass(OpportunityStage enmStage)
+    private static String GetCloseDateClass(Job objJob)
     {
-        return enmStage switch
-        {
-            OpportunityStage.Won => "opportunity-stage opportunity-stage-won",
-            OpportunityStage.Lost => "opportunity-stage opportunity-stage-lost",
-            OpportunityStage.Negotiation => "opportunity-stage opportunity-stage-negotiation",
-            OpportunityStage.Proposal => "opportunity-stage opportunity-stage-proposal",
-            OpportunityStage.Qualified => "opportunity-stage opportunity-stage-qualified",
-            _ => "opportunity-stage"
-        };
-    }
-
-    private static String GetCloseDateClass(Opportunity objOpportunity)
-    {
-        if (!IsOpenOpportunity(objOpportunity) || !objOpportunity.ExpectedCloseDateUtc.HasValue)
+        if (!IsOpenJob(objJob) || !objJob.ExpectedCloseDateUtc.HasValue)
         {
             return String.Empty;
         }
 
         DateTime dteTodayUtc = DateTime.UtcNow.Date;
-        DateTime dteCloseDateUtc = objOpportunity.ExpectedCloseDateUtc.Value.Date;
+        DateTime dteCloseDateUtc = objJob.ExpectedCloseDateUtc.Value.Date;
 
         if (dteCloseDateUtc < dteTodayUtc)
         {
-            return "opportunities-close-date-overdue";
+            return "jobs-close-date-overdue";
         }
 
         if (dteCloseDateUtc <= dteTodayUtc.AddDays(30))
         {
-            return "opportunities-close-date-soon";
+            return "jobs-close-date-soon";
         }
 
         return String.Empty;
@@ -588,16 +574,16 @@
         return dteDate.Value.ToLocalTime().ToString("dd MMM yyyy");
     }
 
-    private static String GetOpportunityRowClass(Opportunity objOpportunity)
+    private static String GetJobRowClass(Job objJob)
     {
-        if (objOpportunity.Entity.ArchivedUtc.HasValue)
+        if (objJob.Entity.ArchivedUtc.HasValue)
         {
-            return "opportunities-row-archived";
+            return "jobs-row-archived";
         }
 
-        if (objOpportunity.Stage == OpportunityStage.Lost)
+        if (objJob.Stage == JobStage.Lost)
         {
-            return "opportunities-row-muted";
+            return "jobs-row-muted";
         }
 
         return String.Empty;

@@ -4,7 +4,7 @@
     {
         Company = 1,
         Contact = 2,
-        Opportunity = 3,
+        Job = 3,
         Ticket = 4,
         Activity = 5,
 

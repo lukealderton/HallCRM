@@ -63,9 +63,9 @@ namespace CRM.Infrastructure.Entities.Configurations
                 },
                 new CrmEntityType
                 {
-                    Id = (Int32)PredefinedEntityType.Opportunity,
-                    Name = "Opportunity",
-                    Alias = "opportunity",
+                    Id = (Int32)PredefinedEntityType.Job,
+                    Name = "Job",
+                    Alias = "job",
                     IsSystem = true,
                     IsCustom = false,
                     CreatedUtc = objSeedDate

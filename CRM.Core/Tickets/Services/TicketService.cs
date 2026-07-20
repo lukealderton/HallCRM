@@ -247,7 +247,7 @@ namespace CRM.Core.Tickets.Services
 
                 objExistingTicket.CompanyId = objTicket.CompanyId;
                 objExistingTicket.ContactId = objTicket.ContactId;
-                objExistingTicket.OpportunityId = objTicket.OpportunityId;
+                objExistingTicket.JobId = objTicket.JobId;
                 objExistingTicket.ProjectId = objTicket.ProjectId;
 
                 objExistingTicket.AssignedToUserId = objTicket.AssignedToUserId;

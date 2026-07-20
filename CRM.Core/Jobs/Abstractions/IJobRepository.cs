@@ -1,20 +1,20 @@
-﻿using CRM.Core.Opportunities.Domain;
+﻿using CRM.Core.Jobs.Domain;
 
-namespace CRM.Core.Opportunities.Abstractions
+namespace CRM.Core.Jobs.Abstractions
 {
-    public interface IOpportunityRepository
+    public interface IJobRepository
     {
         /// <summary>
-        /// Gets an opportunity by its unique identifier.
+        /// Gets a job by its unique identifier.
         /// </summary>
-        /// <param name="objOpportunityId"></param>
+        /// <param name="objJobId"></param>
         /// <param name="blnTracking"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
-        Task<Opportunity?> GetOpportunityByIdAsync(Guid objOpportunityId, Boolean blnTracking = false, CancellationToken objToken = default);
+        Task<Job?> GetJobByIdAsync(Guid objJobId, Boolean blnTracking = false, CancellationToken objToken = default);
 
         /// <summary>
-        /// Gets a list of opportunities based on the provided search criteria.
+        /// Gets a list of jobs based on the provided search criteria.
         /// </summary>
         /// <param name="strSearch"></param>
         /// <param name="enmStage"></param>
@@ -23,24 +23,24 @@ namespace CRM.Core.Opportunities.Abstractions
         /// <param name="blnIncludeDeleted"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
-        Task<List<Opportunity>> GetOpportunitiesAsync(
+        Task<List<Job>> GetJobsAsync(
             String? strSearch = null,
-            OpportunityStage? enmStage = null,
+            JobStage? enmStage = null,
             Guid? objCompanyId = null,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default);
 
         /// <summary>
-        /// Adds a new opportunity to the repository.
+        /// Adds a new job to the repository.
         /// </summary>
-        /// <param name="objOpportunity"></param>
+        /// <param name="objJob"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
-        Task AddOpportunityAsync(Opportunity objOpportunity, CancellationToken objToken = default);
+        Task AddJobAsync(Job objJob, CancellationToken objToken = default);
 
         /// <summary>
-        /// Updates an existing opportunity in the repository.
+        /// Updates an existing Job in the repository.
         /// </summary>
         /// <param name="objToken"></param>
         /// <returns></returns>

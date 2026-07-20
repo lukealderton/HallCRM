@@ -2,11 +2,11 @@
 @attribute [Authorize]
 @rendermode InteractiveServer
 
-@using CRM.Core.Opportunities.Abstractions
-@using CRM.Core.Opportunities.Domain
+@using CRM.Core.Jobs.Abstractions
+@using CRM.Core.Jobs.Domain
 @using CRM.Web.State
 
-@inject IOpportunityService OpportunityService
+@inject IJobService JobService
 @inject NavigationManager Navigation
 @inject PageHeaderState HeaderState
 
@@ -43,13 +43,13 @@
             <span class="material-symbols-outlined">archive</span>
 
             <div class="alert-content">
-                <strong class="alert-title">Archive this opportunity?</strong>
-                <p>Archived opportunities are hidden from normal pipeline views but can be restored later.</p>
+                <strong class="alert-title">Archive this job?</strong>
+                <p>Archived jobs are hidden from normal pipeline views but can be restored later.</p>
             </div>
 
             <div class="alert-actions">
-                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="ArchiveOpportunityAsync" disabled="@blnSaving">
-                    Archive opportunity
+                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="ArchiveJobAsync" disabled="@blnSaving">
+                    Archive job
                 </button>
 
                 <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="CancelActions">
@@ -65,13 +65,13 @@
             <span class="material-symbols-outlined">delete</span>
 
             <div class="alert-content">
-                <strong class="alert-title">Delete this opportunity?</strong>
-                <p>This will mark the opportunity as deleted. It will no longer appear in normal opportunity lists.</p>
+                <strong class="alert-title">Delete this job?</strong>
+                <p>This will mark the job as deleted. It will no longer appear in normal job lists.</p>
             </div>
 
             <div class="alert-actions">
-                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="DeleteOpportunityAsync" disabled="@blnSaving">
-                    Delete opportunity
+                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="DeleteJobAsync" disabled="@blnSaving">
+                    Delete job
                 </button>
 
                 <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="CancelActions">
@@ -90,14 +90,14 @@
             </div>
         </div>
     }
-    else if (objOpportunity == null)
+    else if (objJob == null)
     {
         <div class="alert alert-danger opportunity-alert" role="alert">
             <span class="material-symbols-outlined">search_off</span>
 
             <div class="alert-content">
-                <strong class="alert-title">Opportunity not found</strong>
-                <p>This opportunity may have been deleted or moved.</p>
+                <strong class="alert-title">Job not found</strong>
+                <p>This job may have been deleted or moved.</p>
             </div>
         </div>
     }
@@ -106,18 +106,18 @@
         <div class="opportunity-profile-card crm-card">
             <div class="opportunity-profile-main">
                 <div class="opportunity-avatar">
-                    @GetOpportunityInitial(objOpportunity)
+                    @GetJobInitial(objJob)
                 </div>
 
                 <div>
                     <div class="opportunity-title-row">
-                        <h2>@objOpportunity.Name</h2>
+                        <h2>@objJob.Name</h2>
 
-                        <span class="@GetStageBadgeClass(objOpportunity.Stage)">
-                            @GetStageName(objOpportunity.Stage)
+                        <span class="@GetStageBadgeClass(objJob.Stage)">
+                            @objJob.Stage.GetDisplay().Name
                         </span>
 
-                        @if (objOpportunity.Entity.ArchivedUtc.HasValue)
+                        @if (objJob.Entity.ArchivedUtc.HasValue)
                         {
                             <span class="badge text-bg-secondary">Archived</span>
                         }
@@ -128,23 +128,23 @@
                     </div>
 
                     <p class="opportunity-subtitle">
-                        @(objOpportunity.Company?.Name ?? "No company linked")
+                        @(objJob.Company?.Name ?? "No company linked")
                     </p>
 
                     <div class="opportunity-meta-row">
                         <span>
                             <span class="material-symbols-outlined">payments</span>
-                            @FormatMoney(objOpportunity.Value)
+                            @FormatMoney(objJob.Value)
                         </span>
 
                         <span>
                             <span class="material-symbols-outlined">percent</span>
-                            @FormatProbability(objOpportunity.ProbabilityPercent)
+                            @FormatProbability(objJob.ProbabilityPercent)
                         </span>
 
                         <span>
                             <span class="material-symbols-outlined">event</span>
-                            @FormatDate(objOpportunity.ExpectedCloseDateUtc)
+                            @FormatDate(objJob.ExpectedCloseDateUtc)
                         </span>
                     </div>
                 </div>
@@ -153,12 +153,12 @@
             <div class="opportunity-profile-actions">
                 <button type="button" class="btn btn-primary" @onclick="GoToEdit">
                     <span class="material-symbols-outlined">edit</span>
-                    Edit opportunity
+                    Edit job
                 </button>
 
-                @if (objOpportunity.Entity.ArchivedUtc.HasValue)
+                @if (objJob.Entity.ArchivedUtc.HasValue)
                 {
-                    <button type="button" class="btn btn-soft-primary" disabled="@blnSaving" @onclick="RestoreOpportunityAsync">
+                    <button type="button" class="btn btn-soft-primary" disabled="@blnSaving" @onclick="RestoreJobAsync">
                         <span class="material-symbols-outlined">unarchive</span>
                         Restore
                     </button>
@@ -195,7 +195,7 @@
 
                                 <div>
                                     <small>Value</small>
-                                    <strong>@FormatMoney(objOpportunity.Value)</strong>
+                                    <strong>@FormatMoney(objJob.Value)</strong>
                                 </div>
                             </div>
 
@@ -204,7 +204,7 @@
 
                                 <div>
                                     <small>Probability</small>
-                                    <strong>@FormatProbability(objOpportunity.ProbabilityPercent)</strong>
+                                    <strong>@FormatProbability(objJob.ProbabilityPercent)</strong>
                                 </div>
                             </div>
 
@@ -213,7 +213,7 @@
 
                                 <div>
                                     <small>Expected close</small>
-                                    <strong>@FormatDate(objOpportunity.ExpectedCloseDateUtc)</strong>
+                                    <strong>@FormatDate(objJob.ExpectedCloseDateUtc)</strong>
                                 </div>
                             </div>
 
@@ -222,7 +222,7 @@
 
                                 <div>
                                     <small>Source</small>
-                                    <strong>@DisplayValue(objOpportunity.Source)</strong>
+                                    <strong>@DisplayValue(objJob.Source)</strong>
                                 </div>
                             </div>
                         </div>
@@ -233,14 +233,14 @@
                     <div class="crm-card-header">
                         <div>
                             <h3>Description</h3>
-                            <p>Summary and context for this opportunity.</p>
+                            <p>Summary and context for this job.</p>
                         </div>
                     </div>
 
                     <div class="opportunity-card-body">
-                        @if (!String.IsNullOrWhiteSpace(objOpportunity.Description))
+                        @if (!String.IsNullOrWhiteSpace(objJob.Description))
                         {
-                            <p class="opportunity-description">@objOpportunity.Description</p>
+                            <p class="opportunity-description">@objJob.Description</p>
                         }
                         else
                         {
@@ -252,10 +252,10 @@
                     </div>
                 </div>
 
-                <EntityNotes EntityId="@OpportunityId"
+                <EntityNotes EntityId="@JobId"
                              Title="Notes"
-                             Subtitle="Internal notes for this opportunity."
-                             EmptyText="No notes have been added for this opportunity yet." />
+                             Subtitle="Internal notes for this job."
+                             EmptyText="No notes have been added for this job yet." />
             </div>
 
             <aside class="opportunity-side-column">
@@ -264,17 +264,17 @@
                         <h4 class="opportunity-side-heading">Quick actions</h4>
 
                         <div class="opportunity-action-list">
-                            @if (objOpportunity.Company != null)
+                            @if (objJob.Company != null)
                             {
-                                <a href="@GetCompanyUrl(objOpportunity.Company.Id)" class="btn btn-soft-primary w-100">
+                                <a href="@GetCompanyUrl(objJob.Company.Id)" class="btn btn-soft-primary w-100">
                                     <span class="material-symbols-outlined">business</span>
                                     Open company
                                 </a>
                             }
 
-                            @if (objOpportunity.Contact != null)
+                            @if (objJob.Contact != null)
                             {
-                                <a href="@GetContactUrl(objOpportunity.Contact.Id)" class="btn btn-soft-secondary w-100">
+                                <a href="@GetContactUrl(objJob.Contact.Id)" class="btn btn-soft-secondary w-100">
                                     <span class="material-symbols-outlined">person</span>
                                     Open contact
                                 </a>
@@ -296,11 +296,11 @@
                             <div>
                                 <span>Company</span>
 
-                                @if (objOpportunity.Company != null)
+                                @if (objJob.Company != null)
                                 {
                                     <strong>
-                                        <a href="@GetCompanyUrl(objOpportunity.Company.Id)">
-                                            @objOpportunity.Company.Name
+                                        <a href="@GetCompanyUrl(objJob.Company.Id)">
+                                            @objJob.Company.Name
                                         </a>
                                     </strong>
                                 }
@@ -313,11 +313,11 @@
                             <div>
                                 <span>Contact</span>
 
-                                @if (objOpportunity.Contact != null)
+                                @if (objJob.Contact != null)
                                 {
                                     <strong>
-                                        <a href="@GetContactUrl(objOpportunity.Contact.Id)">
-                                            @objOpportunity.Contact.Entity.DisplayName
+                                        <a href="@GetContactUrl(objJob.Contact.Id)">
+                                            @objJob.Contact.Entity.DisplayName
                                         </a>
                                     </strong>
                                 }
@@ -329,12 +329,12 @@
 
                             <div>
                                 <span>Stage</span>
-                                <strong>@GetStageName(objOpportunity.Stage)</strong>
+                                <strong>@objJob.Stage.GetDisplay().Name</strong>
                             </div>
 
                             <div>
                                 <span>Source</span>
-                                <strong>@DisplayValue(objOpportunity.Source)</strong>
+                                <strong>@DisplayValue(objJob.Source)</strong>
                             </div>
                         </div>
                     </div>
@@ -347,17 +347,17 @@
                         <div class="opportunity-meta-list">
                             <div>
                                 <span>Created</span>
-                                <strong>@FormatNullableDate(objOpportunity.Entity.CreatedUtc)</strong>
+                                <strong>@FormatNullableDate(objJob.Entity.CreatedUtc)</strong>
                             </div>
 
                             <div>
                                 <span>Updated</span>
-                                <strong>@FormatNullableDate(objOpportunity.Entity.UpdatedUtc)</strong>
+                                <strong>@FormatNullableDate(objJob.Entity.UpdatedUtc)</strong>
                             </div>
 
                             <div>
                                 <span>Archived</span>
-                                <strong>@FormatNullableDate(objOpportunity.Entity.ArchivedUtc)</strong>
+                                <strong>@FormatNullableDate(objJob.Entity.ArchivedUtc)</strong>
                             </div>
                         </div>
                     </div>
@@ -369,11 +369,11 @@
 
 @code {
     [Parameter]
-    public Guid OpportunityId { get; set; }
+    public Guid JobId { get; set; }
 
-    private Opportunity? objOpportunity;
+    private Job? objJob;
 
-    private String strPageTitle = "Opportunity";
+    private String strPageTitle = "Job";
     private String? strSuccessMessage;
     private String? strErrorMessage;
 
@@ -384,18 +384,18 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        await LoadOpportunityAsync();
+        await LoadJobAsync();
     }
 
     private RenderFragment GetHeaderActions()
     {
-        return @<a href="/opportunities" class="btn btn-soft-secondary">
+        return @<a href="/jobs" class="btn btn-soft-secondary">
             <span class="material-symbols-outlined">arrow_back</span>
-            Back to opportunities
+            Back to jobs
         </a>;
     }
 
-    private async Task LoadOpportunityAsync()
+    private async Task LoadJobAsync()
     {
         blnLoading = true;
         strErrorMessage = null;
@@ -404,40 +404,40 @@
         blnConfirmDelete = false;
 
         HeaderState.SetHeader(
-            "Opportunity",
-            "Loading opportunity...",
+            "Job",
+            "Loading job...",
             GetHeaderActions());
 
         try
         {
-            objOpportunity = await OpportunityService.GetOpportunityByIdAsync(OpportunityId);
+            objJob = await JobService.GetJobByIdAsync(JobId);
 
-            if (objOpportunity == null)
+            if (objJob == null)
             {
-                strPageTitle = "Opportunity not found";
+                strPageTitle = "Job not found";
 
                 HeaderState.SetHeader(
-                    "Opportunity not found",
-                    "The selected opportunity could not be loaded",
+                    "Job not found",
+                    "The selected job could not be loaded",
                     GetHeaderActions());
 
                 return;
             }
 
-            strPageTitle = objOpportunity.Name;
+            strPageTitle = objJob.Name;
 
             HeaderState.SetHeader(
-                objOpportunity.Name,
-                objOpportunity.Company?.Name ?? "Opportunity details",
+                objJob.Name,
+                objJob.Company?.Name ?? "Job details",
                 GetHeaderActions());
         }
         catch (Exception objError)
         {
-            strErrorMessage = "Failed to load opportunity: " + objError.Message;
+            strErrorMessage = "Failed to load job: " + objError.Message;
 
             HeaderState.SetHeader(
-                "Opportunity",
-                "Unable to load opportunity",
+                "Job",
+                "Unable to load job",
                 GetHeaderActions());
         }
         finally
@@ -448,7 +448,7 @@
 
     private void GoToEdit()
     {
-        Navigation.NavigateTo($"/opportunities/{OpportunityId}/edit");
+        Navigation.NavigateTo($"/jobs/{JobId}/edit");
     }
 
     private void ShowArchiveConfirmation()
@@ -473,21 +473,21 @@
         blnConfirmDelete = false;
     }
 
-    private async Task ArchiveOpportunityAsync()
+    private async Task ArchiveJobAsync()
     {
-        await RunOpportunityActionAsync(
-            () => OpportunityService.ArchiveOpportunityAsync(OpportunityId),
-            "Opportunity archived");
+        await RunJobActionAsync(
+            () => JobService.ArchiveJobAsync(JobId),
+            "Job archived");
     }
 
-    private async Task RestoreOpportunityAsync()
+    private async Task RestoreJobAsync()
     {
-        await RunOpportunityActionAsync(
-            () => OpportunityService.RestoreOpportunityAsync(OpportunityId),
-            "Opportunity restored");
+        await RunJobActionAsync(
+            () => JobService.RestoreJobAsync(JobId),
+            "Job restored");
     }
 
-    private async Task DeleteOpportunityAsync()
+    private async Task DeleteJobAsync()
     {
         blnSaving = true;
         strErrorMessage = null;
@@ -495,19 +495,19 @@
 
         try
         {
-            Boolean blnDeleted = await OpportunityService.DeleteOpportunityAsync(OpportunityId);
+            Boolean blnDeleted = await JobService.DeleteJobAsync(JobId);
 
             if (!blnDeleted)
             {
-                strErrorMessage = "The opportunity could not be deleted. It may already have been deleted.";
+                strErrorMessage = "The job could not be deleted. It may already have been deleted.";
                 return;
             }
 
-            Navigation.NavigateTo("/opportunities");
+            Navigation.NavigateTo("/jobs");
         }
         catch (Exception objError)
         {
-            strErrorMessage = "Failed to delete opportunity: " + objError.Message;
+            strErrorMessage = "Failed to delete job: " + objError.Message;
         }
         finally
         {
@@ -516,7 +516,7 @@
         }
     }
 
-    private async Task RunOpportunityActionAsync(Func<Task<Boolean>> objAction, String strSuccessMessageText)
+    private async Task RunJobActionAsync(Func<Task<Boolean>> objAction, String strSuccessMessageText)
     {
         blnSaving = true;
         strErrorMessage = null;
@@ -530,16 +530,16 @@
 
             if (!blnSuccess)
             {
-                strErrorMessage = "The opportunity could not be updated. It may have been deleted or no longer exists.";
+                strErrorMessage = "The job could not be updated. It may have been deleted or no longer exists.";
                 return;
             }
 
-            await LoadOpportunityAsync();
+            await LoadJobAsync();
             strSuccessMessage = strSuccessMessageText;
         }
         catch (Exception objError)
         {
-            strErrorMessage = "Failed to update opportunity: " + objError.Message;
+            strErrorMessage = "Failed to update job: " + objError.Message;
         }
         finally
         {
@@ -557,40 +557,26 @@
         return $"/contacts/{objContactId}";
     }
 
-    private static String GetOpportunityInitial(Opportunity objOpportunity)
+    private static String GetJobInitial(Job objJob)
     {
-        if (String.IsNullOrWhiteSpace(objOpportunity.Name))
+        if (String.IsNullOrWhiteSpace(objJob.Name))
         {
             return "?";
         }
 
-        return objOpportunity.Name.Trim().Substring(0, 1).ToUpperInvariant();
+        return objJob.Name.Trim().Substring(0, 1).ToUpperInvariant();
     }
 
-    private static String GetStageName(OpportunityStage enmStage)
+    private static String GetStageBadgeClass(JobStage enmStage)
     {
         return enmStage switch
         {
-            OpportunityStage.New => "New",
-            OpportunityStage.Qualified => "Qualified",
-            OpportunityStage.Proposal => "Proposal",
-            OpportunityStage.Negotiation => "Negotiation",
-            OpportunityStage.Won => "Won",
-            OpportunityStage.Lost => "Lost",
-            _ => enmStage.ToString()
-        };
-    }
-
-    private static String GetStageBadgeClass(OpportunityStage enmStage)
-    {
-        return enmStage switch
-        {
-            OpportunityStage.Won => "opportunity-stage opportunity-stage-won",
-            OpportunityStage.Lost => "opportunity-stage opportunity-stage-lost",
-            OpportunityStage.Negotiation => "opportunity-stage opportunity-stage-negotiation",
-            OpportunityStage.Proposal => "opportunity-stage opportunity-stage-proposal",
-            OpportunityStage.Qualified => "opportunity-stage opportunity-stage-qualified",
-            _ => "opportunity-stage"
+            JobStage.New => "job-stage job-stage-new",
+            JobStage.Lost => "job-stage job-stage-lost",
+            JobStage.Quoted => "job-stage job-stage-quoted",
+            JobStage.ToDo => "job-stage job-stage-todo",
+            JobStage.Paid => "job-stage job-stage-paid",
+            _ => "job-stage"
         };
     }
 

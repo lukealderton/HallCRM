@@ -8,8 +8,8 @@ using CRM.Core.Logging.Abstraction;
 using CRM.Core.Logging.Services;
 using CRM.Core.Notes.Abstractions;
 using CRM.Core.Notes.Services;
-using CRM.Core.Opportunities.Abstractions;
-using CRM.Core.Opportunities.Services;
+using CRM.Core.Jobs.Abstractions;
+using CRM.Core.Jobs.Services;
 using CRM.Core.Tickets.Abstractions;
 using CRM.Core.Tickets.Services;
 using CRM.Core.Users.Abstraction.Services;
@@ -32,7 +32,7 @@ namespace CRM.Core
 
             colServices.AddScoped<ICompanyService,      CompanyService>();
             colServices.AddScoped<IContactService,      ContactService>();
-            colServices.AddScoped<IOpportunityService,  OpportunityService>();
+            colServices.AddScoped<IJobService,          JobService>();
             colServices.AddScoped<INoteService,         NoteService>();
 
             colServices.AddScoped<ITicketService, TicketService>();

@@ -1,5 +1,5 @@
-﻿@page "/opportunities/add"
-@page "/opportunities/{OpportunityId:guid}/edit"
+﻿@page "/jobs/add"
+@page "/jobs/{JobId:guid}/edit"
 @attribute [Authorize]
 @rendermode InteractiveServer
 
@@ -7,11 +7,11 @@
 @using CRM.Core.Companies.Domain
 @using CRM.Core.Contacts.Abstractions
 @using CRM.Core.Contacts.Domain
-@using CRM.Core.Opportunities.Abstractions
-@using CRM.Core.Opportunities.Domain
+@using CRM.Core.Jobs.Abstractions
+@using CRM.Core.Jobs.Domain
 @using CRM.Web.State
 
-@inject IOpportunityService OpportunityService
+@inject IJobService JobService
 @inject ICompanyService CompanyService
 @inject IContactService ContactService
 @inject NavigationManager Navigation
@@ -19,11 +19,11 @@
 
 <PageTitle>@strPageTitle</PageTitle>
 
-<section class="opportunity-edit-page">
-    <div class="opportunity-toolbar">
+<section class="job-edit-page">
+    <div class="job-toolbar">
         <button type="button" class="btn crm-btn-secondary" @onclick="GoBack">
             <span class="material-symbols-outlined">arrow_back</span>
-            @(blnEditMode ? "Back to opportunity" : "Back to opportunities")
+            @(blnEditMode ? "Back to job" : "Back to jobs")
         </button>
     </div>
 
@@ -37,33 +37,33 @@
 
     @if (blnLoading)
     {
-        <div class="crm-card opportunity-empty-state">
+        <div class="crm-card job-empty-state">
             <span class="material-symbols-outlined">hourglass_empty</span>
-            <h2>Loading opportunity</h2>
+            <h2>Loading job</h2>
             <p>Please wait while the form is prepared.</p>
         </div>
     }
     else
     {
-        <EditForm Model="objOpportunity" OnValidSubmit="SaveOpportunityAsync" FormName="OpportunityEditForm">
+        <EditForm Model="objJob" OnValidSubmit="SaveJobAsync" FormName="JobEditForm">
             <DataAnnotationsValidator />
 
-            <div class="opportunity-layout">
-                <div class="opportunity-main-column">
-                    <div class="crm-card opportunity-form-card">
-                        <h2>@(blnEditMode ? "Edit opportunity" : "New opportunity")</h2>
+            <div class="job-layout">
+                <div class="job-main-column">
+                    <div class="crm-card job-form-card">
+                        <h2>@(blnEditMode ? "Edit job" : "New job")</h2>
                         <p>Track the deal, company, contact and pipeline stage.</p>
 
                         <div class="row g-3 mt-1">
                             <div class="col-md-8">
                                 <label class="form-label" for="name">Name</label>
-                                <InputText id="name" class="form-control" @bind-Value="objOpportunity.Name" />
+                                <InputText id="name" class="form-control" @bind-Value="objJob.Name" />
                             </div>
 
                             <div class="col-md-4">
                                 <label class="form-label" for="stage">Stage</label>
-                                <InputSelect id="stage" class="form-select" TValue="OpportunityStage" @bind-Value="objOpportunity.Stage">
-                                    @foreach (OpportunityStage enmStage in Enum.GetValues<OpportunityStage>())
+                                <InputSelect id="stage" class="form-select" TValue="JobStage" @bind-Value="objJob.Stage">
+                                    @foreach (JobStage enmStage in Enum.GetValues<JobStage>())
                                     {
                                         <option value="@enmStage">@GetStageName(enmStage)</option>
                                     }
@@ -96,32 +96,32 @@
 
                             <div class="col-md-4">
                                 <label class="form-label" for="value">Value</label>
-                                <InputNumber id="value" class="form-control" @bind-Value="objOpportunity.Value" />
+                                <InputNumber id="value" class="form-control" @bind-Value="objJob.Value" />
                             </div>
 
                             <div class="col-md-4">
                                 <label class="form-label" for="probability">Probability %</label>
-                                <InputNumber id="probability" class="form-control" @bind-Value="objOpportunity.ProbabilityPercent" />
+                                <InputNumber id="probability" class="form-control" @bind-Value="objJob.ProbabilityPercent" />
                             </div>
 
                             <div class="col-md-4">
                                 <label class="form-label" for="closeDate">Expected close date</label>
-                                <InputDate id="closeDate" class="form-control" @bind-Value="objOpportunity.ExpectedCloseDateUtc" />
+                                <InputDate id="closeDate" class="form-control" @bind-Value="objJob.ExpectedCloseDateUtc" />
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label" for="source">Source</label>
-                                <InputText id="source" class="form-control" @bind-Value="objOpportunity.Source" />
+                                <InputText id="source" class="form-control" @bind-Value="objJob.Source" />
                             </div>
 
                             <div class="col-12">
                                 <label class="form-label" for="description">Description</label>
-                                <InputTextArea id="description" class="form-control opportunity-textarea" @bind-Value="objOpportunity.Description" />
+                                <InputTextArea id="description" class="form-control opportunity-textarea" @bind-Value="objJob.Description" />
                             </div>
 
                             <div class="col-12">
                                 <label class="form-label" for="notes">Notes</label>
-                                <InputTextArea id="notes" class="form-control opportunity-textarea" @bind-Value="objOpportunity.Notes" />
+                                <InputTextArea id="notes" class="form-control opportunity-textarea" @bind-Value="objJob.Notes" />
                             </div>
                         </div>
                     </div>
@@ -133,7 +133,7 @@
 
                         <button type="submit" class="btn crm-btn-primary" disabled="@blnSaving">
                             <span class="material-symbols-outlined">save</span>
-                            @(blnSaving ? "Saving..." : "Save opportunity")
+                            @(blnSaving ? "Saving..." : "Save job")
                         </button>
                     </div>
                 </div>
@@ -145,22 +145,22 @@
                         <dl>
                             <div>
                                 <dt>Stage</dt>
-                                <dd>@GetStageName(objOpportunity.Stage)</dd>
+                                <dd>@GetStageName(objJob.Stage)</dd>
                             </div>
 
                             <div>
                                 <dt>Value</dt>
-                                <dd>@FormatMoney(objOpportunity.Value)</dd>
+                                <dd>@FormatMoney(objJob.Value)</dd>
                             </div>
 
                             <div>
                                 <dt>Probability</dt>
-                                <dd>@FormatProbability(objOpportunity.ProbabilityPercent)</dd>
+                                <dd>@FormatProbability(objJob.ProbabilityPercent)</dd>
                             </div>
 
                             <div>
                                 <dt>Close</dt>
-                                <dd>@FormatDate(objOpportunity.ExpectedCloseDateUtc)</dd>
+                                <dd>@FormatDate(objJob.ExpectedCloseDateUtc)</dd>
                             </div>
                         </dl>
                     </div>
@@ -172,7 +172,7 @@
 
 @code {
     [Parameter]
-    public Guid? OpportunityId { get; set; }
+    public Guid? JobId { get; set; }
 
     [SupplyParameterFromQuery(Name = "companyId")]
     public Guid? CompanyId { get; set; }
@@ -180,23 +180,23 @@
     [SupplyParameterFromQuery(Name = "contactId")]
     public Guid? ContactId { get; set; }
 
-    private Opportunity objOpportunity = new();
+    private Job objJob = new();
     private List<Company> colCompanies = [];
     private List<Contact> colContacts = [];
 
-    private String strPageTitle = "New opportunity";
+    private String strPageTitle = "New job";
     private String? strErrorMessage;
     private Boolean blnLoading = true;
     private Boolean blnSaving;
 
-    private Boolean blnEditMode => OpportunityId.HasValue && OpportunityId.Value != Guid.Empty;
+    private Boolean blnEditMode => JobId.HasValue && JobId.Value != Guid.Empty;
 
     private String strSelectedCompanyId
     {
-        get => objOpportunity.CompanyId?.ToString() ?? String.Empty;
+        get => objJob.CompanyId?.ToString() ?? String.Empty;
         set
         {
-            objOpportunity.CompanyId = Guid.TryParse(value, out Guid objCompanyId)
+            objJob.CompanyId = Guid.TryParse(value, out Guid objCompanyId)
                 ? objCompanyId
                 : null;
         }
@@ -204,10 +204,10 @@
 
     private String strSelectedContactId
     {
-        get => objOpportunity.ContactId?.ToString() ?? String.Empty;
+        get => objJob.ContactId?.ToString() ?? String.Empty;
         set
         {
-            objOpportunity.ContactId = Guid.TryParse(value, out Guid objContactId)
+            objJob.ContactId = Guid.TryParse(value, out Guid objContactId)
                 ? objContactId
                 : null;
         }
@@ -230,35 +230,35 @@
 
             if (blnEditMode)
             {
-                Opportunity? objExistingOpportunity = await OpportunityService.GetOpportunityByIdAsync(OpportunityId!.Value);
+                Job? objExistingJob = await JobService.GetJobByIdAsync(JobId!.Value);
 
-                if (objExistingOpportunity == null)
+                if (objExistingJob == null)
                 {
-                    strErrorMessage = "Opportunity not found.";
-                    HeaderState.SetHeader("Opportunity not found", "The selected opportunity could not be loaded");
+                    strErrorMessage = "Job not found.";
+                    HeaderState.SetHeader("Job not found", "The selected job could not be loaded");
                     return;
                 }
 
-                objOpportunity = objExistingOpportunity;
-                strPageTitle = "Edit " + objOpportunity.Name;
-                HeaderState.SetHeader("Edit opportunity", objOpportunity.Name);
+                objJob = objExistingJob;
+                strPageTitle = "Edit " + objJob.Name;
+                HeaderState.SetHeader("Edit job", objJob.Name);
             }
             else
             {
-                objOpportunity = new Opportunity
+                objJob = new Job
                 {
                     CompanyId = CompanyId,
                     ContactId = ContactId,
-                    Stage = OpportunityStage.New
+                    Stage = JobStage.New
                 };
 
-                strPageTitle = "New opportunity";
-                HeaderState.SetHeader("New opportunity", "Create a new sales opportunity");
+                strPageTitle = "New job";
+                HeaderState.SetHeader("New job", "Create a new sales job");
             }
         }
         catch (Exception objError)
         {
-            strErrorMessage = "Failed to load opportunity form: " + objError.Message;
+            strErrorMessage = "Failed to load job form: " + objError.Message;
         }
         finally
         {
@@ -266,37 +266,37 @@
         }
     }
 
-    private async Task SaveOpportunityAsync()
+    private async Task SaveJobAsync()
     {
         blnSaving = true;
         strErrorMessage = null;
 
         try
         {
-            Opportunity objSavedOpportunity;
+            Job objSavedJob;
 
             if (blnEditMode)
             {
-                Opportunity? objUpdatedOpportunity = await OpportunityService.UpdateOpportunityAsync(objOpportunity);
+                Job? objUpdatedJob = await JobService.UpdateJobAsync(objJob);
 
-                if (objUpdatedOpportunity == null)
+                if (objUpdatedJob == null)
                 {
-                    strErrorMessage = "The opportunity could not be updated.";
+                    strErrorMessage = "The job could not be updated.";
                     return;
                 }
 
-                objSavedOpportunity = objUpdatedOpportunity;
+                objSavedJob = objUpdatedJob;
             }
             else
             {
-                objSavedOpportunity = await OpportunityService.AddOpportunityAsync(objOpportunity);
+                objSavedJob = await JobService.AddJobAsync(objJob);
             }
 
-            Navigation.NavigateTo($"/opportunities/{objSavedOpportunity.Id}");
+            Navigation.NavigateTo($"/jobs/{objSavedJob.Id}");
         }
         catch (Exception objError)
         {
-            strErrorMessage = "Failed to save opportunity: " + objError.Message;
+            strErrorMessage = "Failed to save job: " + objError.Message;
         }
         finally
         {
@@ -308,23 +308,23 @@
     {
         if (blnEditMode)
         {
-            Navigation.NavigateTo($"/opportunities/{OpportunityId}");
+            Navigation.NavigateTo($"/jobs/{JobId}");
             return;
         }
 
-        Navigation.NavigateTo("/opportunities");
+        Navigation.NavigateTo("/jobs");
     }
 
-    private static String GetStageName(OpportunityStage enmStage)
+    private static String GetStageName(JobStage enmStage)
     {
         return enmStage switch
         {
-            OpportunityStage.New => "New",
-            OpportunityStage.Qualified => "Qualified",
-            OpportunityStage.Proposal => "Proposal",
-            OpportunityStage.Negotiation => "Negotiation",
-            OpportunityStage.Won => "Won",
-            OpportunityStage.Lost => "Lost",
+            JobStage.New => "New",
+            JobStage.Quoted => "Quoted",
+            JobStage.ToDo => "To Do",
+            JobStage.Invoiced => "Invoiced",
+            JobStage.Paid => "Paid",
+            JobStage.Lost => "Lost",
             _ => enmStage.ToString()
         };
     }

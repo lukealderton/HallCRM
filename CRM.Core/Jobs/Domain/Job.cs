@@ -2,9 +2,9 @@
 using CRM.Core.Contacts.Domain;
 using CRM.Core.Entities.Domain;
 
-namespace CRM.Core.Opportunities.Domain
+namespace CRM.Core.Jobs.Domain
 {
-    public sealed class Opportunity : CrmEntityRecord
+    public sealed class Job : CrmEntityRecord
     {
         public Guid? CompanyId { get; set; }
         public Guid? ContactId { get; set; }
@@ -12,7 +12,7 @@ namespace CRM.Core.Opportunities.Domain
         public String Name { get; set; } = String.Empty;
         public String? Description { get; set; }
 
-        public OpportunityStage Stage { get; set; } = OpportunityStage.New;
+        public JobStage Stage { get; set; } = JobStage.New;
 
         public Decimal? Value { get; set; }
         public Int32? ProbabilityPercent { get; set; }

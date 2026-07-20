@@ -12,7 +12,7 @@ namespace CRM.Core.Tickets.Domain
         public Company? Company { get; set; }
 
         public Guid? ContactId { get; set; }
-        public Guid? OpportunityId { get; set; }
+        public Guid? JobId { get; set; }
         public Guid? ProjectId { get; set; }
 
         public Guid? AssignedToUserId { get; set; }
