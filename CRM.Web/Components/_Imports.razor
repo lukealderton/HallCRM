@@ -1,0 +1,27 @@
+﻿@using System.Net.Http
+@using System.Net.Http.Json
+@using CRM.Core.Companies.Abstractions
+@using CRM.Core.Notifications.Abstractions
+@using CRM.Core.Users.Abstraction
+@using CRM.Core.Users.Abstraction.Services
+@using CRM.Infrastructure.Identity
+@using CRM.Web
+@using CRM.Web.Components
+@using CRM.Web.Components.Layout
+@using CRM.Web.Components.Notes.Shared
+@using CRM.Web.State
+@using CRM.Web.Users.Abstraction
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+
+@inject PageHeaderState HeaderState
+@inject IUserService UserService
+@inject ICompanyService CompanyService
+@inject IToastService ToastService
+@inject ICurrentUserState UserState

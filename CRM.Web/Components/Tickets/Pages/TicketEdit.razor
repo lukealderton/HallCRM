@@ -1,0 +1,336 @@
+﻿@page "/tickets/new"
+@page "/tickets/{TicketId:guid}/edit"
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@using CRM.Core.Companies.Domain
+
+@inject NavigationManager NavigationManager
+@inject ICurrentUserState CurrentUserState
+
+<div class="ticket-edit-page">
+
+    @if (!String.IsNullOrWhiteSpace(_strError))
+    {
+        <div class="alert alert-danger crm-alert crm-alert-danger">
+            @_strError
+        </div>
+    }
+
+    @if (_blnLoading)
+    {
+        <div class="crm-card ticket-edit-state">
+            <span class="material-symbols-outlined">hourglass_empty</span>
+            <p>Loading ticket...</p>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="_objTicket" FormName="ticket-edit-form" OnValidSubmit="SaveAsync">
+            <div class="ticket-edit-grid">
+                <div class="ticket-edit-main">
+                    <div class="crm-card ticket-form-card">
+                        <div class="ticket-form-section-header">
+                            <h3>Ticket Details</h3>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <InputText class="form-control" @bind-Value="_objTicket.Title" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <InputTextArea class="form-control" rows="7" @bind-Value="_objTicket.Description" />
+                        </div>
+
+                        <div class="ticket-form-grid">
+                            <div>
+                                <label class="form-label">Company</label>
+                                <InputSelect class="form-select" @bind-Value="_objTicket.CompanyId">
+                                    <option value="">No company</option>
+                                    @foreach (Company objCompany in _colCompanies)
+                                    {
+                                        <option value="@objCompany.Id">@objCompany.Name</option>
+                                    }
+                                </InputSelect>
+                            </div>
+
+                            <div>
+                                <label class="form-label">Type</label>
+                                <InputSelect class="form-select" @bind-Value="_objTicket.Type">
+                                    @foreach (TicketType enmType in Enum.GetValues<TicketType>())
+                                    {
+                                        <option value="@enmType">@GetEnumLabel(enmType.ToString())</option>
+                                    }
+                                </InputSelect>
+                            </div>
+
+                            <div>
+                                <label class="form-label">Status</label>
+                                <InputSelect class="form-select" @bind-Value="_objTicket.Status">
+                                    @foreach (TicketStatus enmStatus in Enum.GetValues<TicketStatus>())
+                                    {
+                                        <option value="@enmStatus">@GetStatusLabel(enmStatus)</option>
+                                    }
+                                </InputSelect>
+                            </div>
+
+                            <div>
+                                <label class="form-label">Priority</label>
+                                <InputSelect class="form-select" @bind-Value="_objTicket.Priority">
+                                    @foreach (TicketPriority enmPriority in Enum.GetValues<TicketPriority>())
+                                    {
+                                        <option value="@enmPriority">@enmPriority</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crm-card ticket-form-card">
+                        <div class="ticket-form-section-header">
+                            <h3>Internal Notes</h3>
+                        </div>
+
+                        <InputTextArea class="form-control" rows="5" @bind-Value="_objTicket.InternalNotes" />
+                    </div>
+                </div>
+
+                <div class="ticket-edit-side">
+                    <div class="crm-card ticket-form-card">
+                        <div class="ticket-form-section-header">
+                            <h3>Billing</h3>
+                        </div>
+
+                        <div class="ticket-form-checks">
+                            <label class="form-check form-switch">
+                                <InputCheckbox class="form-check-input" @bind-Value="_objTicket.IsChargeable" />
+                                <span class="form-check-label">Chargeable</span>
+                            </label>
+
+                            <label class="form-check form-switch">
+                                <InputCheckbox class="form-check-input" @bind-Value="_objTicket.IsInvoiced" />
+                                <span class="form-check-label">Invoiced</span>
+                            </label>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Estimated Value</label>
+                            <InputNumber class="form-control" @bind-Value="_objTicket.EstimatedValue" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Quoted Value</label>
+                            <InputNumber class="form-control" @bind-Value="_objTicket.QuotedValue" />
+                        </div>
+
+                        <div>
+                            <label class="form-label">Invoice Value</label>
+                            <InputNumber class="form-control" @bind-Value="_objTicket.InvoiceValue" />
+                        </div>
+                    </div>
+
+                    <div class="crm-card ticket-form-card">
+                        <div class="ticket-form-section-header">
+                            <h3>Time & Dates</h3>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Estimated Minutes</label>
+                            <InputNumber class="form-control" @bind-Value="_objTicket.EstimatedMinutes" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Actual Minutes</label>
+                            <InputNumber class="form-control" @bind-Value="_objTicket.ActualMinutes" />
+                        </div>
+
+                        <div>
+                            <label class="form-label">Due Date</label>
+                            <InputDate class="form-control" @bind-Value="_objTicket.DueUtc" />
+                        </div>
+                    </div>
+
+                    <div class="ticket-save-panel">
+                        <button type="submit" class="btn btn-primary crm-btn-primary" disabled="@_blnSaving">
+                            <span class="material-symbols-outlined">save</span>
+                            @(_blnSaving ? "Saving..." : "Save Ticket")
+                        </button>
+
+                        @if (!_blnIsNew)
+                        {
+                            <button type="button" class="btn btn-outline-danger" @onclick="DeleteAsync">
+                                <span class="material-symbols-outlined">delete</span>
+                                Delete
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid? TicketId { get; set; }
+
+    private Ticket _objTicket = new();
+    private List<Company> _colCompanies = [];
+
+    private Boolean _blnLoading = true;
+    private Boolean _blnSaving;
+    private Boolean _blnIsNew => !TicketId.HasValue || TicketId.Value == Guid.Empty;
+
+    private String? _strError;
+
+    protected override async Task OnInitializedAsync()
+{
+    HeaderState.SetHeader(
+        _blnIsNew ? "Create Ticket" : "Edit Ticket",
+        "Add the details, billing information and workflow status.",
+        @<button type="button" class="btn btn-outline-secondary" @onclick="Cancel">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Cancel
+        </button>);
+
+    await LoadAsync();
+}
+
+    private async Task LoadAsync()
+    {
+        _blnLoading = true;
+
+        _colCompanies = await CompanyService.GetCompaniesAsync();
+
+        if (_blnIsNew)
+        {
+            _objTicket = new Ticket
+            {
+                Status = TicketStatus.New,
+                Type = TicketType.General,
+                Priority = TicketPriority.Normal,
+                IsChargeable = true
+            };
+        }
+        else
+        {
+            Ticket? objTicket = await TicketService.GetTicketByIdAsync(TicketId!.Value);
+
+            if (objTicket == null)
+            {
+                _strError = "Ticket could not be found.";
+                _objTicket = new Ticket();
+            }
+            else
+            {
+                _objTicket = objTicket;
+            }
+        }
+
+        _blnLoading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        _strError = null;
+
+        if (String.IsNullOrWhiteSpace(_objTicket.Title))
+        {
+            _strError = "Ticket title is required.";
+            return;
+        }
+
+        _blnSaving = true;
+
+        try
+        {
+            Guid? objUserId = await CurrentUserState.GetCurrentUserIdAsync();
+
+            if (_blnIsNew)
+            {
+                Ticket? objCreatedTicket = await TicketService.AddTicketAsync(_objTicket, objUserId);
+
+                if (objCreatedTicket == null)
+                {
+                    _strError = "Ticket could not be created.";
+                    return;
+                }
+
+                NavigationManager.NavigateTo($"/tickets/{objCreatedTicket.Id}");
+            }
+            else
+            {
+                Ticket? objUpdatedTicket = await TicketService.UpdateTicketAsync(_objTicket, objUserId);
+
+                if (objUpdatedTicket == null)
+                {
+                    _strError = "Ticket could not be updated.";
+                    return;
+                }
+
+                NavigationManager.NavigateTo($"/tickets/{objUpdatedTicket.Id}");
+            }
+        }
+        catch (Exception objError)
+        {
+            _strError = objError.Message;
+        }
+        finally
+        {
+            _blnSaving = false;
+        }
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (_blnIsNew)
+        {
+            return;
+        }
+
+        Guid? objUserId = await CurrentUserState.GetCurrentUserIdAsync();
+
+        Boolean blnDeleted = await TicketService.DeleteTicketAsync(TicketId!.Value, objUserId);
+
+        if (blnDeleted)
+        {
+            NavigationManager.NavigateTo("/tickets");
+            return;
+        }
+
+        _strError = "Ticket could not be deleted.";
+    }
+
+    private void Cancel()
+    {
+        if (_blnIsNew)
+        {
+            NavigationManager.NavigateTo("/tickets");
+            return;
+        }
+
+        NavigationManager.NavigateTo($"/tickets/{TicketId}");
+    }
+
+    private static String GetStatusLabel(TicketStatus enmStatus)
+    {
+        return enmStatus switch
+        {
+            TicketStatus.InProgress => "In Progress",
+            TicketStatus.WaitingOnClient => "Waiting on Client",
+            TicketStatus.WaitingOnInternal => "Waiting on Internal",
+            TicketStatus.ReadyToInvoice => "Ready to Invoice",
+            _ => GetEnumLabel(enmStatus.ToString())
+        };
+    }
+
+    private static String GetEnumLabel(String strValue)
+    {
+        return String.Concat(strValue.Select((chrValue, intIndex) =>
+            intIndex > 0 && Char.IsUpper(chrValue)
+                ? " " + chrValue
+                : chrValue.ToString()));
+    }
+}

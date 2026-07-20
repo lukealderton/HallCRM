@@ -1,0 +1,251 @@
+﻿.companies-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.companies-toolbar {
+    padding: 1rem 1.25rem;
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) auto auto;
+    gap: 1.25rem;
+    align-items: end;
+}
+
+.companies-search {
+    min-width: 0;
+}
+
+.companies-search .input-group-text {
+    background: #ffffff;
+    color: #64748b;
+}
+
+.companies-search .input-group-text .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.companies-filters {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding-bottom: .12rem;
+    white-space: nowrap;
+}
+
+.companies-filter-divider {
+    width: 1px;
+    height: 2.25rem;
+    background: #e5eaf2;
+}
+
+.companies-toolbar-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .7rem;
+}
+
+.companies-summary-card {
+    background: #ffffff;
+    border: 1px solid #e5eaf2;
+    border-radius: 1rem;
+    padding: 1.15rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+    min-height: 128px;
+    position: relative;
+    overflow: hidden;
+}
+
+.companies-summary-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: #0b5cff;
+}
+
+.companies-summary-card > .material-symbols-outlined {
+    width: 54px;
+    height: 54px;
+    border-radius: .85rem;
+    background: #eaf2ff;
+    color: #0b5cff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    flex: 0 0 auto;
+}
+
+.companies-summary-card small {
+    display: block;
+    color: #475569;
+    font-size: .92rem;
+    margin-bottom: .3rem;
+}
+
+.companies-summary-card strong {
+    display: block;
+    font-size: 2rem;
+    font-weight: 850;
+    line-height: 1;
+    letter-spacing: -.04em;
+    color: #0f172a;
+}
+
+.companies-summary-note {
+    display: block;
+    margin-top: .42rem;
+    color: #64748b;
+    font-size: .84rem;
+    line-height: 1.25;
+}
+
+.companies-summary-card-primary::before {
+    background: #0b5cff;
+}
+
+.companies-summary-card-success::before {
+    background: #16a34a;
+}
+
+.companies-summary-card-success > .material-symbols-outlined {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.companies-summary-card-warning::before {
+    background: #f59e0b;
+}
+
+.companies-summary-card-warning > .material-symbols-outlined {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.companies-summary-card-info::before {
+    background: #0891b2;
+}
+
+.companies-summary-card-info > .material-symbols-outlined {
+    background: #cffafe;
+    color: #0891b2;
+}
+
+.companies-alert {
+    align-items: center;
+}
+
+.companies-alert > .material-symbols-outlined {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    color: #ffffff !important;
+    background: #dc2626;
+}
+
+.companies-alert-close {
+    width: 2.2rem;
+    height: 2.2rem;
+    padding: 0;
+}
+
+.companies-table .material-symbols-outlined {
+    font-size: 17px;
+}
+
+.companies-company-cell {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+}
+
+.companies-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0b5cff, #0946bd);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    flex: 0 0 auto;
+}
+
+.companies-name-link {
+    color: #111827;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.companies-name-link:hover {
+    color: #0b5cff;
+    text-decoration: underline;
+}
+
+.companies-location {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    color: #334155;
+}
+
+.companies-location .material-symbols-outlined {
+    color: #64748b;
+    font-size: 18px;
+}
+
+.companies-row-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .45rem;
+    white-space: nowrap;
+}
+
+.companies-row-archived {
+    opacity: .78;
+}
+
+.companies-row-deleted {
+    opacity: .62;
+}
+
+@media (max-width: 1199.98px) {
+    .companies-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .companies-filters {
+        flex-wrap: wrap;
+    }
+
+    .companies-toolbar-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .companies-filter-divider {
+        display: none;
+    }
+
+    .companies-filters {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .companies-summary-card {
+        min-height: auto;
+    }
+
+    .companies-row-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

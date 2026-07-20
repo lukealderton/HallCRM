@@ -1,0 +1,204 @@
+﻿@inherits LayoutComponentBase
+@implements IDisposable
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@inject PageHeaderState objPageHeaderState
+
+<div class="crm-shell">
+    <aside class="crm-sidebar">
+        <div>
+            <div class="crm-brand">
+                <div>
+                    <div class="crm-brand-title">
+                        <span>101</span>CRM
+                    </div>
+                    <div class="crm-brand-subtitle">Customer management</div>
+                </div>
+            </div>
+
+            <NavMenu />
+        </div>
+
+        <AuthorizeView>
+            <Authorized Context="objAuthContext">
+                <div class="crm-sidebar-user">
+                    <div class="crm-sidebar-avatar">@GetUserInitials(objAuthContext.User)</div>
+
+                    <div class="crm-sidebar-user-meta">
+                        <a href="/account/manage" class="fw-bold text-white">@GetUserDisplayName(objAuthContext.User)</a>
+                        <small>@GetUserRoleLabel(objAuthContext.User)</small>
+                    </div>
+
+                    @* <span class="material-symbols-outlined">expand_more</span> *@
+                </div>
+            </Authorized>
+
+            <NotAuthorized>
+                <div class="crm-sidebar-user">
+                    <div class="crm-sidebar-avatar">?</div>
+
+                    <div class="crm-sidebar-user-meta">
+                        <strong>Not signed in</strong>
+                        <small>Guest</small>
+                    </div>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </aside>
+
+    <main class="crm-main">
+        <header class="crm-topbar">
+            <div>
+                <h1 class="crm-page-title">@objPageHeaderState.Title</h1>
+
+                @if (!String.IsNullOrWhiteSpace(objPageHeaderState.Subtitle))
+                {
+                    <p class="crm-page-subtitle">@objPageHeaderState.Subtitle</p>
+                }
+            </div>
+
+            @if (objPageHeaderState.Actions != null)
+            {
+                <div class="crm-topbar-actions">
+                    @objPageHeaderState.Actions
+                </div>
+            }
+        </header>
+
+        <section class="crm-content">
+            @Body
+        </section>
+    </main>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        objPageHeaderState.OnChange += HandlePageHeaderChanged;
+    }
+
+    private void HandlePageHeaderChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private static String GetUserDisplayName(ClaimsPrincipal objUser)
+    {
+        String? strForename = GetClaimValue(
+            objUser,
+            ClaimTypes.GivenName,
+            "given_name",
+            "forename",
+            "FirstName",
+            "Forename");
+
+        String? strSurname = GetClaimValue(
+            objUser,
+            ClaimTypes.Surname,
+            "family_name",
+            "surname",
+            "LastName",
+            "Surname");
+
+        String strFullName = $"{strForename} {strSurname}".Trim();
+
+        if (!String.IsNullOrWhiteSpace(strFullName))
+        {
+            return strFullName;
+        }
+
+        String? strName = GetClaimValue(
+            objUser,
+            ClaimTypes.Name,
+            "name",
+            "unique_name");
+
+        if (!String.IsNullOrWhiteSpace(strName))
+        {
+            return strName;
+        }
+
+        String? strEmail = GetClaimValue(
+            objUser,
+            ClaimTypes.Email,
+            "email");
+
+        if (!String.IsNullOrWhiteSpace(strEmail))
+        {
+            return strEmail;
+        }
+
+        return objUser.Identity?.Name ?? "Signed in";
+    }
+
+    private static String GetUserRoleLabel(ClaimsPrincipal objUser)
+    {
+        List<String> colRoles = objUser.Claims
+            .Where(objClaim =>
+                objClaim.Type == ClaimTypes.Role ||
+                objClaim.Type.Equals("role", StringComparison.OrdinalIgnoreCase))
+            .Select(objClaim => objClaim.Value)
+            .Where(strRole => !String.IsNullOrWhiteSpace(strRole))
+            .Distinct()
+            .ToList();
+
+        if (colRoles.Count == 0)
+        {
+            return "User";
+        }
+
+        return String.Join(", ", colRoles);
+    }
+
+    private static String GetUserInitials(ClaimsPrincipal objUser)
+    {
+        String strDisplayName = GetUserDisplayName(objUser);
+
+        if (strDisplayName.Contains('@'))
+        {
+            strDisplayName = strDisplayName.Split('@')[0]
+                .Replace(".", " ")
+                .Replace("_", " ")
+                .Replace("-", " ");
+        }
+
+        String[] colNameParts = strDisplayName.Split(
+            ' ',
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        String strInitials = String.Empty;
+
+        foreach (String strNamePart in colNameParts.Take(2))
+        {
+            strInitials += Char.ToUpperInvariant(strNamePart[0]);
+        }
+
+        if (String.IsNullOrWhiteSpace(strInitials))
+        {
+            return "U";
+        }
+
+        return strInitials;
+    }
+
+    private static String? GetClaimValue(ClaimsPrincipal objUser, params String[] colClaimTypes)
+    {
+        foreach (String strClaimType in colClaimTypes)
+        {
+            Claim? objClaim = objUser.Claims.FirstOrDefault(objClaim =>
+                objClaim.Type.Equals(strClaimType, StringComparison.OrdinalIgnoreCase));
+
+            if (!String.IsNullOrWhiteSpace(objClaim?.Value))
+            {
+                return objClaim.Value;
+            }
+        }
+
+        return null;
+    }
+
+    public void Dispose()
+    {
+        objPageHeaderState.OnChange -= HandlePageHeaderChanged;
+    }
+}

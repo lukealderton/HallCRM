@@ -1,0 +1,15 @@
+﻿namespace CRM.Core.Users.Abstraction.Services
+{
+    public interface IUserService
+    {
+        /// <summary>
+        /// Gets a dictionary of user display names by their user IDs.
+        /// </summary>
+        /// <param name="colUserIds"></param>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Dictionary<Guid, String>> GetDisplayNamesByUserIdsAsync(
+            IReadOnlyCollection<Guid> colUserIds,
+            CancellationToken objToken = default);
+    }
+}

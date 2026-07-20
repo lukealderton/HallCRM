@@ -1,0 +1,260 @@
+﻿@page "/"
+@page "/dashboard"
+@attribute [Authorize]
+
+@using CRM.Core.Companies.Abstractions
+@using CRM.Core.Companies.Domain
+
+<PageTitle>Dashboard - 101CRM</PageTitle>
+
+<div class="dashboard-page">
+    <div class="dashboard-hero">
+        <div>
+            <h2>Welcome back</h2>
+            <p>Here’s what is happening across your CRM.</p>
+        </div>
+
+        <div class="dashboard-hero-actions">
+            <a href="/companies/add" class="btn btn-primary">
+                <span class="material-symbols-outlined">add</span>
+                New company
+            </a>
+
+            <a href="/contacts/add" class="btn btn-outline-primary">
+                <span class="material-symbols-outlined">person_add</span>
+                New contact
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3 dashboard-stats">
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="/companies" class="dashboard-stat-card">
+                <div class="dashboard-stat-icon">
+                    <span class="material-symbols-outlined">business</span>
+                </div>
+                <div>
+                    <div class="dashboard-stat-label">Companies</div>
+                    <div class="dashboard-stat-value">@intCompanyCount</div>
+                    <div class="dashboard-stat-meta">Active records</div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="/contacts" class="dashboard-stat-card">
+                <div class="dashboard-stat-icon">
+                    <span class="material-symbols-outlined">contacts</span>
+                </div>
+                <div>
+                    <div class="dashboard-stat-label">Contacts</div>
+                    <div class="dashboard-stat-value">0</div>
+                    <div class="dashboard-stat-meta">Ready to connect</div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="/opportunities" class="dashboard-stat-card">
+                <div class="dashboard-stat-icon">
+                    <span class="material-symbols-outlined">trending_up</span>
+                </div>
+                <div>
+                    <div class="dashboard-stat-label">Opportunities</div>
+                    <div class="dashboard-stat-value">0</div>
+                    <div class="dashboard-stat-meta">Open pipeline</div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="/activities" class="dashboard-stat-card">
+                <div class="dashboard-stat-icon">
+                    <span class="material-symbols-outlined">task_alt</span>
+                </div>
+                <div>
+                    <div class="dashboard-stat-label">Activities</div>
+                    <div class="dashboard-stat-value">0</div>
+                    <div class="dashboard-stat-meta">Due soon</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <div class="col-12 col-xl-8">
+            <div class="crm-card">
+                <div class="crm-card-header">
+                    <div>
+                        <h3>Recent companies</h3>
+                        <p>Latest company records added to the CRM.</p>
+                    </div>
+
+                    <a href="/companies" class="btn btn-sm btn-light">
+                        View all
+                    </a>
+                </div>
+
+                @if (blnLoading)
+                {
+                    <div class="crm-loading">
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Loading dashboard...
+                    </div>
+                }
+                else if (!colRecentCompanies.Any())
+                {
+                    <div class="crm-empty-state">
+                        <span class="material-symbols-outlined">business</span>
+                        <h4>No companies yet</h4>
+                        <p>Add your first company to start building the CRM.</p>
+                        <a href="/companies/add" class="btn btn-primary">Add company</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle crm-table">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Industry</th>
+                                    <th>Contact</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (Company objCompany in colRecentCompanies)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a href="@($"/companies/{objCompany.Id}")" class="fw-semibold d-block text-black">@objCompany.Name</a>
+
+                                            @if (!String.IsNullOrWhiteSpace(objCompany.TradingName))
+                                            {
+                                                <small class="text-muted">@objCompany.TradingName</small>
+                                            }
+                                        </td>
+                                        <td>@(objCompany.Industry ?? "-")</td>
+                                        <td>
+                                            @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
+                                            {
+                                                <a href="mailto:@objCompany.PrimaryEmail">@objCompany.PrimaryEmail</a>
+                                            }
+                                            else
+                                            {
+                                                <span>-</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="@($"/companies/{objCompany.Id}")" class="btn btn-sm btn-outline-primary">
+                                                Open
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <div class="crm-card">
+                <div class="crm-card-header">
+                    <div>
+                        <h3>Quick actions</h3>
+                        <p>Common CRM tasks.</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-actions-list">
+                    <a href="/companies/add" class="dashboard-action">
+                        <span class="material-symbols-outlined">add_business</span>
+                        <div>
+                            <strong>Add company</strong>
+                            <small>Create a new organisation record</small>
+                        </div>
+                    </a>
+
+                    <a href="/contacts/add" class="dashboard-action">
+                        <span class="material-symbols-outlined">person_add</span>
+                        <div>
+                            <strong>Add contact</strong>
+                            <small>Add a person to a company</small>
+                        </div>
+                    </a>
+
+                    <a href="/opportunities/add" class="dashboard-action">
+                        <span class="material-symbols-outlined">add_chart</span>
+                        <div>
+                            <strong>Add opportunity</strong>
+                            <small>Track a new sales lead</small>
+                        </div>
+                    </a>
+
+                    <a href="/activities/add" class="dashboard-action">
+                        <span class="material-symbols-outlined">event</span>
+                        <div>
+                            <strong>Add activity</strong>
+                            <small>Schedule a call, task, or meeting</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="crm-card mt-3">
+                <div class="crm-card-header">
+                    <div>
+                        <h3>Pipeline snapshot</h3>
+                        <p>Placeholder until opportunities are wired in.</p>
+                    </div>
+                </div>
+
+                <div class="pipeline-list">
+                    <div class="pipeline-row">
+                        <span>Lead</span>
+                        <strong>0</strong>
+                    </div>
+                    <div class="pipeline-row">
+                        <span>Qualified</span>
+                        <strong>0</strong>
+                    </div>
+                    <div class="pipeline-row">
+                        <span>Proposal</span>
+                        <strong>0</strong>
+                    </div>
+                    <div class="pipeline-row">
+                        <span>Won</span>
+                        <strong>0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Boolean blnLoading = true;
+    private Int32 intCompanyCount;
+    private List<Company> colRecentCompanies = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        HeaderState.SetHeader(
+            "Dashboard",
+            "Overview of your CRM activity");
+
+        List<Company> colCompanies = await CompanyService.GetCompaniesAsync();
+
+        intCompanyCount = colCompanies.Count;
+
+        colRecentCompanies = colCompanies
+            .OrderByDescending(objCompany => objCompany.Entity.CreatedUtc)
+            .Take(5)
+            .ToList();
+
+        blnLoading = false;
+    }
+}

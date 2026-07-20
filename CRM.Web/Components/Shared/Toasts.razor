@@ -1,0 +1,45 @@
+﻿@using CRM.Core.Notifications.Domain
+@rendermode InteractiveServer
+
+<div>
+    @* this random div is used to make scoped css work... *@
+    <div class="toast-container d-flex align-items-end flex-column">
+        @foreach (Toast objToast in ToastService.Toasts.OrderBy(x => x.CreatedAt).Take(5))
+        {
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header @(objToast.ElementClass)">
+                    @* <img src="..." class="rounded me-2" alt="..."> *@
+                    <strong class="me-auto">@objToast.Title</strong>
+                    <small class="@(String.IsNullOrWhiteSpace(objToast.ElementClass) ? "text-muted" : "")">@objToast.TimeSinceStr</small>
+                    <button type="button" class="btn-close" @onclick="() => DeleteNotification(objToast)"></button>
+                </div>
+                <div class="toast-body">
+                    @objToast.Message
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        ToastService.OnChange += TriggerChange;
+    }
+
+    public void Dispose()
+    {
+        ToastService.OnChange -= TriggerChange;
+    }
+
+    private void DeleteNotification(Toast objToast)
+    {
+        ToastService.RemoveToast(objToast);
+    }
+
+    void TriggerChange()
+    {
+        // Have to call from here as timer that removes toasts runs in another thread and has no UI context
+        InvokeAsync(StateHasChanged);
+    }
+}

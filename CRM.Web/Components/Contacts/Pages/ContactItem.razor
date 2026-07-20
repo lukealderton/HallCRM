@@ -1,0 +1,623 @@
+﻿@page "/contacts/{ContactId:guid}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using CRM.Core.Contacts.Abstractions
+@using CRM.Core.Contacts.Domain
+@using CRM.Web.State
+
+@inject IContactService ContactService
+@inject NavigationManager Navigation
+@inject PageHeaderState HeaderState
+
+<PageTitle>@strPageTitle - 101CRM</PageTitle>
+
+<section class="contact-item-page">
+    @if (!String.IsNullOrWhiteSpace(strSuccessMessage))
+    {
+        <div class="alert alert-success contact-alert" role="alert">
+            <span class="material-symbols-outlined">check_circle</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">@strSuccessMessage</strong>
+                <p>The contact record has been updated.</p>
+            </div>
+        </div>
+    }
+
+    @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+    {
+        <div class="alert alert-danger contact-alert" role="alert">
+            <span class="material-symbols-outlined">error</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">Unable to update contact</strong>
+                <p>@strErrorMessage</p>
+            </div>
+        </div>
+    }
+
+    @if (blnConfirmArchive)
+    {
+        <div class="alert alert-warning contact-alert">
+            <span class="material-symbols-outlined">archive</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">Archive this contact?</strong>
+                <p>Archived contacts are hidden from normal CRM views but can be restored later.</p>
+            </div>
+
+            <div class="alert-actions">
+                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="ArchiveContactAsync" disabled="@blnSaving">
+                    Archive contact
+                </button>
+
+                <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="CancelActions">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    }
+
+    @if (blnConfirmDelete)
+    {
+        <div class="alert alert-danger contact-alert">
+            <span class="material-symbols-outlined">delete</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">Delete this contact?</strong>
+                <p>This will mark the contact as deleted. It will no longer appear in normal contact lists.</p>
+            </div>
+
+            <div class="alert-actions">
+                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="DeleteContactAsync" disabled="@blnSaving">
+                    Delete contact
+                </button>
+
+                <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="CancelActions">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    }
+
+    @if (blnLoading)
+    {
+        <div class="crm-card">
+            <div class="crm-loading">
+                <span class="spinner-border spinner-border-sm"></span>
+                Loading contact...
+            </div>
+        </div>
+    }
+    else if (objContact == null)
+    {
+        <div class="alert alert-danger contact-alert" role="alert">
+            <span class="material-symbols-outlined">person_off</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">Contact not found</strong>
+                <p>This contact may have been deleted or moved.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="contact-profile-card crm-card">
+            <div class="contact-profile-main">
+                <div class="contact-avatar-large">
+                    @GetInitials(objContact)
+                </div>
+
+                <div>
+                    <div class="contact-title-row">
+                        <h2>@GetContactName(objContact)</h2>
+
+                        @if (objContact.Entity.ArchivedUtc.HasValue)
+                        {
+                            <span class="badge text-bg-secondary">Archived</span>
+                        }
+                        else
+                        {
+                            <span class="badge text-bg-success">Active</span>
+                        }
+                    </div>
+
+                    @if (!String.IsNullOrWhiteSpace(objContact.JobTitle))
+                    {
+                        <p class="contact-subtitle">@objContact.JobTitle</p>
+                    }
+                    else
+                    {
+                        <p class="contact-subtitle">No job title set</p>
+                    }
+
+                    <div class="contact-meta-row">
+                        @if (objContact.Company != null)
+                        {
+                            <a href="@GetCompanyUrl(objContact.Company.Id)">
+                                <span class="material-symbols-outlined">business</span>
+                                @objContact.Company.Name
+                            </a>
+                        }
+                        else
+                        {
+                            <span>
+                                <span class="material-symbols-outlined">business</span>
+                                Not linked to a company
+                            </span>
+                        }
+
+                        @if (!String.IsNullOrWhiteSpace(objContact.Department))
+                        {
+                            <span>
+                                <span class="material-symbols-outlined">groups</span>
+                                @objContact.Department
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="contact-profile-actions">
+                <button type="button" class="btn btn-primary" @onclick="GoToEdit">
+                    <span class="material-symbols-outlined">edit</span>
+                    Edit contact
+                </button>
+
+                @if (objContact.Entity.ArchivedUtc.HasValue)
+                {
+                    <button type="button" class="btn btn-soft-primary" disabled="@blnSaving" @onclick="RestoreContactAsync">
+                        <span class="material-symbols-outlined">unarchive</span>
+                        Restore
+                    </button>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-soft-secondary" disabled="@blnSaving" @onclick="ShowArchiveConfirmation">
+                        <span class="material-symbols-outlined">archive</span>
+                        Archive
+                    </button>
+                }
+
+                <button type="button" class="btn btn-soft-danger" disabled="@blnSaving" @onclick="ShowDeleteConfirmation">
+                    <span class="material-symbols-outlined">delete</span>
+                    Delete
+                </button>
+            </div>
+        </div>
+
+        <div class="contact-item-layout">
+            <div class="contact-main-column">
+                <div class="crm-card">
+                    <div class="crm-card-header">
+                        <div>
+                            <h3>Contact information</h3>
+                            <p>Email, phone and online profile.</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-card-body">
+                        <div class="contact-details-grid">
+                            <div class="contact-detail-item">
+                                <span class="material-symbols-outlined">mail</span>
+
+                                <div>
+                                    <small>Email</small>
+
+                                    @if (!String.IsNullOrWhiteSpace(objContact.PrimaryEmail))
+                                    {
+                                        <a href="mailto:@objContact.PrimaryEmail">@objContact.PrimaryEmail</a>
+                                    }
+                                    else
+                                    {
+                                        <strong>-</strong>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="contact-detail-item">
+                                <span class="material-symbols-outlined">call</span>
+
+                                <div>
+                                    <small>Phone</small>
+
+                                    @if (!String.IsNullOrWhiteSpace(objContact.PrimaryPhone))
+                                    {
+                                        <a href="tel:@objContact.PrimaryPhone">@objContact.PrimaryPhone</a>
+                                    }
+                                    else
+                                    {
+                                        <strong>-</strong>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="contact-detail-item">
+                                <span class="material-symbols-outlined">smartphone</span>
+
+                                <div>
+                                    <small>Mobile</small>
+
+                                    @if (!String.IsNullOrWhiteSpace(objContact.MobilePhone))
+                                    {
+                                        <a href="tel:@objContact.MobilePhone">@objContact.MobilePhone</a>
+                                    }
+                                    else
+                                    {
+                                        <strong>-</strong>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="contact-detail-item">
+                                <span class="material-symbols-outlined">link</span>
+
+                                <div>
+                                    <small>LinkedIn</small>
+
+                                    @if (!String.IsNullOrWhiteSpace(objContact.LinkedInUrl))
+                                    {
+                                        <a href="@objContact.LinkedInUrl" target="_blank" rel="noopener noreferrer">Open profile</a>
+                                    }
+                                    else
+                                    {
+                                        <strong>-</strong>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <EntityNotes EntityId="@ContactId"
+                             Title="Notes"
+                             Subtitle="Internal notes for this contact."
+                             EmptyText="No notes have been added for this contact yet." />
+            </div>
+
+            <aside class="contact-side-column">
+                <div class="crm-card">
+                    <div class="contact-card-body">
+                        <h4 class="contact-side-heading">Quick actions</h4>
+
+                        <div class="contact-action-list">
+                            @if (!String.IsNullOrWhiteSpace(objContact.PrimaryEmail))
+                            {
+                                <a href="mailto:@objContact.PrimaryEmail" class="btn btn-soft-primary w-100">
+                                    <span class="material-symbols-outlined">mail</span>
+                                    Send email
+                                </a>
+                            }
+
+                            @if (!String.IsNullOrWhiteSpace(objContact.PrimaryPhone))
+                            {
+                                <a href="tel:@objContact.PrimaryPhone" class="btn btn-soft-secondary w-100">
+                                    <span class="material-symbols-outlined">call</span>
+                                    Call contact
+                                </a>
+                            }
+
+                            @if (!String.IsNullOrWhiteSpace(objContact.MobilePhone))
+                            {
+                                <a href="tel:@objContact.MobilePhone" class="btn btn-soft-secondary w-100">
+                                    <span class="material-symbols-outlined">smartphone</span>
+                                    Call mobile
+                                </a>
+                            }
+
+                            @if (!String.IsNullOrWhiteSpace(objContact.LinkedInUrl))
+                            {
+                                <a href="@objContact.LinkedInUrl" target="_blank" rel="noopener noreferrer" class="btn btn-soft-secondary w-100">
+                                    <span class="material-symbols-outlined">open_in_new</span>
+                                    Open LinkedIn
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card">
+                    <div class="contact-card-body">
+                        <h4 class="contact-side-heading">Overview</h4>
+
+                        <div class="contact-meta-list">
+                            <div>
+                                <span>Company</span>
+                                <strong>@(objContact.Company?.Name ?? "-")</strong>
+                            </div>
+
+                            <div>
+                                <span>Department</span>
+                                <strong>@DisplayValue(objContact.Department)</strong>
+                            </div>
+
+                            <div>
+                                <span>Job title</span>
+                                <strong>@DisplayValue(objContact.JobTitle)</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card">
+                    <div class="contact-card-body">
+                        <h4 class="contact-side-heading">Record details</h4>
+
+                        <div class="contact-meta-list">
+                            <div>
+                                <span>Created</span>
+                                <strong>@FormatNullableDate(objContact.Entity.CreatedUtc)</strong>
+                            </div>
+
+                            <div>
+                                <span>Updated</span>
+                                <strong>@FormatNullableDate(objContact.Entity.UpdatedUtc)</strong>
+                            </div>
+
+                            <div>
+                                <span>Archived</span>
+                                <strong>@FormatNullableDate(objContact.Entity.ArchivedUtc)</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public Guid ContactId { get; set; }
+
+    private Contact? objContact;
+
+    private String strPageTitle = "Contact";
+    private String? strSuccessMessage;
+    private String? strErrorMessage;
+
+    private Boolean blnLoading = true;
+    private Boolean blnSaving;
+    private Boolean blnConfirmArchive;
+    private Boolean blnConfirmDelete;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadContactAsync();
+    }
+
+    private RenderFragment GetHeaderActions()
+    {
+        return @<a href="/contacts" class="btn btn-soft-secondary">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Back to contacts
+        </a>;
+    }
+
+    private async Task LoadContactAsync()
+    {
+        blnLoading = true;
+        strErrorMessage = null;
+        strSuccessMessage = null;
+        blnConfirmArchive = false;
+        blnConfirmDelete = false;
+
+        HeaderState.SetHeader(
+            "Contact",
+            "Loading contact...",
+            GetHeaderActions());
+
+        try
+        {
+            objContact = await ContactService.GetContactByIdAsync(ContactId);
+
+            if (objContact == null)
+            {
+                strPageTitle = "Contact not found";
+
+                HeaderState.SetHeader(
+                    "Contact not found",
+                    "The selected contact could not be loaded",
+                    GetHeaderActions());
+
+                return;
+            }
+
+            strPageTitle = GetContactName(objContact);
+
+            HeaderState.SetHeader(
+                strPageTitle,
+                objContact.Company?.Name ?? "Contact details",
+                GetHeaderActions());
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = "Failed to load contact: " + objError.Message;
+
+            HeaderState.SetHeader(
+                "Contact",
+                "Unable to load contact",
+                GetHeaderActions());
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private void GoToEdit()
+    {
+        Navigation.NavigateTo($"/contacts/{ContactId}/edit");
+    }
+
+    private void ShowArchiveConfirmation()
+    {
+        blnConfirmArchive = true;
+        blnConfirmDelete = false;
+        strSuccessMessage = null;
+        strErrorMessage = null;
+    }
+
+    private void ShowDeleteConfirmation()
+    {
+        blnConfirmDelete = true;
+        blnConfirmArchive = false;
+        strSuccessMessage = null;
+        strErrorMessage = null;
+    }
+
+    private void CancelActions()
+    {
+        blnConfirmArchive = false;
+        blnConfirmDelete = false;
+    }
+
+    private async Task ArchiveContactAsync()
+    {
+        await RunContactActionAsync(
+            () => ContactService.ArchiveContactAsync(ContactId),
+            "Contact archived");
+    }
+
+    private async Task RestoreContactAsync()
+    {
+        await RunContactActionAsync(
+            () => ContactService.RestoreContactAsync(ContactId),
+            "Contact restored");
+    }
+
+    private async Task DeleteContactAsync()
+    {
+        blnSaving = true;
+        strErrorMessage = null;
+        strSuccessMessage = null;
+
+        try
+        {
+            Boolean blnDeleted = await ContactService.DeleteContactAsync(ContactId);
+
+            if (!blnDeleted)
+            {
+                strErrorMessage = "The contact could not be deleted. It may already have been deleted.";
+                return;
+            }
+
+            Navigation.NavigateTo("/contacts");
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = "Failed to delete contact: " + objError.Message;
+        }
+        finally
+        {
+            blnSaving = false;
+            blnConfirmDelete = false;
+        }
+    }
+
+    private async Task RunContactActionAsync(Func<Task<Boolean>> objAction, String strSuccessMessageText)
+    {
+        blnSaving = true;
+        strErrorMessage = null;
+        strSuccessMessage = null;
+        blnConfirmArchive = false;
+        blnConfirmDelete = false;
+
+        try
+        {
+            Boolean blnSuccess = await objAction();
+
+            if (!blnSuccess)
+            {
+                strErrorMessage = "The contact could not be updated. It may have been deleted or no longer exists.";
+                return;
+            }
+
+            await LoadContactAsync();
+            strSuccessMessage = strSuccessMessageText;
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = "Failed to update contact: " + objError.Message;
+        }
+        finally
+        {
+            blnSaving = false;
+        }
+    }
+
+    private static String GetCompanyUrl(Guid objCompanyId)
+    {
+        return $"/companies/{objCompanyId}";
+    }
+
+    private static String GetContactName(Contact objContact)
+    {
+        String strName = $"{objContact.FirstName} {objContact.LastName}".Trim();
+
+        if (!String.IsNullOrWhiteSpace(strName))
+        {
+            return strName;
+        }
+
+        if (!String.IsNullOrWhiteSpace(objContact.PrimaryEmail))
+        {
+            return objContact.PrimaryEmail;
+        }
+
+        if (!String.IsNullOrWhiteSpace(objContact.PrimaryPhone))
+        {
+            return objContact.PrimaryPhone;
+        }
+
+        if (!String.IsNullOrWhiteSpace(objContact.MobilePhone))
+        {
+            return objContact.MobilePhone;
+        }
+
+        return "Unnamed contact";
+    }
+
+    private static String GetInitials(Contact objContact)
+    {
+        String strFirst = !String.IsNullOrWhiteSpace(objContact.FirstName)
+            ? objContact.FirstName[..1]
+            : String.Empty;
+
+        String strLast = !String.IsNullOrWhiteSpace(objContact.LastName)
+            ? objContact.LastName[..1]
+            : String.Empty;
+
+        String strInitials = $"{strFirst}{strLast}".Trim();
+
+        if (!String.IsNullOrWhiteSpace(strInitials))
+        {
+            return strInitials.ToUpperInvariant();
+        }
+
+        String strName = GetContactName(objContact);
+
+        return strName[..1].ToUpperInvariant();
+    }
+
+    private static String DisplayValue(String? strValue)
+    {
+        if (String.IsNullOrWhiteSpace(strValue))
+        {
+            return "-";
+        }
+
+        return strValue;
+    }
+
+    private static String FormatNullableDate(DateTime? dtmDate)
+    {
+        if (!dtmDate.HasValue)
+        {
+            return "-";
+        }
+
+        return dtmDate.Value.ToLocalTime().ToString("dd MMM yyyy");
+    }
+}

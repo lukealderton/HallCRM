@@ -1,0 +1,113 @@
+﻿.account-settings-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.account-settings-nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem;
+    border-radius: 0.95rem;
+    color: #334155;
+    text-decoration: none;
+    background: transparent;
+    transition:
+        background-color 0.16s ease,
+        color 0.16s ease,
+        box-shadow 0.16s ease,
+        transform 0.16s ease;
+}
+
+.account-settings-nav-item:hover {
+    color: #0f172a;
+    background: #f8fafc;
+    transform: translateX(2px);
+}
+
+.account-settings-nav-item.active {
+    color: #0f172a;
+    background: #eff6ff;
+    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.16);
+}
+
+.account-settings-nav-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0.45rem;
+    top: 0.75rem;
+    bottom: 0.75rem;
+    width: 0.2rem;
+    border-radius: 999px;
+    background: #2563eb;
+}
+
+.account-settings-nav-item .material-symbols-outlined {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 2.15rem;
+    height: 2.15rem;
+    border-radius: 0.75rem;
+    font-size: 1.25rem;
+    color: #64748b;
+    background: #f1f5f9;
+    font-variation-settings:
+        'FILL' 0,
+        'wght' 500,
+        'GRAD' 0,
+        'opsz' 24;
+}
+
+.account-settings-nav-item.active .material-symbols-outlined {
+    color: #2563eb;
+    background: #dbeafe;
+    font-variation-settings:
+        'FILL' 1,
+        'wght' 600,
+        'GRAD' 0,
+        'opsz' 24;
+}
+
+.account-settings-nav-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.15;
+}
+
+.account-settings-nav-text strong {
+    font-size: 0.9rem;
+    font-weight: 750;
+    color: inherit;
+}
+
+.account-settings-nav-text small {
+    margin-top: 0.2rem;
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.account-settings-nav-item.active .account-settings-nav-text small {
+    color: #475569;
+}
+
+@media (max-width: 991.98px) {
+    .account-settings-nav {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .account-settings-nav-text small {
+        display: none;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .account-settings-nav {
+        grid-template-columns: 1fr;
+    }
+}

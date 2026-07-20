@@ -1,0 +1,383 @@
+﻿// Colors
+/*$primary: #4d1047; // Dark Blue
+$secondary: #fecb15; // Yellow
+*/
+// Colours
+$white:    #fff;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+$black:    #000;
+$body-bg: $gray-100;
+$body-color: $gray-800;
+$app-bg: #f8f9fa;
+$teal: #3FD3C8;
+$primary: $teal;
+
+// Dark
+$dark-00dp: #121417; //#121212
+$dark-01dp: #1d2022; //#1e1e1e
+$dark-02dp: #222527;
+$dark-03dp: #242729;
+$dark-04dp: #26292b;
+$dark-06dp: #2b2e30;
+$dark-08dp: #2d3032;
+$dark-12dp: #323537;
+$dark-16dp: #35373a;
+$dark-24dp: #37393c;
+
+$dark: $dark-02dp;
+
+// Borders
+$border-radius-lg: .5rem;
+
+// Cards
+$card-border-color: rgba($body-color, .25);
+$card-border-radius: $border-radius-lg;
+
+// Lists
+$list-group-color: $body-color;
+$list-group-item-padding-y: .75rem;
+
+// Buttons
+$btn-font-weight: 700;
+$btn-padding-x: 1.5rem;
+
+// Fonts
+$font-family-base: 'Montserrat', sans-serif;
+
+// Navbars
+$navbar-nav-link-padding-x: .75rem;
+
+// Links
+$link-decoration: none;
+$link-hover-decoration: underline;
+
+// Inputs
+$input-bg: $white;
+
+// Popovers
+$popover-body-padding-y: .5rem;
+$popover-body-padding-x: 1rem;
+
+// Spacers & gutters
+$spacer: 1rem;
+$spacers: (
+  0: 0,
+  1: $spacer * .25,
+  2: $spacer * .5,
+  3: $spacer,
+  4: $spacer * 1.5,
+  5: $spacer * 2,
+  6: $spacer * 3,
+  7: $spacer * 5,
+  8: $spacer * 6,
+);
+$grid-gutter-width: 2rem;
+
+// Options
+$enable-reduced-motion: false;
+
+// Configuration
+@import "../lib/bootstrap-5.3.3/scss/functions";
+@import "../lib/bootstrap-5.3.3/scss/variables";
+@import "../lib/bootstrap-5.3.3/scss/mixins";
+@import "../lib/bootstrap-5.3.3/scss/maps";
+@import "../lib/bootstrap-5.3.3/scss/utilities";
+
+// Layout & components
+@import "../lib/bootstrap-5.3.3/scss/root";
+@import "../lib/bootstrap-5.3.3/scss/reboot";
+@import "../lib/bootstrap-5.3.3/scss/type";
+@import "../lib/bootstrap-5.3.3/scss/images";
+@import "../lib/bootstrap-5.3.3/scss/containers";
+@import "../lib/bootstrap-5.3.3/scss/grid";
+@import "../lib/bootstrap-5.3.3/scss/tables";
+@import "../lib/bootstrap-5.3.3/scss/forms";
+@import "../lib/bootstrap-5.3.3/scss/buttons";
+@import "../lib/bootstrap-5.3.3/scss/transitions";
+@import "../lib/bootstrap-5.3.3/scss/dropdown";
+@import "../lib/bootstrap-5.3.3/scss/button-group";
+@import "../lib/bootstrap-5.3.3/scss/nav";
+@import "../lib/bootstrap-5.3.3/scss/navbar";
+@import "../lib/bootstrap-5.3.3/scss/card";
+@import "../lib/bootstrap-5.3.3/scss/accordion";
+@import "../lib/bootstrap-5.3.3/scss/breadcrumb";
+@import "../lib/bootstrap-5.3.3/scss/pagination";
+@import "../lib/bootstrap-5.3.3/scss/badge";
+@import "../lib/bootstrap-5.3.3/scss/alert";
+@import "../lib/bootstrap-5.3.3/scss/progress";
+@import "../lib/bootstrap-5.3.3/scss/list-group";
+@import "../lib/bootstrap-5.3.3/scss/close";
+@import "../lib/bootstrap-5.3.3/scss/toasts";
+@import "../lib/bootstrap-5.3.3/scss/modal";
+@import "../lib/bootstrap-5.3.3/scss/tooltip";
+@import "../lib/bootstrap-5.3.3/scss/popover";
+@import "../lib/bootstrap-5.3.3/scss/carousel";
+@import "../lib/bootstrap-5.3.3/scss/spinners";
+@import "../lib/bootstrap-5.3.3/scss/offcanvas";
+@import "../lib/bootstrap-5.3.3/scss/placeholders";
+
+// Helpers
+@import "../lib/bootstrap-5.3.3/scss/helpers";
+
+// Utilities
+@import "../lib/bootstrap-5.3.3/scss/utilities/api";
+
+// Partials
+@import "partials/elavation";
+@import "partials/overrides.scss";
+
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+      'FILL' 0,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24;
+  vertical-align: middle;
+}
+
+.hrText {
+    position: relative;
+    display: flex;
+    align-items: center;
+    &:before, &:after {
+        display: block;
+        content: ' ';
+        height: 1px;
+        background: currentColor;
+        flex: 1;
+        opacity: .25;
+    }
+    &:before {
+        margin-right: .5rem;
+    }
+    &:after {
+        margin-left: .5rem;
+    }
+}
+
+.stepsPagination {
+    display: flex;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    font-size: .75rem;
+    hr {
+        flex: 1;
+        width: 100%;
+        height: 1px !important;
+        background-color: $text-muted;
+    }
+    .stepPage {
+        width: 20%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: $text-muted;
+        [class*="material-symbols-outlined"] {
+            transition: all ease-in-out .2s;
+            display: block;
+            font-size: 1rem;
+            width: 2rem;
+            height: 2rem;
+            line-height: 2rem;
+            vertical-align: middle;
+            text-align: center;
+            border-radius: $border-radius-pill;
+            border: 1px solid $primary;
+            color: $primary;
+        }
+        &.active {
+            [class*="material-symbols-outlined"] {
+                color: $white;
+                background-color: $primary;
+            }
+        }
+    }
+    @include media-breakpoint-up(sm) {
+        .stepPage {
+            [class*="material-symbols-outlined"] {
+                margin-bottom: .25rem;
+            }
+        }
+    }
+}
+[data-toggle="organisationAction"] {
+    transition: all ease-in-out .2s;
+}
+.steppedForm {
+    .steps {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        margin: -1rem;
+        overflow: hidden;
+        .step {
+            transition: margin-left ease-in-out .2s;
+            padding: 1rem;
+            min-width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+    }
+    @include media-breakpoint-up(sm) {
+        .steps {
+            margin: -2rem;
+            .step {
+                padding: 2rem;
+            }
+        }
+    }
+}
+
+.mainPageBody {
+    background-color: $app-bg;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    .mainWrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        .appHeader {
+            @include boxShadow(4);
+            z-index: 999;
+            background-color: $primary;
+            //border-bottom: 1px solid $border-color;
+            .navbar {
+                padding-top: .75rem;
+                padding-bottom: .75rem;
+                .navbar-brand {
+                    color: $white;
+                    line-height: 1;
+                    i {
+                        margin-top: -5px;
+                        color: var(--primary);
+                        vertical-align: middle;
+                        margin-right: 1rem;
+                    }
+                }
+                .navbar-toggler {
+                    outline: none;
+                    color: $body-color;
+                    border-radius: $border-radius;
+                    @include boxShadow(2);
+                    @include transition(standard);
+                    &:hover {
+                        background-color: $dark-12dp;
+                        @include boxShadow(4);
+                    }
+                }
+                #accountWrapper {
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-end;
+                    img {
+                        @include boxShadow(2);
+                    }
+                }
+            }
+        }
+        .appContent {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-grow: 1;
+
+            #loginWrapper {
+                overflow-y: auto;
+                width: 100%;
+                #modalWrapper {
+                    padding-bottom: 1rem;
+                    .modal-dialog:not(.modal-dialog-centered) {
+                        min-height: 0;
+                        margin: 1rem;
+                        .modal-content {
+                            overflow: hidden;
+                            .modal-header {
+                                .nav-tabs {
+                                    width: 100%;
+                                    border-bottom: 0;
+                                    font-size: 1.25rem;
+                                    .nav-item {
+                                        flex-grow: 1;
+                                        margin: 0;
+                                        overflow: hidden;
+                                        .nav-link {
+                                            padding-top: 1rem;
+                                            padding-bottom: 1rem;
+                                            border-radius: 0;
+                                            border: none;
+                                            background-color: $border-color;
+                                            color: $body-color;
+                                            &.active {
+                                                background-color: $modal-content-bg;
+                                            }   
+                                        }
+                                        &:first-child {
+                                            border-bottom-right-radius: .5rem;
+                                        }
+                                        &:last-child {
+                                            border-bottom-left-radius: 1rem;
+                                        }
+                                    }
+                                }
+                            }
+                            .modal-footer {
+                                a {
+                                    color: $body-color;
+                                }
+                            }
+                        }
+                    }
+                }
+                #messageWrapper {
+                    max-width: 400px;
+                    padding-left: 1rem;
+                    padding-right: 1rem;
+                    margin: 0 auto;
+                }
+                @include media-breakpoint-up(sm) {
+                    padding-top: 5rem;
+                    #modalWrapper {
+                        .modal-dialog:not(.modal-dialog-centered) {
+                            margin: 1rem auto;
+                        }
+                    }
+                }
+            }
+            
+            @include media-breakpoint-up (sm) {
+                .leftColumn {
+                    max-width: 300px;
+                }
+            }
+            @include media-breakpoint-up (lg) {
+                .contentColumn {
+                    max-width: calc(100% - 300px);
+                }
+                .leftColumn {
+                    transition: none;
+                    position: static;
+                    transform: none;
+                    max-width: 300px;
+                }
+            }
+        }
+    }
+}

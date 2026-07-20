@@ -1,0 +1,15 @@
+﻿[*.cs]
+
+# IDE0063: Use simple 'using' statement
+csharp_prefer_simple_using_statement = false
+
+# 1) Prevent the foot-gun: single-statement using/if/for/while without braces
+# This doesn’t stop "using declarations" (C# 8+), it stops `using (...) stmt;`
+csharp_prefer_braces = true:suggestion
+
+# 2) Prefer using declarations (C# 8+) over using statements when it’s reasonable
+# You can still use braced `using (...) { }` for readers/streams when you want a clear lifetime boundary.
+dotnet_style_prefer_using_declaration = true:suggestion
+
+# Remove unused usings
+dotnet_remove_unnecessary_usings = true:suggestion

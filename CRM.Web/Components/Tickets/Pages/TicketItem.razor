@@ -1,0 +1,497 @@
+﻿@page "/tickets/{TicketId:guid}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@inject NavigationManager NavigationManager
+@inject ICurrentUserState CurrentUserState
+
+<div class="ticket-item-page">
+    @if (_blnLoading)
+    {
+        <div class="crm-card ticket-state-card">
+            <span class="material-symbols-outlined">hourglass_empty</span>
+            <p>Loading ticket...</p>
+        </div>
+    }
+    else if (_objTicket == null)
+    {
+        <div class="crm-card ticket-state-card">
+            <span class="material-symbols-outlined">error</span>
+            <h3>Ticket not found</h3>
+            <p>The ticket may have been deleted or archived.</p>
+            <a href="/tickets" class="btn btn-primary crm-btn-primary">Back to Tickets</a>
+        </div>
+    }
+    else
+    {
+        <div class="crm-card ticket-overview-card">
+            <div class="ticket-overview-status">
+                <span class="ticket-status-pill @GetStatusClass(_objTicket.Status)">
+                    @GetStatusLabel(_objTicket.Status)
+                </span>
+
+                <span class="ticket-priority-pill @GetPriorityClass(_objTicket.Priority)">
+                    @_objTicket.Priority
+                </span>
+            </div>
+
+            <div class="ticket-overview-meta">
+                <span>
+                    <span class="material-symbols-outlined">business</span>
+                    @(_objTicket.Company?.Name ?? "No company")
+                </span>
+
+                <span>
+                    <span class="material-symbols-outlined">schedule</span>
+                    Created @_objTicket.Entity.CreatedUtc.ToLocalTime().ToString("dd/MM/yyyy")
+                </span>
+
+                @if (_objTicket.DueUtc.HasValue)
+                {
+                    <span>
+                        <span class="material-symbols-outlined">event</span>
+                        Due @_objTicket.DueUtc.Value.ToLocalTime().ToString("dd/MM/yyyy")
+                    </span>
+                }
+
+                <span>
+                    <span class="material-symbols-outlined">category</span>
+                    @GetEnumLabel(_objTicket.Type.ToString())
+                </span>
+            </div>
+        </div>
+
+        @if (!String.IsNullOrWhiteSpace(_strMessage))
+        {
+            <div class="alert alert-success crm-alert crm-alert-success">
+                @_strMessage
+            </div>
+        }
+
+        <div class="ticket-grid">
+            <div class="ticket-main-column">
+                <div class="crm-card ticket-section-card">
+                    <div class="ticket-section-header">
+                        <h3>Description</h3>
+                    </div>
+
+                    @if (String.IsNullOrWhiteSpace(_objTicket.Description))
+                    {
+                        <p class="ticket-muted">No description added.</p>
+                    }
+                    else
+                    {
+                        <p class="ticket-description">@_objTicket.Description</p>
+                    }
+                </div>
+
+                <div class="crm-card ticket-section-card">
+                    <div class="ticket-section-header">
+                        <h3>Comments</h3>
+                    </div>
+
+                    <div class="ticket-comment-form">
+                        <textarea class="form-control"
+                                  rows="4"
+                                  placeholder="Add an internal comment"
+                                  @bind="_strNewComment"></textarea>
+
+                        <button type="button" class="btn btn-primary crm-btn-primary" @onclick="AddCommentAsync">
+                            <span class="material-symbols-outlined">add_comment</span>
+                            Add Comment
+                        </button>
+                    </div>
+
+                    <div class="ticket-timeline">
+                        @if (_objTicket.Comments.Count == 0)
+                        {
+                            <p class="ticket-muted">No comments yet.</p>
+                        }
+                        else
+                        {
+                            @foreach (TicketComment objComment in _objTicket.Comments.OrderByDescending(objComment => objComment.CreatedUtc))
+                            {
+                                <div class="ticket-timeline-item">
+                                    <span class="ticket-timeline-icon material-symbols-outlined">chat</span>
+                                    <div>
+                                        <div class="ticket-timeline-meta">
+                                            <strong>Internal note</strong>
+                                            <span>@objComment.CreatedUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                        </div>
+                                        <p>@objComment.Text</p>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="crm-card ticket-section-card">
+                    <div class="ticket-section-header">
+                        <h3>Status History</h3>
+                    </div>
+
+                    <div class="ticket-timeline">
+                        @if (_objTicket.StatusHistory.Count == 0)
+                        {
+                            <p class="ticket-muted">No status changes yet.</p>
+                        }
+                        else
+                        {
+                            @foreach (TicketStatusHistory objHistory in _objTicket.StatusHistory.OrderByDescending(objHistory => objHistory.ChangedUtc))
+                            {
+                                <div class="ticket-timeline-item">
+                                    <span class="ticket-timeline-icon material-symbols-outlined">swap_horiz</span>
+                                    <div>
+                                        <div class="ticket-timeline-meta">
+                                            <strong>@GetStatusLabel(objHistory.NewStatus)</strong>
+                                            <span>@objHistory.ChangedUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                        </div>
+
+                                        @if (objHistory.PreviousStatus.HasValue)
+                                        {
+                                            <p>Changed from @GetStatusLabel(objHistory.PreviousStatus.Value) to @GetStatusLabel(objHistory.NewStatus).</p>
+                                        }
+                                        else
+                                        {
+                                            <p>Ticket created as @GetStatusLabel(objHistory.NewStatus).</p>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="ticket-side-column">
+                <div class="crm-card ticket-section-card">
+                    <div class="ticket-section-header">
+                        <h3>Quick Actions</h3>
+                    </div>
+
+                    <div class="ticket-action-list">
+                        <button type="button" class="btn btn-outline-secondary crm-btn-secondary" @onclick="() => SetStatusAsync(TicketStatus.InProgress)">
+                            <span class="material-symbols-outlined">play_arrow</span>
+                            Mark In Progress
+                        </button>
+
+                        <button type="button" class="btn btn-outline-secondary crm-btn-secondary" @onclick="() => SetStatusAsync(TicketStatus.WaitingOnClient)">
+                            <span class="material-symbols-outlined">hourglass_top</span>
+                            Waiting on Client
+                        </button>
+
+                        <button type="button" class="btn btn-outline-secondary crm-btn-secondary" @onclick="() => SetStatusAsync(TicketStatus.ReadyToInvoice)">
+                            <span class="material-symbols-outlined">receipt_long</span>
+                            Ready to Invoice
+                        </button>
+
+                        <button type="button" class="btn btn-outline-success" @onclick="() => SetStatusAsync(TicketStatus.Complete)">
+                            <span class="material-symbols-outlined">check_circle</span>
+                            Complete
+                        </button>
+
+                        @if (!_objTicket.IsInvoiced)
+                        {
+                            <button type="button" class="btn btn-outline-primary" @onclick="MarkInvoicedAsync">
+                                <span class="material-symbols-outlined">payments</span>
+                                Mark Invoiced
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="crm-card ticket-section-card">
+                    <div class="ticket-section-header">
+                        <h3>Billing</h3>
+                    </div>
+
+                    <div class="ticket-summary-list">
+                        <div>
+                            <span>Chargeable</span>
+                            <strong>@(_objTicket.IsChargeable ? "Yes" : "No")</strong>
+                        </div>
+                        <div>
+                            <span>Invoiced</span>
+                            <strong>@(_objTicket.IsInvoiced ? "Yes" : "No")</strong>
+                        </div>
+                        <div>
+                            <span>Estimated</span>
+                            <strong>@FormatMoney(_objTicket.EstimatedValue)</strong>
+                        </div>
+                        <div>
+                            <span>Quoted</span>
+                            <strong>@FormatMoney(_objTicket.QuotedValue)</strong>
+                        </div>
+                        <div>
+                            <span>Invoice</span>
+                            <strong>@FormatMoney(_objTicket.InvoiceValue)</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card ticket-section-card">
+                    <div class="ticket-section-header">
+                        <h3>Time</h3>
+                    </div>
+
+                    <div class="ticket-time-form">
+                        <div>
+                            <label class="form-label">Minutes</label>
+                            <InputNumber class="form-control" @bind-Value="_intNewTimeMinutes" />
+                        </div>
+
+                        <div>
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" rows="3" @bind="_strNewTimeNotes"></textarea>
+                        </div>
+
+                        <label class="form-check">
+                            <input class="form-check-input" type="checkbox" @bind="_blnNewTimeChargeable" />
+                            <span class="form-check-label">Chargeable</span>
+                        </label>
+
+                        <button type="button" class="btn btn-primary crm-btn-primary" @onclick="AddTimeAsync">
+                            <span class="material-symbols-outlined">timer</span>
+                            Add Time
+                        </button>
+                    </div>
+
+                    <div class="ticket-summary-list mt-3">
+                        <div>
+                            <span>Total logged</span>
+                            <strong>@FormatMinutes(_objTicket.ActualMinutes)</strong>
+                        </div>
+                    </div>
+
+                    <div class="ticket-time-list">
+                        @foreach (TicketTimeEntry objTimeEntry in _objTicket.TimeEntries.OrderByDescending(objTimeEntry => objTimeEntry.CreatedUtc))
+                        {
+                            <div class="ticket-time-item">
+                                <strong>@FormatMinutes(objTimeEntry.Minutes)</strong>
+                                <span>@objTimeEntry.CreatedUtc.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                                @if (!String.IsNullOrWhiteSpace(objTimeEntry.Notes))
+                                {
+                                    <p>@objTimeEntry.Notes</p>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid TicketId { get; set; }
+
+    private Ticket? _objTicket;
+    private Boolean _blnLoading = true;
+
+    private String? _strMessage;
+    private String? _strNewComment;
+
+    private Int32 _intNewTimeMinutes = 30;
+    private String? _strNewTimeNotes;
+    private Boolean _blnNewTimeChargeable = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTicketAsync();
+    }
+
+    private async Task LoadTicketAsync()
+    {
+        _blnLoading = true;
+
+        _objTicket = await TicketService.GetTicketByIdAsync(TicketId);
+
+        if (_objTicket != null)
+        {
+            HeaderState.SetHeader(
+                _objTicket.Title,
+                "Ticket details, comments, time and billing.",
+                @<div class="crm-header-actions">
+                    <a class="btn btn-outline-secondary" href="/tickets">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        Back
+                    </a>
+
+                    <a class="btn btn-primary" href="@($"/tickets/{TicketId}/edit")">
+                        <span class="material-symbols-outlined">edit</span>
+                        Edit
+                    </a>
+                </div>);
+        }
+        else
+        {
+            HeaderState.SetHeader(
+                "Ticket not found",
+                "The ticket could not be loaded.",
+                @<a class="btn btn-outline-secondary" href="/tickets">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    Back to tickets
+                </a>);
+        }
+
+        _blnLoading = false;
+    }
+
+    private async Task AddCommentAsync()
+    {
+        if (String.IsNullOrWhiteSpace(_strNewComment))
+        {
+            return;
+        }
+
+        Guid? objUserId = await CurrentUserState.GetCurrentUserIdAsync();
+
+        Boolean blnSuccess = await TicketService.AddCommentAsync(
+            TicketId,
+            _strNewComment,
+            true,
+            objUserId);
+
+        if (blnSuccess)
+        {
+            _strNewComment = null;
+            _strMessage = "Comment added.";
+            await LoadTicketAsync();
+        }
+    }
+
+    private async Task AddTimeAsync()
+    {
+        if (_intNewTimeMinutes <= 0)
+        {
+            return;
+        }
+
+        Guid? objUserId = await CurrentUserState.GetCurrentUserIdAsync();
+
+        Boolean blnSuccess = await TicketService.AddTimeEntryAsync(
+            TicketId,
+            _intNewTimeMinutes,
+            _strNewTimeNotes,
+            _blnNewTimeChargeable,
+            objUserId);
+
+        if (blnSuccess)
+        {
+            _intNewTimeMinutes = 30;
+            _strNewTimeNotes = null;
+            _blnNewTimeChargeable = true;
+            _strMessage = "Time entry added.";
+            await LoadTicketAsync();
+        }
+    }
+
+    private async Task SetStatusAsync(TicketStatus enmStatus)
+    {
+        Guid? objUserId = await CurrentUserState.GetCurrentUserIdAsync();
+
+        Boolean blnSuccess = await TicketService.SetStatusAsync(TicketId, enmStatus, objUserId);
+
+        if (blnSuccess)
+        {
+            _strMessage = $"Status changed to {GetStatusLabel(enmStatus)}.";
+            await LoadTicketAsync();
+        }
+    }
+
+    private async Task MarkInvoicedAsync()
+    {
+        Guid? objUserId = await CurrentUserState.GetCurrentUserIdAsync();
+
+        Boolean blnSuccess = await TicketService.MarkInvoicedAsync(TicketId, objUserId);
+
+        if (blnSuccess)
+        {
+            _strMessage = "Ticket marked as invoiced.";
+            await LoadTicketAsync();
+        }
+    }
+
+    private static String FormatMoney(Decimal? decValue)
+    {
+        if (!decValue.HasValue)
+        {
+            return "-";
+        }
+
+        return decValue.Value.ToString("C");
+    }
+
+    private static String FormatMinutes(Int32 intMinutes)
+    {
+        if (intMinutes <= 0)
+        {
+            return "-";
+        }
+
+        Int32 intHours = intMinutes / 60;
+        Int32 intRemainingMinutes = intMinutes % 60;
+
+        if (intHours == 0)
+        {
+            return $"{intRemainingMinutes}m";
+        }
+
+        if (intRemainingMinutes == 0)
+        {
+            return $"{intHours}h";
+        }
+
+        return $"{intHours}h {intRemainingMinutes}m";
+    }
+
+    private static String GetStatusLabel(TicketStatus enmStatus)
+    {
+        return enmStatus switch
+        {
+            TicketStatus.InProgress => "In Progress",
+            TicketStatus.WaitingOnClient => "Waiting on Client",
+            TicketStatus.WaitingOnInternal => "Waiting on Internal",
+            TicketStatus.ReadyToInvoice => "Ready to Invoice",
+            _ => GetEnumLabel(enmStatus.ToString())
+        };
+    }
+
+    private static String GetEnumLabel(String strValue)
+    {
+        return String.Concat(strValue.Select((chrValue, intIndex) =>
+            intIndex > 0 && Char.IsUpper(chrValue)
+                ? " " + chrValue
+                : chrValue.ToString()));
+    }
+
+    private static String GetStatusClass(TicketStatus enmStatus)
+    {
+        return enmStatus switch
+        {
+            TicketStatus.New => "is-new",
+            TicketStatus.Triage => "is-triage",
+            TicketStatus.InProgress => "is-progress",
+            TicketStatus.WaitingOnClient => "is-waiting",
+            TicketStatus.WaitingOnInternal => "is-waiting",
+            TicketStatus.ReadyToInvoice => "is-invoice",
+            TicketStatus.Complete => "is-complete",
+            TicketStatus.Cancelled => "is-cancelled",
+            _ => "is-new"
+        };
+    }
+
+    private static String GetPriorityClass(TicketPriority enmPriority)
+    {
+        return enmPriority switch
+        {
+            TicketPriority.Low => "is-low",
+            TicketPriority.Normal => "is-normal",
+            TicketPriority.High => "is-high",
+            TicketPriority.Urgent => "is-urgent",
+            _ => "is-normal"
+        };
+    }
+}

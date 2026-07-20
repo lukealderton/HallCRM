@@ -1,0 +1,605 @@
+﻿@page "/opportunities"
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using CRM.Core.Opportunities.Abstractions
+@using CRM.Core.Opportunities.Domain
+@using CRM.Web.State
+
+@inject IOpportunityService OpportunityService
+@inject NavigationManager Navigation
+@inject PageHeaderState HeaderState
+
+<PageTitle>Opportunities - 101CRM</PageTitle>
+
+<section class="opportunities-page">
+    <div class="crm-card opportunities-toolbar">
+        <div class="opportunities-search">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <span class="material-symbols-outlined">search</span>
+                </span>
+
+                <input id="opportunitySearch"
+                       class="form-control"
+                       placeholder="Search opportunities, companies or contacts..."
+                       @bind="strSearch"
+                       @bind:event="oninput" />
+            </div>
+        </div>
+
+        <div class="opportunities-filters">
+            <select class="form-select opportunities-stage-filter"
+                    @bind="strSelectedStage"
+                    @bind:after="LoadOpportunitiesAsync">
+                <option value="">All stages</option>
+
+                @foreach (OpportunityStage enmStage in Enum.GetValues<OpportunityStage>())
+                {
+                    <option value="@enmStage.ToString()">@GetStageName(enmStage)</option>
+                }
+            </select>
+
+            <div class="opportunities-filter-divider"></div>
+
+            <div class="form-check form-switch">
+                <input id="includeArchived"
+                       class="form-check-input"
+                       type="checkbox"
+                       @bind="blnIncludeArchived"
+                       @bind:after="LoadOpportunitiesAsync" />
+                <label class="form-check-label" for="includeArchived">Include archived</label>
+            </div>
+        </div>
+
+        <div class="opportunities-toolbar-actions">
+            <button class="btn btn-primary" type="button" @onclick="SearchAsync">
+                <span class="material-symbols-outlined">search</span>
+                Search
+            </button>
+        </div>
+    </div>
+
+    <div class="opportunities-summary row g-3">
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="opportunities-summary-card opportunities-summary-card-primary">
+                <span class="material-symbols-outlined">track_changes</span>
+
+                <div>
+                    <small>Open shown</small>
+                    <strong>@intOpenOpportunities</strong>
+                    <span class="opportunities-summary-note">
+                        @intTotalOpportunities total result@(GetPlural(intTotalOpportunities))
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="opportunities-summary-card opportunities-summary-card-success">
+                <span class="material-symbols-outlined">payments</span>
+
+                <div>
+                    <small>Open pipeline</small>
+                    <strong>@FormatMoney(dcmOpenPipelineValue)</strong>
+                    <span class="opportunities-summary-note">
+                        Active non-won/lost value
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="opportunities-summary-card opportunities-summary-card-warning">
+                <span class="material-symbols-outlined">event_upcoming</span>
+
+                <div>
+                    <small>Closing soon</small>
+                    <strong>@intClosingSoonOpportunities</strong>
+                    <span class="opportunities-summary-note">
+                        Due before @dteClosingSoonCutoffUtc.ToLocalTime().ToString("dd MMM")
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="opportunities-summary-card opportunities-summary-card-info">
+                <span class="material-symbols-outlined">emoji_events</span>
+
+                <div>
+                    <small>Won shown</small>
+                    <strong>@intWonOpportunities</strong>
+                    <span class="opportunities-summary-note">
+                        @FormatMoney(dcmWonValue) won value
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (blnShowErrorAlert && !String.IsNullOrWhiteSpace(strErrorMessage))
+    {
+        <div class="alert alert-danger opportunities-alert" role="alert">
+            <span class="material-symbols-outlined">error</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">Unable to load opportunities</strong>
+                <p>@strErrorMessage</p>
+            </div>
+
+            <div class="alert-actions">
+                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="LoadOpportunitiesAsync">
+                    <span class="material-symbols-outlined">refresh</span>
+                    Try again
+                </button>
+
+                <button class="btn btn-soft-danger btn-sm opportunities-alert-close" type="button" @onclick="DismissErrorAlert">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+        </div>
+    }
+
+    <div class="crm-card">
+        <div class="crm-card-header">
+            <div>
+                <h3>Opportunity records</h3>
+                <p>@strResultSummary</p>
+            </div>
+
+            @if (HasActiveFilters)
+            {
+                <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="ClearFiltersAsync">
+                    <span class="material-symbols-outlined">filter_alt_off</span>
+                    Clear filters
+                </button>
+            }
+        </div>
+
+        @if (blnLoading)
+        {
+            <div class="crm-loading">
+                <span class="spinner-border spinner-border-sm"></span>
+                Loading opportunities...
+            </div>
+        }
+        else if (!colOpportunities.Any())
+        {
+            <div class="crm-empty-state">
+                <span class="material-symbols-outlined">empty_dashboard</span>
+                <h4>No opportunities found</h4>
+                <p>Create your first deal or adjust the filters.</p>
+
+                <a class="btn btn-primary" href="/opportunities/add">
+                    <span class="material-symbols-outlined">add_circle</span>
+                    Add opportunity
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle crm-table opportunities-table">
+                    <thead>
+                        <tr>
+                            <th>Opportunity</th>
+                            <th>Company</th>
+                            <th>Contact</th>
+                            <th>Stage</th>
+                            <th>Value</th>
+                            <th>Close date</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (Opportunity objOpportunity in colOpportunities)
+                        {
+                            <tr class="@GetOpportunityRowClass(objOpportunity)">
+                                <td>
+                                    <div class="opportunities-opportunity-cell">
+                                        <div class="opportunities-avatar">
+                                            @GetOpportunityInitial(objOpportunity)
+                                        </div>
+
+                                        <div>
+                                            <a class="opportunities-name-link" href="@GetOpportunityUrl(objOpportunity.Id)">
+                                                @objOpportunity.Name
+                                            </a>
+
+                                            @if (!String.IsNullOrWhiteSpace(objOpportunity.Source))
+                                            {
+                                                <small class="d-block text-muted">
+                                                    Source: @objOpportunity.Source
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @if (objOpportunity.Company != null)
+                                    {
+                                        <a class="opportunities-company-link" href="@GetCompanyUrl(objOpportunity.Company.Id)">
+                                            @objOpportunity.Company.Name
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not linked</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (objOpportunity.Contact != null)
+                                    {
+                                        <a class="opportunities-contact-link" href="@GetContactUrl(objOpportunity.Contact.Id)">
+                                            @objOpportunity.Contact.Entity.DisplayName
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not linked</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <span class="@GetStageBadgeClass(objOpportunity.Stage)">
+                                        @GetStageName(objOpportunity.Stage)
+                                    </span>
+                                </td>
+
+                                <td>@FormatMoney(objOpportunity.Value)</td>
+
+                                <td>
+                                    <span class="@GetCloseDateClass(objOpportunity)">
+                                        @FormatDate(objOpportunity.ExpectedCloseDateUtc)
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @if (objOpportunity.Entity.ArchivedUtc.HasValue)
+                                    {
+                                        <span class="badge text-bg-secondary">Archived</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-success">Active</span>
+                                    }
+                                </td>
+
+                                <td class="text-end">
+                                    <div class="opportunities-row-actions">
+                                        <a href="@GetOpportunityUrl(objOpportunity.Id)" class="btn btn-soft-primary btn-sm">
+                                            <span class="material-symbols-outlined">visibility</span>
+                                            View
+                                        </a>
+
+                                        <a href="@($"/opportunities/{objOpportunity.Id}/edit")" class="btn btn-soft-secondary btn-sm">
+                                            <span class="material-symbols-outlined">edit</span>
+                                            Edit
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private List<Opportunity> colOpportunities = [];
+
+    private String? strSearch;
+    private String? strErrorMessage;
+    private String strSelectedStage = String.Empty;
+    private String strResultSummary = "Showing active opportunity records.";
+
+    private Boolean blnIncludeArchived;
+    private Boolean blnLoading = true;
+    private Boolean blnShowErrorAlert = true;
+
+    private Int32 intTotalOpportunities;
+    private Int32 intActiveOpportunities;
+    private Int32 intArchivedOpportunities;
+    private Int32 intOpenOpportunities;
+    private Int32 intClosingSoonOpportunities;
+    private Int32 intWonOpportunities;
+
+    private Decimal dcmOpenPipelineValue;
+    private Decimal dcmWonValue;
+
+    private DateTime dteClosingSoonCutoffUtc = DateTime.UtcNow.Date.AddDays(30);
+
+    private Boolean HasActiveFilters =>
+        !String.IsNullOrWhiteSpace(strSearch) ||
+        !String.IsNullOrWhiteSpace(strSelectedStage) ||
+        blnIncludeArchived;
+
+    private OpportunityStage? SelectedStage
+    {
+        get
+        {
+            if (Enum.TryParse(strSelectedStage, out OpportunityStage enmStage))
+            {
+                return enmStage;
+            }
+
+            return null;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        HeaderState.SetHeader(
+            "Opportunities",
+            "Track deals, pipeline value and expected close dates.",
+            GetHeaderActions());
+
+        await LoadOpportunitiesAsync();
+    }
+
+    private RenderFragment GetHeaderActions()
+    {
+        return @<a class="btn btn-primary" href="/opportunities/add">
+            <span class="material-symbols-outlined">add_circle</span>
+            Add opportunity
+        </a>;
+    }
+
+    private Task SearchAsync()
+    {
+        return LoadOpportunitiesAsync();
+    }
+
+    private async Task LoadOpportunitiesAsync()
+    {
+        blnLoading = true;
+        strErrorMessage = null;
+        blnShowErrorAlert = true;
+
+        try
+        {
+            colOpportunities = await OpportunityService.GetOpportunitiesAsync(
+                strSearch,
+                SelectedStage,
+                null,
+                blnIncludeArchived,
+                false);
+
+            SetOpportunityStats();
+            SetResultSummary();
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = "We couldn’t retrieve the opportunity records right now. " + objError.Message;
+
+            colOpportunities = [];
+
+            intTotalOpportunities = 0;
+            intActiveOpportunities = 0;
+            intArchivedOpportunities = 0;
+            intOpenOpportunities = 0;
+            intClosingSoonOpportunities = 0;
+            intWonOpportunities = 0;
+            dcmOpenPipelineValue = 0;
+            dcmWonValue = 0;
+
+            SetResultSummary();
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private async Task ClearFiltersAsync()
+    {
+        strSearch = null;
+        strSelectedStage = String.Empty;
+        blnIncludeArchived = false;
+
+        await LoadOpportunitiesAsync();
+    }
+
+    private void DismissErrorAlert()
+    {
+        blnShowErrorAlert = false;
+    }
+
+    private void SetOpportunityStats()
+    {
+        DateTime dteTodayUtc = DateTime.UtcNow.Date;
+        dteClosingSoonCutoffUtc = dteTodayUtc.AddDays(30);
+
+        intTotalOpportunities = colOpportunities.Count;
+
+        intArchivedOpportunities = colOpportunities.Count(objOpportunity =>
+            objOpportunity.Entity.ArchivedUtc.HasValue);
+
+        intActiveOpportunities = colOpportunities.Count(objOpportunity =>
+            !objOpportunity.Entity.ArchivedUtc.HasValue);
+
+        intOpenOpportunities = colOpportunities.Count(IsOpenOpportunity);
+
+        dcmOpenPipelineValue = colOpportunities
+            .Where(IsOpenOpportunity)
+            .Sum(objOpportunity => objOpportunity.Value ?? 0);
+
+        intClosingSoonOpportunities = colOpportunities.Count(objOpportunity =>
+            IsOpenOpportunity(objOpportunity) &&
+            objOpportunity.ExpectedCloseDateUtc.HasValue &&
+            objOpportunity.ExpectedCloseDateUtc.Value.Date >= dteTodayUtc &&
+            objOpportunity.ExpectedCloseDateUtc.Value.Date <= dteClosingSoonCutoffUtc);
+
+        intWonOpportunities = colOpportunities.Count(objOpportunity =>
+            !objOpportunity.Entity.ArchivedUtc.HasValue &&
+            objOpportunity.Stage == OpportunityStage.Won);
+
+        dcmWonValue = colOpportunities
+            .Where(objOpportunity =>
+                !objOpportunity.Entity.ArchivedUtc.HasValue &&
+                objOpportunity.Stage == OpportunityStage.Won)
+            .Sum(objOpportunity => objOpportunity.Value ?? 0);
+    }
+
+    private void SetResultSummary()
+    {
+        List<String> colFilters = [];
+
+        if (!String.IsNullOrWhiteSpace(strSearch))
+        {
+            colFilters.Add($"matching \"{strSearch}\"");
+        }
+
+        if (SelectedStage.HasValue)
+        {
+            colFilters.Add($"in {GetStageName(SelectedStage.Value)}");
+        }
+
+        if (blnIncludeArchived)
+        {
+            colFilters.Add("including archived");
+        }
+
+        if (!colFilters.Any())
+        {
+            strResultSummary = $"Showing {intTotalOpportunities} opportunity record{GetPlural(intTotalOpportunities)}.";
+            return;
+        }
+
+        strResultSummary = $"Showing {intTotalOpportunities} result{GetPlural(intTotalOpportunities)} {String.Join(", ", colFilters)}.";
+    }
+
+    private static Boolean IsOpenOpportunity(Opportunity objOpportunity)
+    {
+        return !objOpportunity.Entity.ArchivedUtc.HasValue &&
+               objOpportunity.Stage != OpportunityStage.Won &&
+               objOpportunity.Stage != OpportunityStage.Lost;
+    }
+
+    private static String GetPlural(Int32 intCount)
+    {
+        return intCount == 1 ? String.Empty : "s";
+    }
+
+    private static String GetOpportunityUrl(Guid objOpportunityId)
+    {
+        return $"/opportunities/{objOpportunityId}";
+    }
+
+    private static String GetCompanyUrl(Guid objCompanyId)
+    {
+        return $"/companies/{objCompanyId}";
+    }
+
+    private static String GetContactUrl(Guid objContactId)
+    {
+        return $"/contacts/{objContactId}";
+    }
+
+    private static String GetOpportunityInitial(Opportunity objOpportunity)
+    {
+        if (String.IsNullOrWhiteSpace(objOpportunity.Name))
+        {
+            return "?";
+        }
+
+        return objOpportunity.Name.Trim().Substring(0, 1).ToUpperInvariant();
+    }
+
+    private static String GetStageName(OpportunityStage enmStage)
+    {
+        return enmStage switch
+        {
+            OpportunityStage.New => "New",
+            OpportunityStage.Qualified => "Qualified",
+            OpportunityStage.Proposal => "Proposal",
+            OpportunityStage.Negotiation => "Negotiation",
+            OpportunityStage.Won => "Won",
+            OpportunityStage.Lost => "Lost",
+            _ => enmStage.ToString()
+        };
+    }
+
+    private static String GetStageBadgeClass(OpportunityStage enmStage)
+    {
+        return enmStage switch
+        {
+            OpportunityStage.Won => "opportunity-stage opportunity-stage-won",
+            OpportunityStage.Lost => "opportunity-stage opportunity-stage-lost",
+            OpportunityStage.Negotiation => "opportunity-stage opportunity-stage-negotiation",
+            OpportunityStage.Proposal => "opportunity-stage opportunity-stage-proposal",
+            OpportunityStage.Qualified => "opportunity-stage opportunity-stage-qualified",
+            _ => "opportunity-stage"
+        };
+    }
+
+    private static String GetCloseDateClass(Opportunity objOpportunity)
+    {
+        if (!IsOpenOpportunity(objOpportunity) || !objOpportunity.ExpectedCloseDateUtc.HasValue)
+        {
+            return String.Empty;
+        }
+
+        DateTime dteTodayUtc = DateTime.UtcNow.Date;
+        DateTime dteCloseDateUtc = objOpportunity.ExpectedCloseDateUtc.Value.Date;
+
+        if (dteCloseDateUtc < dteTodayUtc)
+        {
+            return "opportunities-close-date-overdue";
+        }
+
+        if (dteCloseDateUtc <= dteTodayUtc.AddDays(30))
+        {
+            return "opportunities-close-date-soon";
+        }
+
+        return String.Empty;
+    }
+
+    private static String FormatMoney(Decimal dcmValue)
+    {
+        return dcmValue.ToString("C0");
+    }
+
+    private static String FormatMoney(Decimal? dcmValue)
+    {
+        if (!dcmValue.HasValue)
+        {
+            return "—";
+        }
+
+        return dcmValue.Value.ToString("C0");
+    }
+
+    private static String FormatDate(DateTime? dteDate)
+    {
+        if (!dteDate.HasValue)
+        {
+            return "—";
+        }
+
+        return dteDate.Value.ToLocalTime().ToString("dd MMM yyyy");
+    }
+
+    private static String GetOpportunityRowClass(Opportunity objOpportunity)
+    {
+        if (objOpportunity.Entity.ArchivedUtc.HasValue)
+        {
+            return "opportunities-row-archived";
+        }
+
+        if (objOpportunity.Stage == OpportunityStage.Lost)
+        {
+            return "opportunities-row-muted";
+        }
+
+        return String.Empty;
+    }
+}

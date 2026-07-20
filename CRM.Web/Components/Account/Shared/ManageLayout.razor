@@ -1,0 +1,46 @@
+﻿@inherits LayoutComponentBase
+@layout CRM.Web.Components.Layout.MainLayout
+
+<div class="account-manage-layout">
+@*     <section class="account-manage-hero">
+        <div class="account-manage-hero-icon">
+            <span class="material-symbols-outlined">manage_accounts</span>
+        </div>
+
+        <div>
+            <div class="account-manage-eyebrow">Account settings</div>
+            <h2>Manage your account</h2>
+            <p>Update your profile, sign-in details, security options and personal data.</p>
+        </div>
+    </section> *@
+
+    <div class="row g-4 align-items-start">
+        <div class="col-12 col-lg-4 col-xl-3">
+            <aside class="account-manage-sidebar">
+                <div class="account-manage-sidebar-title">
+                    <span class="material-symbols-outlined">tune</span>
+                    Settings
+                </div>
+
+                <ManageNavMenu />
+            </aside>
+        </div>
+
+        <div class="col-12 col-lg-8 col-xl-9">
+            <section class="account-manage-content">
+                @Body
+            </section>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        HeaderState.SetHeader(
+            "Manage your account",
+            "Change your account settings");
+
+        base.OnInitialized();
+    }
+}

@@ -1,0 +1,133 @@
+﻿.entity-notes-body {
+    padding: 1.25rem;
+}
+
+.entity-note-composer {
+    display: grid;
+    gap: .75rem;
+}
+
+.entity-note-composer .form-control {
+    min-height: 8rem;
+    resize: vertical;
+}
+
+.entity-note-composer-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.entity-note-composer-footer small {
+    color: var(--bs-secondary-color);
+}
+
+.entity-note-list {
+    display: grid;
+    gap: .85rem;
+    margin-top: 1.25rem;
+}
+
+.entity-note-item {
+    display: flex;
+    gap: .85rem;
+    padding: 1rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 1rem;
+    background: var(--bs-body-bg);
+}
+
+.entity-note-avatar {
+    width: 2.4rem;
+    height: 2.4rem;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    color: var(--bs-primary);
+    background: rgba(var(--bs-primary-rgb), .1);
+    font-weight: 800;
+    font-size: .85rem;
+    letter-spacing: .01em;
+}
+
+.entity-note-content {
+    min-width: 0;
+    flex: 1;
+}
+
+.entity-note-meta {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: .85rem;
+    color: var(--bs-secondary-color);
+}
+
+.entity-note-author {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+}
+
+.entity-note-meta strong {
+    color: var(--bs-body-color);
+}
+
+.entity-note-date {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.entity-note-content p {
+    margin: .45rem 0 0;
+    white-space: pre-wrap;
+    color: var(--bs-body-color);
+}
+
+.entity-note-actions {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    margin-top: .85rem;
+}
+
+.entity-note-empty {
+    min-height: 8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    padding: 1rem;
+    border: 1px dashed var(--bs-border-color);
+    border-radius: 1rem;
+    color: var(--bs-secondary-color);
+    background: var(--bs-tertiary-bg);
+}
+
+@media (max-width: 576px) {
+    .entity-note-composer-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .entity-note-composer-footer .btn {
+        width: 100%;
+    }
+
+    .entity-note-item {
+        align-items: flex-start;
+    }
+
+    .entity-note-meta {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: .15rem;
+    }
+
+    .entity-note-date {
+        white-space: normal;
+    }
+}

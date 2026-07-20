@@ -1,0 +1,611 @@
+﻿@page "/logs"
+@attribute [Authorize]
+
+@using CRM.Contracts.Results
+@using CRM.Core.Common.Domain
+@using CRM.Core.Logging.Abstraction
+@using CRM.Core.Logging.Domain
+@using CRM.Primitives.Logging.Enums
+@using CRM.Web.State
+
+@inject ILogService LogService
+@inject PageHeaderState HeaderState
+
+<PageTitle>Logs - 101CRM</PageTitle>
+
+<div class="logs-page">
+    @if (blnShowStatusAlert && !String.IsNullOrWhiteSpace(strStatusMessage))
+    {
+        <div class="alert @(blnStatusSuccess ? "alert-success logs-status-alert logs-status-alert-success" : "alert-danger logs-status-alert logs-status-alert-danger")">
+            <span class="material-symbols-outlined">
+                @(blnStatusSuccess ? "check_circle" : "error")
+            </span>
+
+            <div class="alert-content">
+                <strong class="alert-title">
+                    @(blnStatusSuccess ? "Log cleanup complete" : "Log cleanup failed")
+                </strong>
+                <p>@strStatusMessage</p>
+            </div>
+
+            <div class="alert-actions">
+                <button class="btn btn-sm @(blnStatusSuccess ? "btn-soft-success" : "btn-soft-danger") logs-alert-close"
+                        type="button"
+                        @onclick="DismissStatusAlert">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+        </div>
+    }
+
+    @if (blnShowErrorAlert && !String.IsNullOrWhiteSpace(strErrorMessage))
+    {
+        <div class="alert alert-danger logs-alert">
+            <span class="material-symbols-outlined">error</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">Unable to load logs</strong>
+                <p>@strErrorMessage</p>
+            </div>
+
+            <div class="alert-actions">
+                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="() => LoadAsync()">
+                    <span class="material-symbols-outlined">refresh</span>
+                    Try again
+                </button>
+
+                <button class="btn btn-soft-danger btn-sm logs-alert-close" type="button" @onclick="DismissErrorAlert">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+        </div>
+    }
+
+    <div class="logs-summary row g-3">
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="logs-summary-card logs-summary-card-primary">
+                <span class="material-symbols-outlined">receipt_long</span>
+
+                <div>
+                    <small>Total logs</small>
+                    <strong>@intTotalLogs</strong>
+                    <span class="logs-summary-note">
+                        @FormatDateRange()
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="logs-summary-card logs-summary-card-danger">
+                <span class="material-symbols-outlined">error</span>
+
+                <div>
+                    <small>Errors</small>
+                    <strong>@intErrorLogs</strong>
+                    <span class="logs-summary-note">
+                        @intErrorPercentage% of selected logs
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="logs-summary-card logs-summary-card-info">
+                <span class="material-symbols-outlined">settings</span>
+
+                <div>
+                    <small>System</small>
+                    <strong>@intSystemLogs</strong>
+                    <span class="logs-summary-note">
+                        Maintenance and background logs
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="logs-summary-card logs-summary-card-success">
+                <span class="material-symbols-outlined">bolt</span>
+
+                <div>
+                    <small>Activity</small>
+                    <strong>@intActivityLogs</strong>
+                    <span class="logs-summary-note">
+                        User and CRM activity
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="crm-card logs-filter-card">
+        <div class="logs-filter-grid">
+            <div class="logs-search">
+                <label class="form-label" for="logKeyword">Search</label>
+
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <span class="material-symbols-outlined">search</span>
+                    </span>
+
+                    <input id="logKeyword"
+                           class="form-control"
+                           placeholder="Search log text..."
+                           @bind="strKeyword"
+                           @bind:event="oninput" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" for="logStartDate">From</label>
+                <input id="logStartDate" type="date" class="form-control" @bind="dteStartDate" />
+            </div>
+
+            <div>
+                <label class="form-label" for="logEndDate">To</label>
+                <input id="logEndDate" type="date" class="form-control" @bind="dteEndDate" />
+            </div>
+
+            <div>
+                <label class="form-label" for="logType">Type</label>
+                <select id="logType" class="form-select" @bind="enmSelectedLogType">
+                    <option value="0">All types</option>
+
+                    @foreach (LogType enmType in colLogTypes)
+                    {
+                        if ((Int32)enmType != 0)
+                        {
+                            <option value="@enmType">@enmType</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" for="logArea">Area</label>
+                <select id="logArea" class="form-select" @bind="enmSelectedLogArea">
+                    <option value="0">All areas</option>
+
+                    @foreach (LogArea enmArea in colLogAreas)
+                    {
+                        if ((Int32)enmArea != 0)
+                        {
+                            <option value="@enmArea">@enmArea</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" for="logPageSize">Page size</label>
+                <select id="logPageSize" class="form-select" @bind="intPageSize">
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+
+            <div class="logs-filter-actions">
+                <button type="button" class="btn btn-soft-secondary" @onclick="ResetFiltersAsync">
+                    <span class="material-symbols-outlined">restart_alt</span>
+                    Reset
+                </button>
+
+                <button type="button" class="btn btn-primary" @onclick="ApplyFiltersAsync">
+                    <span class="material-symbols-outlined">manage_search</span>
+                    Search logs
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="crm-card">
+        <div class="crm-card-header">
+            <div>
+                <h3>Log records</h3>
+                <p>@strResultSummary</p>
+            </div>
+
+            @if (HasActiveFilters)
+            {
+                <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="ResetFiltersAsync">
+                    <span class="material-symbols-outlined">filter_alt_off</span>
+                    Clear filters
+                </button>
+            }
+        </div>
+
+        @if (blnIsLoading)
+        {
+            <div class="crm-loading">
+                <span class="spinner-border spinner-border-sm"></span>
+                Loading logs...
+            </div>
+        }
+        else if (!objLogs.Items.Any())
+        {
+            <div class="crm-empty-state">
+                <span class="material-symbols-outlined">search_off</span>
+                <h4>No logs found</h4>
+                <p>No logs matched the selected filters.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle crm-table logs-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Type</th>
+                            <th>Area</th>
+                            <th>Related</th>
+                            <th>Text</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (Log objLog in objLogs.Items)
+                        {
+                            <tr>
+                                <td class="logs-date">
+                                    @objLog.Timestamp.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                                </td>
+
+                                <td>
+                                    <span class="logs-chip @GetLogTypeClass(objLog.LogType)">
+                                        @objLog.LogType
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="logs-chip">
+                                        @objLog.LogArea
+                                    </span>
+                                </td>
+
+                                <td class="logs-related">
+                                    @if (objLog.RelId.HasValue)
+                                    {
+                                        <span>@objLog.RelType</span>
+                                        <small>@objLog.RelId</small>
+                                    }
+                                    else if (objLog.MemberId.HasValue)
+                                    {
+                                        <span>Member</span>
+                                        <small>@objLog.MemberId</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">None</span>
+                                    }
+                                </td>
+
+                                <td class="logs-text">
+                                    @GetPreview(objLog.Text)
+                                </td>
+
+                                <td class="text-end">
+                                    <div class="logs-row-actions">
+                                        <a class="btn btn-soft-primary btn-sm" href="@($"/logs/{objLog.Id}")">
+                                            <span class="material-symbols-outlined">visibility</span>
+                                            View
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="logs-pagination">
+                <div>
+                    Showing page @intCurrentPage of @intTotalPages
+                    <span class="text-muted">(@objLogs.TotalCount log@GetPlural(objLogs.TotalCount))</span>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button"
+                            class="btn btn-soft-secondary btn-sm"
+                            disabled="@(intCurrentPage <= 1)"
+                            @onclick="PreviousPageAsync">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                        Previous
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-soft-secondary btn-sm"
+                            disabled="@(intCurrentPage >= intTotalPages)"
+                            @onclick="NextPageAsync">
+                        Next
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private SearchResult<Log> objLogs = new();
+
+    private String? strKeyword;
+    private String? strStatusMessage;
+    private String? strErrorMessage;
+    private String strResultSummary = "Showing recent log records.";
+
+    private Boolean blnStatusSuccess;
+    private Boolean blnIsLoading;
+    private Boolean blnIsCleaning;
+    private Boolean blnShowStatusAlert = true;
+    private Boolean blnShowErrorAlert = true;
+
+    private DateTime dteStartDate = DateTime.UtcNow.Date.AddDays(-7);
+    private DateTime dteEndDate = DateTime.UtcNow.Date;
+
+    private LogType enmSelectedLogType = 0;
+    private LogArea enmSelectedLogArea = 0;
+
+    private Int32 intPageSize = 25;
+    private Int32 intCurrentPage = 1;
+
+    private Int32 intTotalLogs;
+    private Int32 intErrorLogs;
+    private Int32 intSystemLogs;
+    private Int32 intActivityLogs;
+    private Int32 intErrorPercentage;
+
+    private IEnumerable<LogType> colLogTypes = Enum.GetValues<LogType>();
+    private IEnumerable<LogArea> colLogAreas = Enum.GetValues<LogArea>();
+
+    private Int32 intSkip => (intCurrentPage - 1) * intPageSize;
+
+    private Boolean HasActiveFilters =>
+        !String.IsNullOrWhiteSpace(strKeyword) ||
+        enmSelectedLogType != 0 ||
+        enmSelectedLogArea != 0 ||
+        intPageSize != 25 ||
+        dteStartDate.Date != DateTime.UtcNow.Date.AddDays(-7) ||
+        dteEndDate.Date != DateTime.UtcNow.Date;
+
+    private Int32 intTotalPages
+    {
+        get
+        {
+            if (objLogs.TotalCount <= 0)
+            {
+                return 1;
+            }
+
+            return (Int32)Math.Ceiling((Decimal)objLogs.TotalCount / intPageSize);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        HeaderState.SetHeader(
+            "Logs",
+            "Review system, activity, debug and error logs.",
+            GetHeaderActions());
+
+        await LoadAsync();
+    }
+
+    private RenderFragment GetHeaderActions()
+    {
+        String strButtonText = blnIsCleaning ? "Cleaning..." : "Run cleanup";
+
+        return @<button type="button"
+                    class="btn btn-outline-danger"
+                    @onclick="CleanLogsAsync"
+                    disabled="@blnIsCleaning">
+            <span class="material-symbols-outlined">cleaning_services</span>
+            @strButtonText
+        </button>;
+    }
+
+    private async Task ApplyFiltersAsync()
+    {
+        intCurrentPage = 1;
+        await LoadAsync();
+    }
+
+    private async Task ResetFiltersAsync()
+    {
+        strKeyword = null;
+        enmSelectedLogType = 0;
+        enmSelectedLogArea = 0;
+        dteStartDate = DateTime.UtcNow.Date.AddDays(-7);
+        dteEndDate = DateTime.UtcNow.Date;
+        intPageSize = 25;
+        intCurrentPage = 1;
+
+        await LoadAsync();
+    }
+
+    private async Task PreviousPageAsync()
+    {
+        if (intCurrentPage <= 1)
+        {
+            return;
+        }
+
+        intCurrentPage--;
+        await LoadAsync(false);
+    }
+
+    private async Task NextPageAsync()
+    {
+        if (intCurrentPage >= intTotalPages)
+        {
+            return;
+        }
+
+        intCurrentPage++;
+        await LoadAsync(false);
+    }
+
+    private async Task LoadAsync(Boolean blnLoadSummary = true)
+    {
+        blnIsLoading = true;
+        strErrorMessage = null;
+        blnShowErrorAlert = true;
+
+        try
+        {
+            DateTime dteEndExclusive = dteEndDate.Date.AddDays(1);
+
+            objLogs = await LogService.GetLogsAsync(
+                strKeyword,
+                dteStartDate.Date,
+                dteEndExclusive,
+                enmSelectedLogType,
+                enmSelectedLogArea,
+                intPageSize,
+                intSkip);
+
+            if (blnLoadSummary)
+            {
+                await LoadSummaryAsync(dteEndExclusive);
+            }
+
+            SetResultSummary();
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = "We couldn’t retrieve the log records right now. " + objError.Message;
+
+            objLogs = new();
+            intTotalLogs = 0;
+            intErrorLogs = 0;
+            intSystemLogs = 0;
+            intActivityLogs = 0;
+            intErrorPercentage = 0;
+
+            SetResultSummary();
+        }
+        finally
+        {
+            blnIsLoading = false;
+        }
+    }
+
+    private async Task LoadSummaryAsync(DateTime dteEndExclusive)
+    {
+        intTotalLogs = await LogService.CountLogsOfTypeAsync(0, enmSelectedLogArea, dteStartDate.Date, dteEndExclusive);
+        intErrorLogs = await LogService.CountLogsOfTypeAsync(LogType.Error, enmSelectedLogArea, dteStartDate.Date, dteEndExclusive);
+        intSystemLogs = await LogService.CountLogsOfTypeAsync(LogType.System, enmSelectedLogArea, dteStartDate.Date, dteEndExclusive);
+        intActivityLogs = await LogService.CountLogsOfTypeAsync(LogType.Activity, enmSelectedLogArea, dteStartDate.Date, dteEndExclusive);
+
+        intErrorPercentage = intTotalLogs == 0
+            ? 0
+            : (Int32)Math.Round((Decimal)intErrorLogs / intTotalLogs * 100);
+    }
+
+    private async Task CleanLogsAsync()
+    {
+        blnIsCleaning = true;
+        blnShowStatusAlert = true;
+        strStatusMessage = null;
+
+        try
+        {
+            BasicResult objResult = await LogService.CleanLogsAsync(CancellationToken.None);
+
+            blnStatusSuccess = objResult.Success;
+            strStatusMessage = objResult.Message;
+        }
+        catch (Exception objError)
+        {
+            blnStatusSuccess = false;
+            strStatusMessage = "Log cleanup failed: " + objError.Message;
+        }
+        finally
+        {
+            blnIsCleaning = false;
+        }
+
+        HeaderState.SetHeader(
+            "Logs",
+            "Review system, activity, debug and error logs.",
+            GetHeaderActions());
+
+        await LoadAsync();
+    }
+
+    private void SetResultSummary()
+    {
+        List<String> colFilters = [];
+
+        if (!String.IsNullOrWhiteSpace(strKeyword))
+        {
+            colFilters.Add($"matching \"{strKeyword}\"");
+        }
+
+        if (enmSelectedLogType != 0)
+        {
+            colFilters.Add($"type {enmSelectedLogType}");
+        }
+
+        if (enmSelectedLogArea != 0)
+        {
+            colFilters.Add($"area {enmSelectedLogArea}");
+        }
+
+        colFilters.Add($"from {dteStartDate:dd MMM yyyy} to {dteEndDate:dd MMM yyyy}");
+
+        strResultSummary = $"Showing {objLogs.TotalCount} log{GetPlural(objLogs.TotalCount)} {String.Join(", ", colFilters)}.";
+    }
+
+    private void DismissStatusAlert()
+    {
+        blnShowStatusAlert = false;
+    }
+
+    private void DismissErrorAlert()
+    {
+        blnShowErrorAlert = false;
+    }
+
+    private String FormatDateRange()
+    {
+        return $"{dteStartDate:dd MMM yyyy} - {dteEndDate:dd MMM yyyy}";
+    }
+
+    private static String GetPlural(Int32 intCount)
+    {
+        return intCount == 1 ? String.Empty : "s";
+    }
+
+    private static String GetPreview(String? strText)
+    {
+        if (String.IsNullOrWhiteSpace(strText))
+        {
+            return "No details";
+        }
+
+        String strCleanText = strText.Replace(Environment.NewLine, " ");
+
+        if (strCleanText.Length <= 140)
+        {
+            return strCleanText;
+        }
+
+        return strCleanText[..140] + "...";
+    }
+
+    private static String GetLogTypeClass(LogType enmType)
+    {
+        return enmType switch
+        {
+            LogType.Error => "logs-chip--error",
+            LogType.Debug => "logs-chip--debug",
+            LogType.System => "logs-chip--system",
+            LogType.Activity => "logs-chip--activity",
+            _ => String.Empty
+        };
+    }
+}

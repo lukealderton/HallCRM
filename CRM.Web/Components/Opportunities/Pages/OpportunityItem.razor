@@ -1,0 +1,621 @@
+﻿@page "/opportunities/{OpportunityId:guid}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using CRM.Core.Opportunities.Abstractions
+@using CRM.Core.Opportunities.Domain
+@using CRM.Web.State
+
+@inject IOpportunityService OpportunityService
+@inject NavigationManager Navigation
+@inject PageHeaderState HeaderState
+
+<PageTitle>@strPageTitle - 101CRM</PageTitle>
+
+<section class="opportunity-item-page">
+    @if (!String.IsNullOrWhiteSpace(strSuccessMessage))
+    {
+        <div class="alert alert-success opportunity-alert" role="alert">
+            <span class="material-symbols-outlined">check_circle</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">@strSuccessMessage</strong>
+                <p>The opportunity record has been updated.</p>
+            </div>
+        </div>
+    }
+
+    @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+    {
+        <div class="alert alert-danger opportunity-alert" role="alert">
+            <span class="material-symbols-outlined">error</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">Unable to update opportunity</strong>
+                <p>@strErrorMessage</p>
+            </div>
+        </div>
+    }
+
+    @if (blnConfirmArchive)
+    {
+        <div class="alert alert-warning opportunity-alert">
+            <span class="material-symbols-outlined">archive</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">Archive this opportunity?</strong>
+                <p>Archived opportunities are hidden from normal pipeline views but can be restored later.</p>
+            </div>
+
+            <div class="alert-actions">
+                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="ArchiveOpportunityAsync" disabled="@blnSaving">
+                    Archive opportunity
+                </button>
+
+                <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="CancelActions">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    }
+
+    @if (blnConfirmDelete)
+    {
+        <div class="alert alert-danger opportunity-alert">
+            <span class="material-symbols-outlined">delete</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">Delete this opportunity?</strong>
+                <p>This will mark the opportunity as deleted. It will no longer appear in normal opportunity lists.</p>
+            </div>
+
+            <div class="alert-actions">
+                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="DeleteOpportunityAsync" disabled="@blnSaving">
+                    Delete opportunity
+                </button>
+
+                <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="CancelActions">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    }
+
+    @if (blnLoading)
+    {
+        <div class="crm-card">
+            <div class="crm-loading">
+                <span class="spinner-border spinner-border-sm"></span>
+                Loading opportunity...
+            </div>
+        </div>
+    }
+    else if (objOpportunity == null)
+    {
+        <div class="alert alert-danger opportunity-alert" role="alert">
+            <span class="material-symbols-outlined">search_off</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">Opportunity not found</strong>
+                <p>This opportunity may have been deleted or moved.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="opportunity-profile-card crm-card">
+            <div class="opportunity-profile-main">
+                <div class="opportunity-avatar">
+                    @GetOpportunityInitial(objOpportunity)
+                </div>
+
+                <div>
+                    <div class="opportunity-title-row">
+                        <h2>@objOpportunity.Name</h2>
+
+                        <span class="@GetStageBadgeClass(objOpportunity.Stage)">
+                            @GetStageName(objOpportunity.Stage)
+                        </span>
+
+                        @if (objOpportunity.Entity.ArchivedUtc.HasValue)
+                        {
+                            <span class="badge text-bg-secondary">Archived</span>
+                        }
+                        else
+                        {
+                            <span class="badge text-bg-success">Active</span>
+                        }
+                    </div>
+
+                    <p class="opportunity-subtitle">
+                        @(objOpportunity.Company?.Name ?? "No company linked")
+                    </p>
+
+                    <div class="opportunity-meta-row">
+                        <span>
+                            <span class="material-symbols-outlined">payments</span>
+                            @FormatMoney(objOpportunity.Value)
+                        </span>
+
+                        <span>
+                            <span class="material-symbols-outlined">percent</span>
+                            @FormatProbability(objOpportunity.ProbabilityPercent)
+                        </span>
+
+                        <span>
+                            <span class="material-symbols-outlined">event</span>
+                            @FormatDate(objOpportunity.ExpectedCloseDateUtc)
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="opportunity-profile-actions">
+                <button type="button" class="btn btn-primary" @onclick="GoToEdit">
+                    <span class="material-symbols-outlined">edit</span>
+                    Edit opportunity
+                </button>
+
+                @if (objOpportunity.Entity.ArchivedUtc.HasValue)
+                {
+                    <button type="button" class="btn btn-soft-primary" disabled="@blnSaving" @onclick="RestoreOpportunityAsync">
+                        <span class="material-symbols-outlined">unarchive</span>
+                        Restore
+                    </button>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-soft-secondary" disabled="@blnSaving" @onclick="ShowArchiveConfirmation">
+                        <span class="material-symbols-outlined">archive</span>
+                        Archive
+                    </button>
+                }
+
+                <button type="button" class="btn btn-soft-danger" disabled="@blnSaving" @onclick="ShowDeleteConfirmation">
+                    <span class="material-symbols-outlined">delete</span>
+                    Delete
+                </button>
+            </div>
+        </div>
+
+        <div class="opportunity-layout">
+            <div class="opportunity-main-column">
+                <div class="crm-card">
+                    <div class="crm-card-header">
+                        <div>
+                            <h3>Opportunity details</h3>
+                            <p>Value, probability, source and expected close date.</p>
+                        </div>
+                    </div>
+
+                    <div class="opportunity-card-body">
+                        <div class="opportunity-details-grid">
+                            <div class="opportunity-detail-item">
+                                <span class="material-symbols-outlined">payments</span>
+
+                                <div>
+                                    <small>Value</small>
+                                    <strong>@FormatMoney(objOpportunity.Value)</strong>
+                                </div>
+                            </div>
+
+                            <div class="opportunity-detail-item">
+                                <span class="material-symbols-outlined">percent</span>
+
+                                <div>
+                                    <small>Probability</small>
+                                    <strong>@FormatProbability(objOpportunity.ProbabilityPercent)</strong>
+                                </div>
+                            </div>
+
+                            <div class="opportunity-detail-item">
+                                <span class="material-symbols-outlined">event</span>
+
+                                <div>
+                                    <small>Expected close</small>
+                                    <strong>@FormatDate(objOpportunity.ExpectedCloseDateUtc)</strong>
+                                </div>
+                            </div>
+
+                            <div class="opportunity-detail-item">
+                                <span class="material-symbols-outlined">campaign</span>
+
+                                <div>
+                                    <small>Source</small>
+                                    <strong>@DisplayValue(objOpportunity.Source)</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card">
+                    <div class="crm-card-header">
+                        <div>
+                            <h3>Description</h3>
+                            <p>Summary and context for this opportunity.</p>
+                        </div>
+                    </div>
+
+                    <div class="opportunity-card-body">
+                        @if (!String.IsNullOrWhiteSpace(objOpportunity.Description))
+                        {
+                            <p class="opportunity-description">@objOpportunity.Description</p>
+                        }
+                        else
+                        {
+                            <div class="opportunity-muted-panel">
+                                <span class="material-symbols-outlined">notes</span>
+                                <span>No description has been added yet.</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <EntityNotes EntityId="@OpportunityId"
+                             Title="Notes"
+                             Subtitle="Internal notes for this opportunity."
+                             EmptyText="No notes have been added for this opportunity yet." />
+            </div>
+
+            <aside class="opportunity-side-column">
+                <div class="crm-card">
+                    <div class="opportunity-card-body">
+                        <h4 class="opportunity-side-heading">Quick actions</h4>
+
+                        <div class="opportunity-action-list">
+                            @if (objOpportunity.Company != null)
+                            {
+                                <a href="@GetCompanyUrl(objOpportunity.Company.Id)" class="btn btn-soft-primary w-100">
+                                    <span class="material-symbols-outlined">business</span>
+                                    Open company
+                                </a>
+                            }
+
+                            @if (objOpportunity.Contact != null)
+                            {
+                                <a href="@GetContactUrl(objOpportunity.Contact.Id)" class="btn btn-soft-secondary w-100">
+                                    <span class="material-symbols-outlined">person</span>
+                                    Open contact
+                                </a>
+                            }
+
+                            <button type="button" class="btn btn-soft-secondary w-100" @onclick="GoToEdit">
+                                <span class="material-symbols-outlined">edit</span>
+                                Edit details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card">
+                    <div class="opportunity-card-body">
+                        <h4 class="opportunity-side-heading">Overview</h4>
+
+                        <div class="opportunity-meta-list">
+                            <div>
+                                <span>Company</span>
+
+                                @if (objOpportunity.Company != null)
+                                {
+                                    <strong>
+                                        <a href="@GetCompanyUrl(objOpportunity.Company.Id)">
+                                            @objOpportunity.Company.Name
+                                        </a>
+                                    </strong>
+                                }
+                                else
+                                {
+                                    <strong>-</strong>
+                                }
+                            </div>
+
+                            <div>
+                                <span>Contact</span>
+
+                                @if (objOpportunity.Contact != null)
+                                {
+                                    <strong>
+                                        <a href="@GetContactUrl(objOpportunity.Contact.Id)">
+                                            @objOpportunity.Contact.Entity.DisplayName
+                                        </a>
+                                    </strong>
+                                }
+                                else
+                                {
+                                    <strong>-</strong>
+                                }
+                            </div>
+
+                            <div>
+                                <span>Stage</span>
+                                <strong>@GetStageName(objOpportunity.Stage)</strong>
+                            </div>
+
+                            <div>
+                                <span>Source</span>
+                                <strong>@DisplayValue(objOpportunity.Source)</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card">
+                    <div class="opportunity-card-body">
+                        <h4 class="opportunity-side-heading">Record details</h4>
+
+                        <div class="opportunity-meta-list">
+                            <div>
+                                <span>Created</span>
+                                <strong>@FormatNullableDate(objOpportunity.Entity.CreatedUtc)</strong>
+                            </div>
+
+                            <div>
+                                <span>Updated</span>
+                                <strong>@FormatNullableDate(objOpportunity.Entity.UpdatedUtc)</strong>
+                            </div>
+
+                            <div>
+                                <span>Archived</span>
+                                <strong>@FormatNullableDate(objOpportunity.Entity.ArchivedUtc)</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public Guid OpportunityId { get; set; }
+
+    private Opportunity? objOpportunity;
+
+    private String strPageTitle = "Opportunity";
+    private String? strSuccessMessage;
+    private String? strErrorMessage;
+
+    private Boolean blnLoading = true;
+    private Boolean blnSaving;
+    private Boolean blnConfirmArchive;
+    private Boolean blnConfirmDelete;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadOpportunityAsync();
+    }
+
+    private RenderFragment GetHeaderActions()
+    {
+        return @<a href="/opportunities" class="btn btn-soft-secondary">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Back to opportunities
+        </a>;
+    }
+
+    private async Task LoadOpportunityAsync()
+    {
+        blnLoading = true;
+        strErrorMessage = null;
+        strSuccessMessage = null;
+        blnConfirmArchive = false;
+        blnConfirmDelete = false;
+
+        HeaderState.SetHeader(
+            "Opportunity",
+            "Loading opportunity...",
+            GetHeaderActions());
+
+        try
+        {
+            objOpportunity = await OpportunityService.GetOpportunityByIdAsync(OpportunityId);
+
+            if (objOpportunity == null)
+            {
+                strPageTitle = "Opportunity not found";
+
+                HeaderState.SetHeader(
+                    "Opportunity not found",
+                    "The selected opportunity could not be loaded",
+                    GetHeaderActions());
+
+                return;
+            }
+
+            strPageTitle = objOpportunity.Name;
+
+            HeaderState.SetHeader(
+                objOpportunity.Name,
+                objOpportunity.Company?.Name ?? "Opportunity details",
+                GetHeaderActions());
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = "Failed to load opportunity: " + objError.Message;
+
+            HeaderState.SetHeader(
+                "Opportunity",
+                "Unable to load opportunity",
+                GetHeaderActions());
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private void GoToEdit()
+    {
+        Navigation.NavigateTo($"/opportunities/{OpportunityId}/edit");
+    }
+
+    private void ShowArchiveConfirmation()
+    {
+        blnConfirmArchive = true;
+        blnConfirmDelete = false;
+        strSuccessMessage = null;
+        strErrorMessage = null;
+    }
+
+    private void ShowDeleteConfirmation()
+    {
+        blnConfirmDelete = true;
+        blnConfirmArchive = false;
+        strSuccessMessage = null;
+        strErrorMessage = null;
+    }
+
+    private void CancelActions()
+    {
+        blnConfirmArchive = false;
+        blnConfirmDelete = false;
+    }
+
+    private async Task ArchiveOpportunityAsync()
+    {
+        await RunOpportunityActionAsync(
+            () => OpportunityService.ArchiveOpportunityAsync(OpportunityId),
+            "Opportunity archived");
+    }
+
+    private async Task RestoreOpportunityAsync()
+    {
+        await RunOpportunityActionAsync(
+            () => OpportunityService.RestoreOpportunityAsync(OpportunityId),
+            "Opportunity restored");
+    }
+
+    private async Task DeleteOpportunityAsync()
+    {
+        blnSaving = true;
+        strErrorMessage = null;
+        strSuccessMessage = null;
+
+        try
+        {
+            Boolean blnDeleted = await OpportunityService.DeleteOpportunityAsync(OpportunityId);
+
+            if (!blnDeleted)
+            {
+                strErrorMessage = "The opportunity could not be deleted. It may already have been deleted.";
+                return;
+            }
+
+            Navigation.NavigateTo("/opportunities");
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = "Failed to delete opportunity: " + objError.Message;
+        }
+        finally
+        {
+            blnSaving = false;
+            blnConfirmDelete = false;
+        }
+    }
+
+    private async Task RunOpportunityActionAsync(Func<Task<Boolean>> objAction, String strSuccessMessageText)
+    {
+        blnSaving = true;
+        strErrorMessage = null;
+        strSuccessMessage = null;
+        blnConfirmArchive = false;
+        blnConfirmDelete = false;
+
+        try
+        {
+            Boolean blnSuccess = await objAction();
+
+            if (!blnSuccess)
+            {
+                strErrorMessage = "The opportunity could not be updated. It may have been deleted or no longer exists.";
+                return;
+            }
+
+            await LoadOpportunityAsync();
+            strSuccessMessage = strSuccessMessageText;
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = "Failed to update opportunity: " + objError.Message;
+        }
+        finally
+        {
+            blnSaving = false;
+        }
+    }
+
+    private static String GetCompanyUrl(Guid objCompanyId)
+    {
+        return $"/companies/{objCompanyId}";
+    }
+
+    private static String GetContactUrl(Guid objContactId)
+    {
+        return $"/contacts/{objContactId}";
+    }
+
+    private static String GetOpportunityInitial(Opportunity objOpportunity)
+    {
+        if (String.IsNullOrWhiteSpace(objOpportunity.Name))
+        {
+            return "?";
+        }
+
+        return objOpportunity.Name.Trim().Substring(0, 1).ToUpperInvariant();
+    }
+
+    private static String GetStageName(OpportunityStage enmStage)
+    {
+        return enmStage switch
+        {
+            OpportunityStage.New => "New",
+            OpportunityStage.Qualified => "Qualified",
+            OpportunityStage.Proposal => "Proposal",
+            OpportunityStage.Negotiation => "Negotiation",
+            OpportunityStage.Won => "Won",
+            OpportunityStage.Lost => "Lost",
+            _ => enmStage.ToString()
+        };
+    }
+
+    private static String GetStageBadgeClass(OpportunityStage enmStage)
+    {
+        return enmStage switch
+        {
+            OpportunityStage.Won => "opportunity-stage opportunity-stage-won",
+            OpportunityStage.Lost => "opportunity-stage opportunity-stage-lost",
+            OpportunityStage.Negotiation => "opportunity-stage opportunity-stage-negotiation",
+            OpportunityStage.Proposal => "opportunity-stage opportunity-stage-proposal",
+            OpportunityStage.Qualified => "opportunity-stage opportunity-stage-qualified",
+            _ => "opportunity-stage"
+        };
+    }
+
+    private static String FormatMoney(Decimal? dcmValue)
+    {
+        return dcmValue.HasValue ? dcmValue.Value.ToString("C0") : "-";
+    }
+
+    private static String FormatProbability(Int32? intProbability)
+    {
+        return intProbability.HasValue ? $"{intProbability.Value}%" : "-";
+    }
+
+    private static String FormatDate(DateTime? dteDate)
+    {
+        return dteDate.HasValue ? dteDate.Value.ToLocalTime().ToString("dd MMM yyyy") : "-";
+    }
+
+    private static String FormatNullableDate(DateTime? dteDate)
+    {
+        return dteDate.HasValue ? dteDate.Value.ToLocalTime().ToString("dd MMM yyyy") : "-";
+    }
+
+    private static String DisplayValue(String? strValue)
+    {
+        return String.IsNullOrWhiteSpace(strValue) ? "-" : strValue;
+    }
+}

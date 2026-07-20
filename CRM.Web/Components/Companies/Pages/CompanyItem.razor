@@ -1,0 +1,657 @@
+﻿@page "/companies/{CompanyId:guid}"
+
+@using CRM.Core.Companies.Abstractions
+@using CRM.Core.Companies.Domain
+@using CRM.Web.State
+
+@attribute [Authorize]
+
+@inject ICompanyService CompanyService
+@inject NavigationManager objNavigationManager
+@inject PageHeaderState HeaderState
+
+<PageTitle>@strPageTitle - 101CRM</PageTitle>
+
+<div class="company-page">
+    @if (blnLoading)
+    {
+        <div class="crm-card">
+            <div class="crm-loading">
+                <span class="spinner-border spinner-border-sm"></span>
+                Loading company...
+            </div>
+        </div>
+    }
+    else if (!blnFound)
+    {
+        <div class="alert alert-danger">
+            <span class="material-symbols-outlined">error</span>
+
+            <div class="alert-content">
+                <strong class="alert-title">Company not found</strong>
+                <p>
+                    @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+                    {
+                        @strErrorMessage
+                    }
+                    else
+                    {
+                        <text>The company could not be found or may have been deleted.</text>
+                    }
+                </p>
+            </div>
+        </div>
+    }
+    else
+    {
+        @if (!String.IsNullOrWhiteSpace(strMessage))
+        {
+            <div class="alert alert-success">
+                <span class="material-symbols-outlined">check_circle</span>
+
+                <div class="alert-content">
+                    <strong class="alert-title">@strMessage</strong>
+                    <p>The company record has been updated.</p>
+                </div>
+            </div>
+        }
+
+        @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+        {
+            <div class="alert alert-danger">
+                <span class="material-symbols-outlined">error</span>
+
+                <div class="alert-content">
+                    <strong class="alert-title">Unable to update company</strong>
+                    <p>@strErrorMessage</p>
+                </div>
+            </div>
+        }
+
+        @if (blnConfirmArchive)
+        {
+            <div class="alert alert-warning">
+                <span class="material-symbols-outlined">archive</span>
+
+                <div class="alert-content">
+                    <strong class="alert-title">Archive this company?</strong>
+                    <p>Archived companies are hidden from normal CRM views but can be restored later.</p>
+                </div>
+
+                <div class="alert-actions">
+                    <button class="btn btn-soft-danger btn-sm" type="button" @onclick="ArchiveCompanyAsync">
+                        Archive company
+                    </button>
+
+                    <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="CancelActions">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        }
+
+        @if (blnConfirmDelete)
+        {
+            <div class="alert alert-danger">
+                <span class="material-symbols-outlined">delete</span>
+
+                <div class="alert-content">
+                    <strong class="alert-title">Delete this company?</strong>
+                    <p>This will mark the company as deleted. It will no longer appear in normal company lists.</p>
+                </div>
+
+                <div class="alert-actions">
+                    <button class="btn btn-soft-danger btn-sm" type="button" @onclick="DeleteCompanyAsync">
+                        Delete company
+                    </button>
+
+                    <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="CancelActions">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        }
+
+        <div class="company-profile-card crm-card">
+            <div class="company-profile-main">
+                <div class="company-avatar">
+                    @GetCompanyInitial()
+                </div>
+
+                <div>
+                    <div class="company-title-row">
+                        <h2>@objCompany.Name</h2>
+                        <span class="@GetStatusBadgeClass()">@GetStatusText()</span>
+                    </div>
+
+                    @if (!String.IsNullOrWhiteSpace(objCompany.TradingName))
+                    {
+                        <p class="company-trading-name">Trading as @objCompany.TradingName</p>
+                    }
+
+                    <div class="company-meta-row">
+                        @if (!String.IsNullOrWhiteSpace(objCompany.Industry))
+                        {
+                            <span>
+                                <span class="material-symbols-outlined">category</span>
+                                @objCompany.Industry
+                            </span>
+                        }
+
+                        <span>
+                            <span class="material-symbols-outlined">location_on</span>
+                            @GetLocation()
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="company-profile-actions">
+                <a href="@($"/companies/{CompanyId}/edit")" class="btn btn-primary">
+                    <span class="material-symbols-outlined">edit</span>
+                    Edit company
+                </a>
+
+                @if (IsArchived())
+                {
+                    <button class="btn btn-soft-primary" type="button" @onclick="RestoreCompanyAsync">
+                        <span class="material-symbols-outlined">unarchive</span>
+                        Restore
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-soft-secondary" type="button" @onclick="ShowArchiveConfirmation" disabled="@IsDeleted()">
+                        <span class="material-symbols-outlined">archive</span>
+                        Archive
+                    </button>
+                }
+
+                <button class="btn btn-soft-danger" type="button" @onclick="ShowDeleteConfirmation" disabled="@IsDeleted()">
+                    <span class="material-symbols-outlined">delete</span>
+                    Delete
+                </button>
+            </div>
+        </div>
+
+        <div class="company-layout">
+            <div class="company-main">
+                <div class="crm-card">
+                    <div class="crm-card-header">
+                        <div>
+                            <h3>Contact information</h3>
+                            <p>Main ways to contact this company.</p>
+                        </div>
+                    </div>
+
+                    <div class="company-card-body">
+                        <div class="company-info-grid">
+                            <div class="company-info-item">
+                                <span class="material-symbols-outlined">mail</span>
+
+                                <div>
+                                    <small>Email</small>
+
+                                    @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
+                                    {
+                                        <a href="mailto:@objCompany.PrimaryEmail">@objCompany.PrimaryEmail</a>
+                                    }
+                                    else
+                                    {
+                                        <strong>-</strong>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="company-info-item">
+                                <span class="material-symbols-outlined">call</span>
+
+                                <div>
+                                    <small>Phone</small>
+
+                                    @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
+                                    {
+                                        <a href="tel:@objCompany.PrimaryPhone">@objCompany.PrimaryPhone</a>
+                                    }
+                                    else
+                                    {
+                                        <strong>-</strong>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="company-info-item">
+                                <span class="material-symbols-outlined">language</span>
+
+                                <div>
+                                    <small>Website</small>
+
+                                    @if (!String.IsNullOrWhiteSpace(objCompany.Website))
+                                    {
+                                        <a href="@objCompany.Website" target="_blank" rel="noopener noreferrer">@objCompany.Website</a>
+                                    }
+                                    else
+                                    {
+                                        <strong>-</strong>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="company-info-item">
+                                <span class="material-symbols-outlined">category</span>
+
+                                <div>
+                                    <small>Industry</small>
+                                    <strong>@(objCompany.Industry ?? "-")</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card">
+                    <div class="crm-card-header">
+                        <div>
+                            <h3>Address</h3>
+                            <p>Registered or primary trading location.</p>
+                        </div>
+                    </div>
+
+                    <div class="company-card-body">
+                        <div class="company-address">
+                            <span class="material-symbols-outlined">location_on</span>
+
+                            <div>
+                                @if (HasAddress())
+                                {
+                                    @if (!String.IsNullOrWhiteSpace(objCompany.AddressLine1))
+                                    {
+                                        <div>@objCompany.AddressLine1</div>
+                                    }
+
+                                    @if (!String.IsNullOrWhiteSpace(objCompany.AddressLine2))
+                                    {
+                                        <div>@objCompany.AddressLine2</div>
+                                    }
+
+                                    <div>@GetLocation()</div>
+
+                                    @if (!String.IsNullOrWhiteSpace(objCompany.Postcode))
+                                    {
+                                        <div>@objCompany.Postcode</div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div>No address has been added yet.</div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <EntityNotes EntityId="@CompanyId"
+                             Title="Notes"
+                             Subtitle="Internal notes for this company."
+                             EmptyText="No notes have been added for this company yet." />
+            </div>
+
+            <aside class="company-side">
+                <div class="crm-card">
+                    <div class="company-card-body">
+                        <h4 class="company-side-heading">Quick actions</h4>
+
+                        <div class="company-action-list">
+                            @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
+                            {
+                                <a href="mailto:@objCompany.PrimaryEmail" class="btn btn-soft-primary w-100">
+                                    <span class="material-symbols-outlined">mail</span>
+                                    Send email
+                                </a>
+                            }
+
+                            @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
+                            {
+                                <a href="tel:@objCompany.PrimaryPhone" class="btn btn-soft-secondary w-100">
+                                    <span class="material-symbols-outlined">call</span>
+                                    Call company
+                                </a>
+                            }
+
+                            @if (!String.IsNullOrWhiteSpace(objCompany.Website))
+                            {
+                                <a href="@objCompany.Website" target="_blank" rel="noopener noreferrer" class="btn btn-soft-secondary w-100">
+                                    <span class="material-symbols-outlined">open_in_new</span>
+                                    Open website
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card">
+                    <div class="company-card-body">
+                        <h4 class="company-side-heading">Registration</h4>
+
+                        <div class="company-meta-list">
+                            <div>
+                                <span>Company number</span>
+                                <strong>@(objCompany.CompanyNumber ?? "-")</strong>
+                            </div>
+
+                            @if (!String.IsNullOrWhiteSpace(objCompany.CharityNumber))
+                            {
+                                <div>
+                                    <span class="crm-detail-label">Charity number</span>
+                                    <strong>@objCompany.CharityNumber</strong>
+                                </div>
+                            }
+
+                            <div>
+                                <span>VAT number</span>
+                                <strong>@(objCompany.VatNumber ?? "-")</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card">
+                    <div class="company-card-body">
+                        <h4 class="company-side-heading">Record details</h4>
+
+                        <div class="company-meta-list">
+                            <div>
+                                <span>Created</span>
+                                <strong>@FormatNullableDate(objCompany.Entity?.CreatedUtc)</strong>
+                            </div>
+
+                            <div>
+                                <span>Updated</span>
+                                <strong>@FormatNullableDate(objCompany.Entity?.UpdatedUtc)</strong>
+                            </div>
+
+                            @if (objCompany.Entity?.ArchivedUtc != null)
+                            {
+                                <div>
+                                    <span>Archived</span>
+                                    <strong>@FormatNullableDate(objCompany.Entity?.ArchivedUtc)</strong>
+                                </div>
+                            }
+
+                            @if (objCompany.Entity?.DeletedUtc != null)
+                            {
+                                <div>
+                                    <span>Deleted</span>
+                                    <strong>@FormatNullableDate(objCompany.Entity?.DeletedUtc)</strong>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid CompanyId { get; set; }
+
+    private Company objCompany = new();
+
+    private Boolean blnLoading = true;
+    private Boolean blnFound;
+    private Boolean blnConfirmArchive;
+    private Boolean blnConfirmDelete;
+
+    private String strPageTitle = "Company";
+    private String? strMessage;
+    private String? strErrorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadCompanyAsync();
+    }
+
+    private RenderFragment GetHeaderActions()
+    {
+        return @<a href="/companies" class="btn btn-soft-secondary">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Back to companies
+        </a>;
+    }
+
+    private async Task LoadCompanyAsync()
+    {
+        blnLoading = true;
+        blnFound = false;
+        strMessage = null;
+        strErrorMessage = null;
+        blnConfirmArchive = false;
+        blnConfirmDelete = false;
+
+        HeaderState.SetHeader(
+            "Company",
+            "Loading company...",
+            GetHeaderActions());
+
+        try
+        {
+            Company? objLoadedCompany = await CompanyService.GetCompanyByIdAsync(CompanyId);
+
+            if (objLoadedCompany == null)
+            {
+                HeaderState.SetHeader(
+                    "Company not found",
+                    "The company could not be loaded",
+                    GetHeaderActions());
+
+                return;
+            }
+
+            objCompany = objLoadedCompany;
+            blnFound = true;
+            strPageTitle = objCompany.Name;
+
+            HeaderState.SetHeader(
+                objCompany.Name,
+                "Company record",
+                GetHeaderActions());
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = objError.Message;
+
+            HeaderState.SetHeader(
+                "Company",
+                "Unable to load company",
+                GetHeaderActions());
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private void ShowArchiveConfirmation()
+    {
+        blnConfirmArchive = true;
+        blnConfirmDelete = false;
+        strMessage = null;
+        strErrorMessage = null;
+    }
+
+    private void ShowDeleteConfirmation()
+    {
+        blnConfirmDelete = true;
+        blnConfirmArchive = false;
+        strMessage = null;
+        strErrorMessage = null;
+    }
+
+    private void CancelActions()
+    {
+        blnConfirmArchive = false;
+        blnConfirmDelete = false;
+    }
+
+    private async Task ArchiveCompanyAsync()
+    {
+        await RunCompanyActionAsync(
+            () => CompanyService.ArchiveCompanyAsync(CompanyId),
+            "Company archived");
+    }
+
+    private async Task RestoreCompanyAsync()
+    {
+        await RunCompanyActionAsync(
+            () => CompanyService.RestoreCompanyAsync(CompanyId),
+            "Company restored");
+    }
+
+    private async Task DeleteCompanyAsync()
+    {
+        strErrorMessage = null;
+
+        try
+        {
+            Boolean blnDeleted = await CompanyService.DeleteCompanyAsync(CompanyId);
+
+            if (!blnDeleted)
+            {
+                strErrorMessage = "The company could not be deleted. It may already have been deleted.";
+                return;
+            }
+
+            objNavigationManager.NavigateTo("/companies");
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = objError.Message;
+        }
+    }
+
+    private async Task RunCompanyActionAsync(Func<Task<Boolean>> objAction, String strSuccessMessage)
+    {
+        strErrorMessage = null;
+        strMessage = null;
+        blnConfirmArchive = false;
+        blnConfirmDelete = false;
+
+        try
+        {
+            Boolean blnSuccess = await objAction();
+
+            if (!blnSuccess)
+            {
+                strErrorMessage = "The company could not be updated. It may have been deleted or no longer exists.";
+                return;
+            }
+
+            await LoadCompanyAsync();
+            strMessage = strSuccessMessage;
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = objError.Message;
+        }
+    }
+
+    private Boolean IsArchived()
+    {
+        return objCompany.Entity?.ArchivedUtc.HasValue == true &&
+               objCompany.Entity?.DeletedUtc.HasValue != true;
+    }
+
+    private Boolean IsDeleted()
+    {
+        return objCompany.Entity?.DeletedUtc.HasValue == true;
+    }
+
+    private String GetStatusText()
+    {
+        if (IsDeleted())
+        {
+            return "Deleted";
+        }
+
+        if (IsArchived())
+        {
+            return "Archived";
+        }
+
+        return "Active";
+    }
+
+    private String GetStatusBadgeClass()
+    {
+        if (IsDeleted())
+        {
+            return "badge text-bg-danger";
+        }
+
+        if (IsArchived())
+        {
+            return "badge text-bg-secondary";
+        }
+
+        return "badge text-bg-success";
+    }
+
+    private String GetCompanyInitial()
+    {
+        if (String.IsNullOrWhiteSpace(objCompany.Name))
+        {
+            return "?";
+        }
+
+        return objCompany.Name.Trim().Substring(0, 1).ToUpperInvariant();
+    }
+
+    private Boolean HasAddress()
+    {
+        return !String.IsNullOrWhiteSpace(objCompany.AddressLine1) ||
+               !String.IsNullOrWhiteSpace(objCompany.AddressLine2) ||
+               !String.IsNullOrWhiteSpace(objCompany.Town) ||
+               !String.IsNullOrWhiteSpace(objCompany.County) ||
+               !String.IsNullOrWhiteSpace(objCompany.Postcode) ||
+               !String.IsNullOrWhiteSpace(objCompany.Country);
+    }
+
+    private String GetLocation()
+    {
+        List<String> colLocationParts = [];
+
+        if (!String.IsNullOrWhiteSpace(objCompany.Town))
+        {
+            colLocationParts.Add(objCompany.Town);
+        }
+
+        if (!String.IsNullOrWhiteSpace(objCompany.County))
+        {
+            colLocationParts.Add(objCompany.County);
+        }
+
+        if (!String.IsNullOrWhiteSpace(objCompany.Country))
+        {
+            colLocationParts.Add(objCompany.Country);
+        }
+
+        if (!colLocationParts.Any())
+        {
+            return "-";
+        }
+
+        return String.Join(", ", colLocationParts);
+    }
+
+    private static String FormatNullableDate(DateTime? dtmDate)
+    {
+        if (!dtmDate.HasValue)
+        {
+            return "-";
+        }
+
+        return dtmDate.Value.ToLocalTime().ToString("dd MMM yyyy");
+    }
+}

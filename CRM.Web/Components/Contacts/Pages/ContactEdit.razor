@@ -1,0 +1,359 @@
+﻿@page "/contacts/add"
+@page "/contacts/{ContactId:guid}/edit"
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using CRM.Core.Companies.Abstractions
+@using CRM.Core.Companies.Domain
+@using CRM.Core.Contacts.Abstractions
+@using CRM.Core.Contacts.Domain
+@using CRM.Web.State
+
+@inject IContactService ContactService
+@inject ICompanyService CompanyService
+@inject NavigationManager Navigation
+@inject PageHeaderState HeaderState
+
+<PageTitle>@strPageTitle</PageTitle>
+
+<section class="contact-edit-page">
+    <div class="contact-edit-toolbar">
+        <button type="button" class="btn crm-btn-secondary" @onclick="GoBack">
+            <span class="material-symbols-outlined">arrow_back</span>
+            @(blnEditMode ? "Back to contact" : "Back to contacts")
+        </button>
+    </div>
+
+    @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+    {
+        <div class="alert alert-danger crm-alert" role="alert">
+            <span class="material-symbols-outlined">error</span>
+            <div>@strErrorMessage</div>
+        </div>
+    }
+
+    @if (blnLoading)
+    {
+        <div class="crm-card contact-loading-card">
+            <span class="material-symbols-outlined">hourglass_empty</span>
+            <h2>Loading contact</h2>
+            <p>Please wait while the form is prepared.</p>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="objContact" OnValidSubmit="SaveContactAsync" FormName="ContactEditForm">
+            <DataAnnotationsValidator />
+
+            <div class="contact-edit-layout">
+                <div class="contact-main-column">
+                    <div class="crm-card contact-form-card">
+                        <div class="contact-card-header">
+                            <div>
+                                <h2>@(blnEditMode ? "Edit contact" : "New contact")</h2>
+                                <p>Core profile and company relationship.</p>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <label class="form-label" for="title">Title</label>
+                                <InputText id="title" class="form-control" @bind-Value="objContact.Title" />
+                            </div>
+
+                            <div class="col-md-5">
+                                <label class="form-label" for="firstName">First name</label>
+                                <InputText id="firstName" class="form-control" @bind-Value="objContact.FirstName" />
+                            </div>
+
+                            <div class="col-md-5">
+                                <label class="form-label" for="lastName">Last name</label>
+                                <InputText id="lastName" class="form-control" @bind-Value="objContact.LastName" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="company">Company</label>
+                                <select id="company" class="form-select" @bind="strSelectedCompanyId">
+                                    <option value="">No company linked</option>
+
+                                    @foreach (Company objCompany in colCompanies)
+                                    {
+                                        <option value="@objCompany.Id.ToString()">@objCompany.Name</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="jobTitle">Job title</label>
+                                <InputText id="jobTitle" class="form-control" @bind-Value="objContact.JobTitle" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="department">Department</label>
+                                <InputText id="department" class="form-control" @bind-Value="objContact.Department" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="linkedin">LinkedIn URL</label>
+                                <InputText id="linkedin" class="form-control" @bind-Value="objContact.LinkedInUrl" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crm-card contact-form-card">
+                        <div class="contact-card-header">
+                            <div>
+                                <h2>Contact information</h2>
+                                <p>Email and phone numbers.</p>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="email">Email</label>
+                                <InputText id="email" class="form-control" type="email" @bind-Value="objContact.PrimaryEmail" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label" for="phone">Phone</label>
+                                <InputText id="phone" class="form-control" @bind-Value="objContact.PrimaryPhone" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label" for="mobile">Mobile</label>
+                                <InputText id="mobile" class="form-control" @bind-Value="objContact.MobilePhone" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crm-card contact-form-card">
+                        <div class="contact-card-header">
+                            <div>
+                                <h2>Notes</h2>
+                                <p>Useful context, preferences or relationship notes.</p>
+                            </div>
+                        </div>
+
+                        <InputTextArea class="form-control contact-notes-input"
+                                       @bind-Value="objContact.Notes"
+                                       placeholder="Add notes about this contact..." />
+                    </div>
+
+                    <div class="contact-save-bar">
+                        <button type="button" class="btn crm-btn-secondary" disabled="@blnSaving" @onclick="GoBack">
+                            Cancel
+                        </button>
+
+                        <button type="submit" class="btn crm-btn-primary" disabled="@blnSaving">
+                            <span class="material-symbols-outlined">save</span>
+                            @(blnSaving ? "Saving..." : "Save contact")
+                        </button>
+                    </div>
+                </div>
+
+                <aside class="contact-side-column">
+                    <div class="crm-card contact-summary-card">
+                        <div class="contact-avatar-large">
+                            @GetInitials()
+                        </div>
+
+                        <h3>@GetPreviewName()</h3>
+                        <p>@(String.IsNullOrWhiteSpace(objContact.JobTitle) ? "No job title set" : objContact.JobTitle)</p>
+
+                        <div class="contact-summary-divider"></div>
+
+                        <div class="contact-summary-help">
+                            <span class="material-symbols-outlined">info</span>
+                            <p>A contact needs at least a name, email, phone or mobile number before it can be saved.</p>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </EditForm>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public Guid? ContactId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "companyId")]
+    public Guid? CompanyId { get; set; }
+
+    private Contact objContact = new();
+    private List<Company> colCompanies = [];
+    private String strPageTitle = "New contact";
+    private String? strErrorMessage;
+    private Boolean blnLoading = true;
+    private Boolean blnSaving;
+
+    private Boolean blnEditMode => ContactId.HasValue && ContactId.Value != Guid.Empty;
+
+    private String strSelectedCompanyId
+    {
+        get
+        {
+            return objContact.CompanyId?.ToString() ?? String.Empty;
+        }
+        set
+        {
+            if (Guid.TryParse(value, out Guid objCompanyId))
+            {
+                objContact.CompanyId = objCompanyId;
+                return;
+            }
+
+            objContact.CompanyId = null;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadPageAsync();
+    }
+
+    private async Task LoadPageAsync()
+    {
+        blnLoading = true;
+        strErrorMessage = null;
+
+        try
+        {
+            colCompanies = await CompanyService.GetCompaniesAsync();
+
+            if (blnEditMode)
+            {
+                Contact? objExistingContact = await ContactService.GetContactByIdAsync(ContactId!.Value);
+
+                if (objExistingContact == null)
+                {
+                    strErrorMessage = "Contact not found.";
+                    objContact = new();
+                    strPageTitle = "Contact not found";
+                    HeaderState.SetHeader("Contact not found", "The selected contact could not be loaded");
+                    return;
+                }
+
+                objContact = objExistingContact;
+                strPageTitle = "Edit " + GetPreviewName();
+                HeaderState.SetHeader("Edit contact", GetPreviewName());
+            }
+            else
+            {
+                objContact = new Contact
+                {
+                    CompanyId = CompanyId
+                };
+
+                strPageTitle = "New contact";
+                HeaderState.SetHeader("New contact", "Create a new person record");
+            }
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = "Failed to load contact form: " + objError.Message;
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private async Task SaveContactAsync()
+    {
+        blnSaving = true;
+        strErrorMessage = null;
+
+        try
+        {
+            Contact objSavedContact;
+
+            if (blnEditMode)
+            {
+                Contact? objUpdatedContact = null;// await ContactService.UpdateContactAsync(objContact);
+
+                if (objUpdatedContact == null)
+                {
+                    strErrorMessage = "The contact could not be updated.";
+                    return;
+                }
+
+                objSavedContact = objUpdatedContact;
+            }
+            else
+            {
+                objSavedContact = await ContactService.AddContactAsync(objContact);
+            }
+
+            Navigation.NavigateTo($"/contacts/{objSavedContact.Id}");
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = "Failed to save contact: " + objError.Message;
+        }
+        finally
+        {
+            blnSaving = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        if (blnEditMode)
+        {
+            Navigation.NavigateTo($"/contacts/{ContactId}");
+            return;
+        }
+
+        Navigation.NavigateTo("/contacts");
+    }
+
+    private String GetPreviewName()
+    {
+        String strName = $"{objContact.FirstName} {objContact.LastName}".Trim();
+
+        if (!String.IsNullOrWhiteSpace(strName))
+        {
+            return strName;
+        }
+
+        if (!String.IsNullOrWhiteSpace(objContact.PrimaryEmail))
+        {
+            return objContact.PrimaryEmail;
+        }
+
+        if (!String.IsNullOrWhiteSpace(objContact.PrimaryPhone))
+        {
+            return objContact.PrimaryPhone;
+        }
+
+        if (!String.IsNullOrWhiteSpace(objContact.MobilePhone))
+        {
+            return objContact.MobilePhone;
+        }
+
+        return "Unnamed contact";
+    }
+
+    private String GetInitials()
+    {
+        String strFirst = !String.IsNullOrWhiteSpace(objContact.FirstName)
+            ? objContact.FirstName[..1]
+            : String.Empty;
+
+        String strLast = !String.IsNullOrWhiteSpace(objContact.LastName)
+            ? objContact.LastName[..1]
+            : String.Empty;
+
+        String strInitials = $"{strFirst}{strLast}".Trim();
+
+        if (!String.IsNullOrWhiteSpace(strInitials))
+        {
+            return strInitials.ToUpperInvariant();
+        }
+
+        String strName = GetPreviewName();
+
+        return strName[..1].ToUpperInvariant();
+    }
+}

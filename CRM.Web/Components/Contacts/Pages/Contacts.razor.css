@@ -1,0 +1,236 @@
+﻿.contacts-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.contacts-toolbar {
+    padding: 1rem 1.25rem;
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) auto auto;
+    gap: 1.25rem;
+    align-items: end;
+}
+
+.contacts-search {
+    min-width: 0;
+}
+
+.contacts-search .input-group-text {
+    background: #ffffff;
+    color: #64748b;
+}
+
+.contacts-search .input-group-text .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.contacts-filters {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding-bottom: .12rem;
+    white-space: nowrap;
+}
+
+.contacts-toolbar-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .7rem;
+}
+
+.contacts-summary-card {
+    background: #ffffff;
+    border: 1px solid #e5eaf2;
+    border-radius: 1rem;
+    padding: 1.15rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+    min-height: 128px;
+    position: relative;
+    overflow: hidden;
+}
+
+.contacts-summary-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: #0b5cff;
+}
+
+.contacts-summary-card > .material-symbols-outlined {
+    width: 54px;
+    height: 54px;
+    border-radius: .85rem;
+    background: #eaf2ff;
+    color: #0b5cff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    flex: 0 0 auto;
+}
+
+.contacts-summary-card small {
+    display: block;
+    color: #475569;
+    font-size: .92rem;
+    margin-bottom: .3rem;
+}
+
+.contacts-summary-card strong {
+    display: block;
+    font-size: 2rem;
+    font-weight: 850;
+    line-height: 1;
+    letter-spacing: -.04em;
+    color: #0f172a;
+}
+
+.contacts-summary-note {
+    display: block;
+    margin-top: .42rem;
+    color: #64748b;
+    font-size: .84rem;
+    line-height: 1.25;
+}
+
+.contacts-summary-card-primary::before {
+    background: #0b5cff;
+}
+
+.contacts-summary-card-success::before {
+    background: #16a34a;
+}
+
+.contacts-summary-card-success > .material-symbols-outlined {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.contacts-summary-card-info::before {
+    background: #0891b2;
+}
+
+.contacts-summary-card-info > .material-symbols-outlined {
+    background: #cffafe;
+    color: #0891b2;
+}
+
+.contacts-summary-card-warning::before {
+    background: #f59e0b;
+}
+
+.contacts-summary-card-warning > .material-symbols-outlined {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.contacts-alert {
+    align-items: center;
+}
+
+.contacts-alert > .material-symbols-outlined {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    color: #ffffff !important;
+    background: #dc2626;
+}
+
+.contacts-alert-close {
+    width: 2.2rem;
+    height: 2.2rem;
+    padding: 0;
+}
+
+.contacts-table .material-symbols-outlined {
+    font-size: 17px;
+}
+
+.contacts-person-cell {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+}
+
+.contacts-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0b5cff, #0946bd);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: .8rem;
+    flex: 0 0 auto;
+}
+
+.contacts-name-link {
+    color: #111827;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.contacts-name-link:hover {
+    color: #0b5cff;
+    text-decoration: underline;
+}
+
+.contacts-company-link {
+    color: #2563eb;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.contacts-company-link:hover {
+    text-decoration: underline;
+}
+
+.contacts-row-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .45rem;
+    white-space: nowrap;
+}
+
+.contacts-row-archived {
+    opacity: .78;
+}
+
+@media (max-width: 1199.98px) {
+    .contacts-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .contacts-filters {
+        flex-wrap: wrap;
+    }
+
+    .contacts-toolbar-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .contacts-filters {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .contacts-summary-card {
+        min-height: auto;
+    }
+
+    .contacts-row-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

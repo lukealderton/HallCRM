@@ -1,0 +1,12 @@
+﻿@page "/not-found"
+@layout MainLayout
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        HeaderState.SetHeader(
+            "Not Found",
+            "Sorry, the content you are looking for does not exist");
+    }
+}

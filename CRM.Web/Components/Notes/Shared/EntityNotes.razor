@@ -1,0 +1,373 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using CRM.Core.Notes.Abstractions
+@using CRM.Core.Notes.Domain
+@using CRM.Web.Users.Abstraction
+@inject INoteService NoteService
+@inject ICurrentUserState CurrentUserState
+
+<div class="crm-card entity-notes">
+    <div class="crm-card-header">
+        <div>
+            <h3>@Title</h3>
+            <p>@Subtitle</p>
+        </div>
+    </div>
+
+    <div class="entity-notes-body">
+        @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+        {
+            <div class="alert alert-danger">
+                <span class="material-symbols-outlined">error</span>
+                <div class="alert-content">
+                    <strong class="alert-title">Unable to update notes</strong>
+                    <p>@strErrorMessage</p>
+                </div>
+            </div>
+        }
+
+        <EditForm Model="@objNoteModel"
+                  FormName="@strFormName"
+                  OnValidSubmit="@AddNoteAsync">
+            <DataAnnotationsValidator />
+
+            <div class="entity-note-composer">
+                <InputTextArea class="form-control"
+                               rows="4"
+                               placeholder="@Placeholder"
+                               disabled="@blnSaving"
+                               @bind-Value="objNoteModel.Body" />
+
+                <ValidationMessage For="@(() => objNoteModel.Body)" />
+
+                <div class="entity-note-composer-footer">
+                    <small>@GetCharacterCountText()</small>
+
+                    <button class="btn btn-primary"
+                            type="submit"
+                            disabled="@blnSaving">
+                        @if (blnSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span class="material-symbols-outlined">add_comment</span>
+                            <span>Add note</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+
+        <div class="entity-note-list">
+            @if (blnLoading)
+            {
+                <div class="crm-loading">
+                    <span class="spinner-border spinner-border-sm"></span>
+                    Loading notes...
+                </div>
+            }
+            else if (!colNotes.Any())
+            {
+                <div class="entity-note-empty">
+                    <span class="material-symbols-outlined">notes</span>
+                    <span>@EmptyText</span>
+                </div>
+            }
+            else
+            {
+                @foreach (Note objNote in colNotes)
+                {
+                    <article class="entity-note-item">
+                        <div class="entity-note-avatar" title="@GetAuthorName(objNote)">
+                            @GetAuthorInitials(objNote)
+                        </div>
+
+                        <div class="entity-note-content">
+                            <div class="entity-note-meta">
+                                <div class="entity-note-author">
+                                    <strong>@GetAuthorName(objNote)</strong>
+                                    <span>added a note</span>
+                                </div>
+
+                                <span class="entity-note-date">@FormatDate(objNote.CreatedUtc)</span>
+                            </div>
+
+                            <p>@objNote.Body</p>
+
+                            @if (ShowDelete)
+                            {
+                                <div class="entity-note-actions">
+                                    @if (objConfirmDeleteNoteId == objNote.Id)
+                                    {
+                                        <button class="btn btn-soft-danger btn-sm"
+                                                type="button"
+                                                disabled="@blnDeleting"
+                                                @onclick="() => DeleteNoteAsync(objNote.Id)">
+                                            @if (blnDeleting)
+                                            {
+                                                <span class="spinner-border spinner-border-sm"></span>
+                                                <span>Deleting...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Delete note</span>
+                                            }
+                                        </button>
+
+                                        <button class="btn btn-soft-secondary btn-sm"
+                                                type="button"
+                                                disabled="@blnDeleting"
+                                                @onclick="CancelDelete">
+                                            Cancel
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-soft-secondary btn-sm"
+                                                type="button"
+                                                @onclick="() => ConfirmDelete(objNote.Id)">
+                                            <span class="material-symbols-outlined">delete</span>
+                                            Delete
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </article>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public Guid EntityId { get; set; }
+
+    [Parameter]
+    public String Title { get; set; } = "Notes";
+
+    [Parameter]
+    public String Subtitle { get; set; } = "Internal notes for this record.";
+
+    [Parameter]
+    public String Placeholder { get; set; } = "Add an internal note...";
+
+    [Parameter]
+    public String EmptyText { get; set; } = "No notes have been added yet.";
+
+    [Parameter]
+    public Int32 Take { get; set; } = 50;
+
+    [Parameter]
+    public Boolean ShowDelete { get; set; } = true;
+
+    private readonly String strFormName = $"entity-notes-{Guid.NewGuid():N}";
+
+    private List<Note> colNotes = [];
+    private NoteModel objNoteModel = new();
+
+    private Boolean blnLoading = true;
+    private Boolean blnSaving;
+    private Boolean blnDeleting;
+
+    private String? strErrorMessage;
+    private Guid? objConfirmDeleteNoteId;
+
+    private Guid objLoadedEntityId;
+    private Int32 intLoadedTake;
+    private Guid? objCurrentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        objCurrentUserId = await CurrentUserState.GetCurrentUserIdAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (EntityId == Guid.Empty)
+        {
+            colNotes = [];
+            blnLoading = false;
+            return;
+        }
+
+        if (EntityId != objLoadedEntityId || Take != intLoadedTake)
+        {
+            objLoadedEntityId = EntityId;
+            intLoadedTake = Take;
+
+            await LoadNotesAsync();
+        }
+    }
+
+    private async Task LoadNotesAsync()
+    {
+        blnLoading = true;
+        strErrorMessage = null;
+        objConfirmDeleteNoteId = null;
+
+        try
+        {
+            colNotes = await NoteService.GetNotesForEntityAsync(EntityId, Take);
+        }
+        catch (Exception objError)
+        {
+            colNotes = [];
+            strErrorMessage = objError.Message;
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private async Task AddNoteAsync()
+    {
+        if (EntityId == Guid.Empty)
+        {
+            strErrorMessage = "The record could not be identified.";
+            return;
+        }
+
+        blnSaving = true;
+        strErrorMessage = null;
+
+        try
+        {
+            Guid? objUserId = await GetCurrentUserIdAsync();
+
+            await NoteService.AddNoteAsync(
+                EntityId,
+                objNoteModel.Body,
+                objUserId);
+
+            objNoteModel = new NoteModel();
+
+            await LoadNotesAsync();
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = objError.Message;
+        }
+        finally
+        {
+            blnSaving = false;
+        }
+    }
+
+    private void ConfirmDelete(Guid objNoteId)
+    {
+        objConfirmDeleteNoteId = objNoteId;
+        strErrorMessage = null;
+    }
+
+    private void CancelDelete()
+    {
+        objConfirmDeleteNoteId = null;
+    }
+
+    private async Task DeleteNoteAsync(Guid objNoteId)
+    {
+        blnDeleting = true;
+        strErrorMessage = null;
+
+        try
+        {
+            Guid? objUserId = await GetCurrentUserIdAsync();
+
+            Boolean blnDeleted = await NoteService.DeleteNoteAsync(
+                objNoteId,
+                objUserId);
+
+            if (!blnDeleted)
+            {
+                strErrorMessage = "The note could not be deleted. It may have already been removed.";
+                return;
+            }
+
+            objConfirmDeleteNoteId = null;
+
+            await LoadNotesAsync();
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = objError.Message;
+        }
+        finally
+        {
+            blnDeleting = false;
+        }
+    }
+
+    private async Task<Guid?> GetCurrentUserIdAsync()
+    {
+        if (objCurrentUserId.HasValue && objCurrentUserId.Value != Guid.Empty)
+        {
+            return objCurrentUserId;
+        }
+
+        objCurrentUserId = await CurrentUserState.GetCurrentUserIdAsync();
+
+        return objCurrentUserId;
+    }
+
+    private String GetCharacterCountText()
+    {
+        Int32 intLength = objNoteModel.Body?.Length ?? 0;
+
+        return $"{intLength} / 4000 characters";
+    }
+
+    private static String GetAuthorName(Note objNote)
+    {
+        if (!String.IsNullOrWhiteSpace(objNote.AuthorDisplayName))
+        {
+            return objNote.AuthorDisplayName;
+        }
+
+        if (objNote.CreatedByUserId.HasValue)
+        {
+            return "Unknown user";
+        }
+
+        return "System";
+    }
+
+    private static String GetAuthorInitials(Note objNote)
+    {
+        String strAuthorName = GetAuthorName(objNote);
+
+        if (String.IsNullOrWhiteSpace(strAuthorName))
+        {
+            return "?";
+        }
+
+        String[] colParts = strAuthorName
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (colParts.Length >= 2)
+        {
+            return String.Concat(
+                colParts[0].Substring(0, 1),
+                colParts[1].Substring(0, 1))
+                .ToUpperInvariant();
+        }
+
+        return strAuthorName.Trim().Substring(0, 1).ToUpperInvariant();
+    }
+
+    private static String FormatDate(DateTime dtmDate)
+    {
+        return dtmDate.ToLocalTime().ToString("dd MMM yyyy HH:mm");
+    }
+
+    private sealed class NoteModel
+    {
+        [Required(ErrorMessage = "Enter a note.")]
+        [StringLength(4000, ErrorMessage = "Notes must be 4000 characters or fewer.")]
+        public String Body { get; set; } = String.Empty;
+    }
+}

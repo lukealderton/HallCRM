@@ -1,0 +1,129 @@
+﻿@page "/logs/{LogId:guid}"
+@attribute [Authorize]
+
+@using CRM.Core.Logging.Abstraction
+@using CRM.Core.Logging.Domain
+@using CRM.Primitives.Logging.Enums
+@using CRM.Web.State
+
+@inject ILogService LogService
+@inject PageHeaderState PageHeader
+@inject NavigationManager NavigationManager
+
+<div class="log-detail-page">
+    <div class="log-detail-toolbar">
+        <button type="button" class="btn btn-light" @onclick="BackToLogs">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Back to logs
+        </button>
+    </div>
+
+    @if (blnIsLoading)
+    {
+        <div class="card log-detail-card">
+            <div class="card-body log-detail-empty">
+                <span class="material-symbols-outlined">progress_activity</span>
+                <p>Loading log...</p>
+            </div>
+        </div>
+    }
+    else if (objLog == null)
+    {
+        <div class="card log-detail-card">
+            <div class="card-body log-detail-empty">
+                <span class="material-symbols-outlined">error</span>
+                <p>Log not found.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card log-detail-card">
+            <div class="card-body">
+                <div class="log-detail-header">
+                    <div>
+                        <span class="log-detail-chip @GetLogTypeClass(objLog.LogType)">
+                            @objLog.LogType
+                        </span>
+
+                        <span class="log-detail-chip">
+                            @objLog.LogArea
+                        </span>
+                    </div>
+
+                    <div class="log-detail-date">
+                        @objLog.Timestamp.ToLocalTime().ToString("dd MMM yyyy HH:mm:ss")
+                    </div>
+                </div>
+
+                <dl class="log-detail-grid">
+                    <div>
+                        <dt>Log ID</dt>
+                        <dd>@objLog.Id</dd>
+                    </div>
+
+                    <div>
+                        <dt>Member ID</dt>
+                        <dd>@(objLog.MemberId?.ToString() ?? "None")</dd>
+                    </div>
+
+                    <div>
+                        <dt>Related Type</dt>
+                        <dd>@objLog.RelType</dd>
+                    </div>
+
+                    <div>
+                        <dt>Related ID</dt>
+                        <dd>@(objLog.RelId?.ToString() ?? "None")</dd>
+                    </div>
+                </dl>
+
+                <div class="log-detail-message">
+                    <h3>Log text</h3>
+
+                    @if (String.IsNullOrWhiteSpace(objLog.Text))
+                    {
+                        <p class="text-muted">No log text was recorded.</p>
+                    }
+                    else
+                    {
+                        <pre>@objLog.Text</pre>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid LogId { get; set; }
+
+    private Log? objLog;
+    private Boolean blnIsLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        PageHeader.SetHeader("Log detail", "Review the selected log entry.");
+
+        objLog = await LogService.GetLogAsync(LogId);
+        blnIsLoading = false;
+    }
+
+    private void BackToLogs()
+    {
+        NavigationManager.NavigateTo("/logs");
+    }
+
+    private static String GetLogTypeClass(LogType enmType)
+    {
+        return enmType switch
+        {
+            LogType.Error => "log-detail-chip--error",
+            LogType.Debug => "log-detail-chip--debug",
+            LogType.System => "log-detail-chip--system",
+            LogType.Activity => "log-detail-chip--activity",
+            _ => ""
+        };
+    }
+}

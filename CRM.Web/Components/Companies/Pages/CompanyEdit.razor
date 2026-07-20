@@ -1,0 +1,489 @@
+﻿@page "/companies/add"
+@page "/companies/{CompanyId:guid}/edit"
+@using CRM.Core.Companies.Abstractions
+@using CRM.Core.Companies.Domain
+@using CRM.Web.State
+@attribute [Authorize]
+@inject NavigationManager objNavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>@strPageTitle - 101CRM</PageTitle>
+
+<div class="company-edit-page">
+    @if (blnLoading)
+    {
+        <div class="crm-card">
+            <div class="crm-loading">
+                <span class="spinner-border spinner-border-sm"></span>
+                Loading company...
+            </div>
+        </div>
+    }
+    else
+    {
+        @if (colErrors.Any())
+        {
+            <div class="alert alert-danger">
+                <span class="material-symbols-outlined">error</span>
+                <div class="alert-content">
+                    <strong class="alert-title">Please check the form</strong>
+
+                    @foreach (String strError in colErrors)
+                    {
+                        <p>@strError</p>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (!String.IsNullOrWhiteSpace(strSuccessMessage))
+        {
+            <div class="alert alert-success">
+                <span class="material-symbols-outlined">check_circle</span>
+                <div class="alert-content">
+                    <strong class="alert-title">@strSuccessMessage</strong>
+                    <p>The company record has been saved successfully.</p>
+                </div>
+            </div>
+        }
+
+        <EditForm Model="objCompany" OnSubmit="SaveCompanyAsync" FormName="CompanyEditForm">
+            <div class="company-edit-layout">
+                <div class="company-edit-main">
+                    <div class="crm-card">
+                        <div class="crm-card-header">
+                            <div>
+                                <h3>Company details</h3>
+                                <p>Core information used across the CRM.</p>
+                            </div>
+                        </div>
+
+                        <div class="company-edit-card-body">
+                            <div class="row g-3">
+                                <div class="col-12 col-lg-6">
+                                    <label class="form-label" for="companyName">Company name</label>
+                                    <InputText id="companyName"
+                                               class="form-control"
+                                               @bind-Value="objCompany.Name"
+                                               placeholder="Example Ltd" />
+                                </div>
+
+                                <div class="col-12 col-lg-6">
+                                    <label class="form-label" for="tradingName">Trading name</label>
+                                    <InputText id="tradingName"
+                                               class="form-control"
+                                               @bind-Value="objCompany.TradingName"
+                                               placeholder="Optional trading name" />
+                                </div>
+
+                                <div class="col-12 col-lg-6">
+                                    <label class="form-label" for="industry">Industry</label>
+                                    <InputText id="industry"
+                                               class="form-control"
+                                               @bind-Value="objCompany.Industry"
+                                               placeholder="Technology, Healthcare, Logistics..." />
+                                </div>
+
+                                <div class="col-12 col-lg-6">
+                                    <label class="form-label" for="website">Website</label>
+                                    <InputText id="website"
+                                               class="form-control"
+                                               @bind-Value="objCompany.Website"
+                                               placeholder="https://example.com" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crm-card">
+                        <div class="crm-card-header">
+                            <div>
+                                <h3>Contact information</h3>
+                                <p>Main phone and email details for this company.</p>
+                            </div>
+                        </div>
+
+                        <div class="company-edit-card-body">
+                            <div class="row g-3">
+                                <div class="col-12 col-lg-6">
+                                    <label class="form-label" for="primaryEmail">Primary email</label>
+                                    <InputText id="primaryEmail"
+                                               type="email"
+                                               class="form-control"
+                                               @bind-Value="objCompany.PrimaryEmail"
+                                               placeholder="hello@example.com" />
+                                </div>
+
+                                <div class="col-12 col-lg-6">
+                                    <label class="form-label" for="primaryPhone">Primary phone</label>
+                                    <InputText id="primaryPhone"
+                                               class="form-control"
+                                               @bind-Value="objCompany.PrimaryPhone"
+                                               placeholder="+44 20 0000 0000" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crm-card">
+                        <div class="crm-card-header">
+                            <div>
+                                <h3>Address</h3>
+                                <p>Registered or primary trading address.</p>
+                            </div>
+                        </div>
+
+                        <div class="company-edit-card-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label" for="addressLine1">Address line 1</label>
+                                    <InputText id="addressLine1"
+                                               class="form-control"
+                                               @bind-Value="objCompany.AddressLine1" />
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label" for="addressLine2">Address line 2</label>
+                                    <InputText id="addressLine2"
+                                               class="form-control"
+                                               @bind-Value="objCompany.AddressLine2" />
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="town">Town / City</label>
+                                    <InputText id="town"
+                                               class="form-control"
+                                               @bind-Value="objCompany.Town" />
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="county">County</label>
+                                    <InputText id="county"
+                                               class="form-control"
+                                               @bind-Value="objCompany.County" />
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="postcode">Postcode</label>
+                                    <InputText id="postcode"
+                                               class="form-control"
+                                               @bind-Value="objCompany.Postcode" />
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="country">Country</label>
+                                    <InputText id="country"
+                                               class="form-control"
+                                               @bind-Value="objCompany.Country" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crm-card">
+                        <div class="crm-card-header">
+                            <div>
+                                <h3>Notes</h3>
+                                <p>Internal notes about the company.</p>
+                            </div>
+                        </div>
+
+                        <div class="company-edit-card-body">
+                            <label class="form-label" for="notes">Notes</label>
+                            <InputTextArea id="notes"
+                                           class="form-control"
+                                           rows="6"
+                                           @bind-Value="objCompany.Notes"
+                                           placeholder="Add useful context, relationship notes, renewal details, or anything the team should know..." />
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="company-edit-side">
+                    <div class="crm-card company-save-panel">
+                        <div class="company-save-icon">
+                            <span class="material-symbols-outlined">apartment</span>
+                        </div>
+
+                        <h3>@strSidePanelTitle</h3>
+                        <p>@strSidePanelText</p>
+
+                        <div class="company-save-actions">
+                            <button class="btn btn-primary w-100" type="submit" disabled="@blnSaving">
+                                @if (blnSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                    <span>Saving...</span>
+                                }
+                                else
+                                {
+                                    <span class="material-symbols-outlined">save</span>
+                                    <span>@strSaveButtonText</span>
+                                }
+                            </button>
+
+                            <a href="/companies" class="btn btn-soft-secondary w-100">
+                                <span class="material-symbols-outlined">arrow_back</span>
+                                Back to companies
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="crm-card">
+                        <div class="company-edit-card-body">
+                            <h4 class="company-side-heading">Registration details</h4>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="companyNumber">Company number</label>
+                                <InputText id="companyNumber"
+                                           class="form-control"
+                                           @bind-Value="objCompany.CompanyNumber" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="charityNumber">Charity number</label>
+                                <InputText id="charityNumber"
+                                           class="form-control"
+                                           @bind-Value="objCompany.CharityNumber" />
+                            </div>
+
+                            <div>
+                                <label class="form-label" for="vatNumber">VAT number</label>
+                                <InputText id="vatNumber"
+                                           class="form-control"
+                                           @bind-Value="objCompany.VatNumber" />
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (blnEditMode && objCompany.Entity != null)
+                    {
+                        <div class="crm-card">
+                            <div class="company-edit-card-body">
+                                <h4 class="company-side-heading">Record status</h4>
+
+                                <div class="company-meta-list">
+                                    <div>
+                                        <span>Created</span>
+                                        <strong>@FormatDate(objCompany.Entity.CreatedUtc)</strong>
+                                    </div>
+
+                                    <div>
+                                        <span>Updated</span>
+                                        <strong>@FormatNullableDate(objCompany.Entity.UpdatedUtc)</strong>
+                                    </div>
+
+                                    <div>
+                                        <span>Status</span>
+
+                                        @if (objCompany.Entity.DeletedUtc.HasValue)
+                                        {
+                                            <strong class="text-danger">Deleted</strong>
+                                        }
+                                        else if (objCompany.Entity.ArchivedUtc.HasValue)
+                                        {
+                                            <strong class="text-warning">Archived</strong>
+                                        }
+                                        else
+                                        {
+                                            <strong class="text-success">Active</strong>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </aside>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid CompanyId { get; set; }
+
+    private Company objCompany = new();
+
+    private Boolean blnLoading = true;
+    private Boolean blnSaving;
+    private Boolean blnEditMode;
+
+    private String strPageTitle = "Add company";
+    private String strSaveButtonText = "Create company";
+    private String strSidePanelTitle = "Create company";
+    private String strSidePanelText = "Add a new company record to the CRM.";
+    private String? strSuccessMessage;
+
+    private List<String> colErrors = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        blnEditMode = CompanyId != Guid.Empty;
+
+        if (blnEditMode)
+        {
+            await LoadCompanyAsync();
+            return;
+        }
+
+        SetupAddMode();
+        blnLoading = false;
+    }
+
+    private async Task LoadCompanyAsync()
+    {
+        blnLoading = true;
+        colErrors = [];
+
+        try
+        {
+            Company? objExistingCompany = await CompanyService.GetCompanyByIdAsync(CompanyId);
+
+            if (objExistingCompany == null)
+            {
+                colErrors.Add("The company could not be found.");
+                SetupEditMode("Edit company");
+                return;
+            }
+
+            objCompany = objExistingCompany;
+
+            SetupEditMode(objCompany.Name);
+        }
+        catch (Exception objError)
+        {
+            colErrors.Add("Unable to load company. " + objError.Message);
+            SetupEditMode("Edit company");
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private void SetupAddMode()
+    {
+        objCompany = new Company
+        {
+            Country = "United Kingdom"
+        };
+
+        strPageTitle = "Add company";
+        strSaveButtonText = "Create company";
+        strSidePanelTitle = "Create company";
+        strSidePanelText = "Add a new company record to the CRM.";
+
+        HeaderState.SetHeader(
+            "Add company",
+            "Create a new organisation record");
+    }
+
+    private void SetupEditMode(String strCompanyName)
+    {
+        strPageTitle = "Edit company";
+        strSaveButtonText = "Save changes";
+        strSidePanelTitle = "Update company";
+        strSidePanelText = "Save changes to this company record.";
+
+        HeaderState.SetHeader(
+            "Edit company",
+            strCompanyName);
+    }
+
+    private async Task SaveCompanyAsync()
+    {
+        colErrors = [];
+        strSuccessMessage = null;
+
+        if (!ValidateCompany())
+        {
+            return;
+        }
+
+        blnSaving = true;
+
+        try
+        {
+            if (blnEditMode)
+            {
+                Company? objUpdatedCompany = await CompanyService.UpdateCompanyAsync(objCompany);
+
+                if (objUpdatedCompany == null)
+                {
+                    colErrors.Add("The company could not be updated. It may have been deleted or no longer exists.");
+                    return;
+                }
+
+                objCompany = objUpdatedCompany;
+                strSuccessMessage = "Company updated";
+                SetupEditMode(objCompany.Name);
+            }
+            else
+            {
+                Company objCreatedCompany = await CompanyService.AddCompanyAsync(objCompany);
+
+                objNavigationManager.NavigateTo($"/companies/{objCreatedCompany.Id}/edit");
+                return;
+            }
+        }
+        catch (Exception objError)
+        {
+            colErrors.Add("Unable to save company. " + objError.Message);
+        }
+        finally
+        {
+            blnSaving = false;
+        }
+    }
+
+    private Boolean ValidateCompany()
+    {
+        if (String.IsNullOrWhiteSpace(objCompany.Name))
+        {
+            colErrors.Add("Company name is required.");
+        }
+
+        if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail) &&
+            !IsLikelyEmailAddress(objCompany.PrimaryEmail))
+        {
+            colErrors.Add("Primary email does not look valid.");
+        }
+
+        if (!String.IsNullOrWhiteSpace(objCompany.Website) &&
+            !IsLikelyWebsite(objCompany.Website))
+        {
+            colErrors.Add("Website should start with http:// or https://.");
+        }
+
+        return !colErrors.Any();
+    }
+
+    private static Boolean IsLikelyEmailAddress(String strEmail)
+    {
+        return strEmail.Contains('@') &&
+               strEmail.Contains('.') &&
+               !strEmail.Contains(' ');
+    }
+
+    private static Boolean IsLikelyWebsite(String strWebsite)
+    {
+        return strWebsite.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+               strWebsite.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static String FormatDate(DateTime dtmDate)
+    {
+        return dtmDate.ToLocalTime().ToString("dd MMM yyyy");
+    }
+
+    private static String FormatNullableDate(DateTime? dtmDate)
+    {
+        if (!dtmDate.HasValue)
+        {
+            return "-";
+        }
+
+        return FormatDate(dtmDate.Value);
+    }
+}

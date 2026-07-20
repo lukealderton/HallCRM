@@ -1,0 +1,136 @@
+﻿.log-detail-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.log-detail-toolbar .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+.log-detail-toolbar .material-symbols-outlined {
+    font-size: 1.2rem;
+}
+
+.log-detail-card {
+    border: 0;
+    border-radius: 1rem;
+    box-shadow: 0 0.75rem 2rem rgba(15, 23, 42, .08);
+}
+
+.log-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.log-detail-date {
+    color: var(--bs-secondary-color);
+    white-space: nowrap;
+}
+
+.log-detail-chip {
+    display: inline-flex;
+    align-items: center;
+    margin-right: .35rem;
+    border-radius: 999px;
+    padding: .3rem .65rem;
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+    font-size: .85rem;
+    font-weight: 700;
+}
+
+.log-detail-chip--error {
+    background: rgba(220, 53, 69, .1);
+    color: var(--bs-danger);
+}
+
+.log-detail-chip--debug {
+    background: rgba(108, 117, 125, .14);
+    color: var(--bs-secondary-color);
+}
+
+.log-detail-chip--system {
+    background: rgba(13, 110, 253, .1);
+    color: var(--bs-primary);
+}
+
+.log-detail-chip--activity {
+    background: rgba(25, 135, 84, .1);
+    color: var(--bs-success);
+}
+
+.log-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.log-detail-grid div {
+    padding: .85rem;
+    border-radius: .85rem;
+    background: var(--bs-tertiary-bg);
+}
+
+.log-detail-grid dt {
+    margin-bottom: .25rem;
+    color: var(--bs-secondary-color);
+    font-size: .8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.log-detail-grid dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.log-detail-message h3 {
+    margin-bottom: .75rem;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.log-detail-message pre {
+    overflow: auto;
+    min-height: 14rem;
+    margin: 0;
+    padding: 1rem;
+    border-radius: .85rem;
+    background: #111827;
+    color: #f8fafc;
+    white-space: pre-wrap;
+}
+
+.log-detail-empty {
+    display: flex;
+    min-height: 14rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    color: var(--bs-secondary-color);
+    text-align: center;
+}
+
+.log-detail-empty .material-symbols-outlined {
+    font-size: 2.4rem;
+}
+
+@media (max-width: 767.98px) {
+    .log-detail-header {
+        flex-direction: column;
+    }
+
+    .log-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}

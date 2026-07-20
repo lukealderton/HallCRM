@@ -1,0 +1,244 @@
+﻿.tickets-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tickets-filter-card {
+    padding: 1rem;
+}
+
+.tickets-filter-grid {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.3fr) repeat(3, minmax(160px, .8fr)) auto auto auto;
+    align-items: end;
+    gap: .85rem;
+}
+
+.tickets-filter-toggle {
+    padding-bottom: .45rem;
+    white-space: nowrap;
+}
+
+.tickets-filter-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+}
+
+.tickets-table-card {
+    overflow: hidden;
+}
+
+.tickets-table {
+    margin: 0;
+}
+
+.tickets-table thead th {
+    background: #f8fafc;
+    border-bottom: 1px solid rgba(15, 23, 42, .08);
+    color: #475569;
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.tickets-table tbody tr {
+    cursor: pointer;
+}
+
+.tickets-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.tickets-table td {
+    border-color: rgba(15, 23, 42, .06);
+    color: #172033;
+    vertical-align: middle;
+}
+
+.tickets-title-cell {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    min-width: 280px;
+}
+
+.tickets-title-cell strong {
+    display: block;
+    color: #0875ff;
+    font-weight: 800;
+}
+
+.tickets-title-cell small {
+    display: block;
+    max-width: 34rem;
+    overflow: hidden;
+    color: #64748b;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tickets-avatar {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #0f5fd7;
+    font-size: .75rem;
+    font-weight: 900;
+}
+
+.ticket-status-pill,
+.ticket-priority-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding: .25rem .6rem;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.ticket-status-pill.is-new {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.ticket-status-pill.is-triage {
+    background: #f5f3ff;
+    color: #6d28d9;
+}
+
+.ticket-status-pill.is-progress {
+    background: #ecfeff;
+    color: #0e7490;
+}
+
+.ticket-status-pill.is-waiting {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.ticket-status-pill.is-invoice {
+    background: #fef9c3;
+    color: #a16207;
+}
+
+.ticket-status-pill.is-complete {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.ticket-status-pill.is-cancelled {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.ticket-priority-pill.is-low {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.ticket-priority-pill.is-normal {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.ticket-priority-pill.is-high {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.ticket-priority-pill.is-urgent {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.ticket-bool-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ticket-bool-icon .material-symbols-outlined {
+    font-size: 1.35rem;
+}
+
+.ticket-bool-icon.is-yes {
+    color: #059669;
+}
+
+.ticket-bool-icon.is-no {
+    color: #e11d48;
+}
+
+.tickets-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    min-height: 18rem;
+    padding: 2rem;
+    text-align: center;
+}
+
+.tickets-state .material-symbols-outlined {
+    color: #94a3b8;
+    font-size: 3rem;
+}
+
+.tickets-state h3 {
+    margin: 0;
+    color: #172033;
+    font-size: 1.25rem;
+    font-weight: 900;
+}
+
+.tickets-state p {
+    margin: 0;
+    color: #64748b;
+}
+
+.tickets-table-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: .9rem 1rem;
+    border-top: 1px solid rgba(15, 23, 42, .06);
+    color: #64748b;
+    font-size: .9rem;
+}
+
+@media (max-width: 1200px) {
+    .tickets-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tickets-filter-toggle {
+        padding-bottom: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .tickets-toolbar {
+        flex-direction: column;
+    }
+
+    .tickets-toolbar .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .tickets-filter-grid {
+        grid-template-columns: 1fr;
+    }
+}

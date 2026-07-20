@@ -1,0 +1,73 @@
+﻿@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<ApplicationUser> SignInManager
+
+<nav class="account-settings-nav" aria-label="Account settings">
+    <NavLink class="account-settings-nav-item" href="Account/Manage" Match="NavLinkMatch.All">
+        <span class="material-symbols-outlined">person</span>
+        <span class="account-settings-nav-text">
+            <strong>Profile</strong>
+            <small>Your basic account details</small>
+        </span>
+    </NavLink>
+
+    <NavLink class="account-settings-nav-item" href="Account/Manage/Email">
+        <span class="material-symbols-outlined">alternate_email</span>
+        <span class="account-settings-nav-text">
+            <strong>Email</strong>
+            <small>Change your sign-in email</small>
+        </span>
+    </NavLink>
+
+    <NavLink class="account-settings-nav-item" href="Account/Manage/ChangePassword">
+        <span class="material-symbols-outlined">lock</span>
+        <span class="account-settings-nav-text">
+            <strong>Password</strong>
+            <small>Update your password</small>
+        </span>
+    </NavLink>
+
+    @if (hasExternalLogins)
+    {
+        <NavLink class="account-settings-nav-item" href="Account/Manage/ExternalLogins">
+            <span class="material-symbols-outlined">hub</span>
+            <span class="account-settings-nav-text">
+                <strong>External logins</strong>
+                <small>Connected sign-in providers</small>
+            </span>
+        </NavLink>
+    }
+
+    <NavLink class="account-settings-nav-item" href="Account/Manage/TwoFactorAuthentication">
+        <span class="material-symbols-outlined">security</span>
+        <span class="account-settings-nav-text">
+            <strong>Two-factor authentication</strong>
+            <small>Extra account protection</small>
+        </span>
+    </NavLink>
+
+    <NavLink class="account-settings-nav-item" href="Account/Manage/Passkeys">
+        <span class="material-symbols-outlined">passkey</span>
+        <span class="account-settings-nav-text">
+            <strong>Passkeys</strong>
+            <small>Passwordless sign-in</small>
+        </span>
+    </NavLink>
+
+    <NavLink class="account-settings-nav-item" href="Account/Manage/PersonalData">
+        <span class="material-symbols-outlined">database</span>
+        <span class="account-settings-nav-text">
+            <strong>Personal data</strong>
+            <small>Export or delete your data</small>
+        </span>
+    </NavLink>
+</nav>
+
+@code {
+    private bool hasExternalLogins;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
+    }
+}

@@ -1,0 +1,351 @@
+﻿@page "/tickets"
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@inject NavigationManager NavigationManager
+@inject ICurrentUserState CurrentUserState
+
+<div class="tickets-page">
+
+    <div class="crm-card tickets-filter-card">
+        <div class="tickets-filter-grid">
+            <div>
+                <label class="form-label">Search</label>
+                <input class="form-control"
+                       placeholder="Search tickets"
+                       @bind="_strSearch"
+                       @bind:event="oninput" />
+            </div>
+
+            <div>
+                <label class="form-label">Status</label>
+                <select class="form-select" @bind="_strStatus">
+                    <option value="">Any status</option>
+                    @foreach (TicketStatus enmStatus in Enum.GetValues<TicketStatus>())
+                    {
+                        <option value="@enmStatus">@GetStatusLabel(enmStatus)</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label">Type</label>
+                <select class="form-select" @bind="_strType">
+                    <option value="">Any type</option>
+                    @foreach (TicketType enmType in Enum.GetValues<TicketType>())
+                    {
+                        <option value="@enmType">@GetEnumLabel(enmType.ToString())</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label">Priority</label>
+                <select class="form-select" @bind="_strPriority">
+                    <option value="">Any priority</option>
+                    @foreach (TicketPriority enmPriority in Enum.GetValues<TicketPriority>())
+                    {
+                        <option value="@enmPriority">@enmPriority</option>
+                    }
+                </select>
+            </div>
+
+            <div class="tickets-filter-toggle">
+                <label class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" @bind="_blnHideInvoiced" />
+                    <span class="form-check-label">Hide invoiced</span>
+                </label>
+            </div>
+
+            <div class="tickets-filter-toggle">
+                <label class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" @bind="_blnIncludeArchived" />
+                    <span class="form-check-label">Show archived</span>
+                </label>
+            </div>
+
+            <div class="tickets-filter-actions">
+                <button type="button" class="btn btn-primary crm-btn-primary" @onclick="LoadTicketsAsync">
+                    <span class="material-symbols-outlined">search</span>
+                    Search
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="crm-card tickets-table-card">
+        @if (_blnLoading)
+        {
+            <div class="tickets-state">
+                <span class="material-symbols-outlined">hourglass_empty</span>
+                <p>Loading tickets...</p>
+            </div>
+        }
+        else if (_colTickets.Count == 0)
+        {
+            <div class="tickets-state">
+                <span class="material-symbols-outlined">confirmation_number</span>
+                <h3>No tickets found</h3>
+                <p>Create your first ticket to start tracking work.</p>
+
+                <button type="button" class="btn btn-primary crm-btn-primary" @onclick="CreateTicket">
+                    <span class="material-symbols-outlined">add</span>
+                    Create Ticket
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table tickets-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Company</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Type</th>
+                            <th>Chargeable</th>
+                            <th>Invoiced</th>
+                            <th>Value</th>
+                            <th>Time</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (Ticket objTicket in _colTickets)
+                        {
+                            <tr @onclick="() => OpenTicket(objTicket.Id)">
+                                <td>
+                                    <div class="tickets-title-cell">
+                                        <span class="tickets-avatar">@GetInitials(objTicket.Title)</span>
+                                        <div>
+                                            <strong>@objTicket.Title</strong>
+                                            @if (!String.IsNullOrWhiteSpace(objTicket.Description))
+                                            {
+                                                <small>@objTicket.Description</small>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (objTicket.Company != null)
+                                    {
+                                        <span>@objTicket.Company.Name</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="ticket-status-pill @GetStatusClass(objTicket.Status)">
+                                        @GetStatusLabel(objTicket.Status)
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="ticket-priority-pill @GetPriorityClass(objTicket.Priority)">
+                                        @objTicket.Priority
+                                    </span>
+                                </td>
+                                <td>@GetEnumLabel(objTicket.Type.ToString())</td>
+                                <td>
+                                    <span class="ticket-bool-icon @(objTicket.IsChargeable ? "is-yes" : "is-no")">
+                                        <span class="material-symbols-outlined">@(objTicket.IsChargeable ? "check_circle" : "cancel")</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="ticket-bool-icon @(objTicket.IsInvoiced ? "is-yes" : "is-no")">
+                                        <span class="material-symbols-outlined">@(objTicket.IsInvoiced ? "check_circle" : "cancel")</span>
+                                    </span>
+                                </td>
+                                <td>@FormatMoney(GetBestValue(objTicket))</td>
+                                <td>@FormatMinutes(objTicket.ActualMinutes)</td>
+                                <td>@objTicket.Entity.CreatedUtc.ToLocalTime().ToString("dd/MM/yy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tickets-table-footer">
+                <span>@_objResult.TotalCount ticket@(_objResult.TotalCount == 1 ? "" : "s") found</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private String? _strSearch;
+    private String _strStatus = String.Empty;
+    private String _strType = String.Empty;
+    private String _strPriority = String.Empty;
+
+    private Boolean _blnHideInvoiced = true;
+    private Boolean _blnIncludeArchived;
+
+    private Boolean _blnLoading = true;
+
+    private TicketSearchResult _objResult = new();
+    private List<Ticket> _colTickets = [];
+
+    protected override async Task OnInitializedAsync()
+{
+    HeaderState.SetHeader(
+        "Tickets",
+        "Track work, support requests and billable jobs.",
+        @<a class="btn btn-primary" href="/tickets/new">
+            <span class="material-symbols-outlined">add</span>
+            Create ticket
+        </a>);
+
+    await LoadTicketsAsync();
+}
+
+    private async Task LoadTicketsAsync()
+    {
+        _blnLoading = true;
+
+        TicketSearchRequest objRequest = new()
+        {
+            Search = _strSearch,
+            HideInvoiced = _blnHideInvoiced,
+            IncludeArchived = _blnIncludeArchived,
+            PageSize = 100,
+            Skip = 0
+        };
+
+        if (Enum.TryParse(_strStatus, out TicketStatus enmStatus))
+        {
+            objRequest.Status = enmStatus;
+        }
+
+        if (Enum.TryParse(_strType, out TicketType enmType))
+        {
+            objRequest.Type = enmType;
+        }
+
+        if (Enum.TryParse(_strPriority, out TicketPriority enmPriority))
+        {
+            objRequest.Priority = enmPriority;
+        }
+
+        _objResult = await TicketService.GetTicketsAsync(objRequest);
+        _colTickets = _objResult.Tickets;
+
+        _blnLoading = false;
+    }
+
+    private void CreateTicket()
+    {
+        NavigationManager.NavigateTo("/tickets/new");
+    }
+
+    private void OpenTicket(Guid objTicketId)
+    {
+        NavigationManager.NavigateTo($"/tickets/{objTicketId}");
+    }
+
+    private static Decimal? GetBestValue(Ticket objTicket)
+    {
+        return objTicket.InvoiceValue ?? objTicket.QuotedValue ?? objTicket.EstimatedValue;
+    }
+
+    private static String FormatMoney(Decimal? decValue)
+    {
+        if (!decValue.HasValue)
+        {
+            return "-";
+        }
+
+        return decValue.Value.ToString("C");
+    }
+
+    private static String FormatMinutes(Int32 intMinutes)
+    {
+        if (intMinutes <= 0)
+        {
+            return "-";
+        }
+
+        Int32 intHours = intMinutes / 60;
+        Int32 intRemainingMinutes = intMinutes % 60;
+
+        if (intHours == 0)
+        {
+            return $"{intRemainingMinutes}m";
+        }
+
+        if (intRemainingMinutes == 0)
+        {
+            return $"{intHours}h";
+        }
+
+        return $"{intHours}h {intRemainingMinutes}m";
+    }
+
+    private static String GetInitials(String strValue)
+    {
+        if (String.IsNullOrWhiteSpace(strValue))
+        {
+            return "T";
+        }
+
+        String[] colParts = strValue.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        if (colParts.Length == 1)
+        {
+            return colParts[0][..Math.Min(2, colParts[0].Length)].ToUpperInvariant();
+        }
+
+        return $"{colParts[0][0]}{colParts[1][0]}".ToUpperInvariant();
+    }
+
+    private static String GetStatusLabel(TicketStatus enmStatus)
+    {
+        return enmStatus switch
+        {
+            TicketStatus.InProgress => "In Progress",
+            TicketStatus.WaitingOnClient => "Waiting on Client",
+            TicketStatus.WaitingOnInternal => "Waiting on Internal",
+            TicketStatus.ReadyToInvoice => "Ready to Invoice",
+            _ => GetEnumLabel(enmStatus.ToString())
+        };
+    }
+
+    private static String GetEnumLabel(String strValue)
+    {
+        return String.Concat(strValue.Select((chrValue, intIndex) =>
+            intIndex > 0 && Char.IsUpper(chrValue)
+                ? " " + chrValue
+                : chrValue.ToString()));
+    }
+
+    private static String GetStatusClass(TicketStatus enmStatus)
+    {
+        return enmStatus switch
+        {
+            TicketStatus.New => "is-new",
+            TicketStatus.Triage => "is-triage",
+            TicketStatus.InProgress => "is-progress",
+            TicketStatus.WaitingOnClient => "is-waiting",
+            TicketStatus.WaitingOnInternal => "is-waiting",
+            TicketStatus.ReadyToInvoice => "is-invoice",
+            TicketStatus.Complete => "is-complete",
+            TicketStatus.Cancelled => "is-cancelled",
+            _ => "is-new"
+        };
+    }
+
+    private static String GetPriorityClass(TicketPriority enmPriority)
+    {
+        return enmPriority switch
+        {
+            TicketPriority.Low => "is-low",
+            TicketPriority.Normal => "is-normal",
+            TicketPriority.High => "is-high",
+            TicketPriority.Urgent => "is-urgent",
+            _ => "is-normal"
+        };
+    }
+}
