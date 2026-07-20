@@ -12,7 +12,7 @@ using CRM.Infrastructure.Entities.Configurations;
 using CRM.Infrastructure.Identity;
 using CRM.Infrastructure.Logging.Configurations;
 using CRM.Infrastructure.Notes.Configurations;
-using CRM.Infrastructure.Opportunities.Configurations;
+using CRM.Infrastructure.Jobs.Configurations;
 using CRM.Infrastructure.Tickets.Configurations;
 using CRM.Infrastructure.Users.Configurations;
 using Microsoft.AspNetCore.Identity;

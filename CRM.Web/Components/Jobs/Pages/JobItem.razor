@@ -1,4 +1,4 @@
-﻿@page "/opportunities/{OpportunityId:guid}"
+﻿@page "/jobs/{JobId:guid}"
 @attribute [Authorize]
 @rendermode InteractiveServer
 
@@ -12,26 +12,26 @@
 
 <PageTitle>@strPageTitle - 101CRM</PageTitle>
 
-<section class="opportunity-item-page">
+<section class="job-item-page">
     @if (!String.IsNullOrWhiteSpace(strSuccessMessage))
     {
-        <div class="alert alert-success opportunity-alert" role="alert">
+        <div class="alert alert-success job-alert" role="alert">
             <span class="material-symbols-outlined">check_circle</span>
 
             <div class="alert-content">
                 <strong class="alert-title">@strSuccessMessage</strong>
-                <p>The opportunity record has been updated.</p>
+                <p>The job record has been updated.</p>
             </div>
         </div>
     }
 
     @if (!String.IsNullOrWhiteSpace(strErrorMessage))
     {
-        <div class="alert alert-danger opportunity-alert" role="alert">
+        <div class="alert alert-danger job-alert" role="alert">
             <span class="material-symbols-outlined">error</span>
 
             <div class="alert-content">
-                <strong class="alert-title">Unable to update opportunity</strong>
+                <strong class="alert-title">Unable to update job</strong>
                 <p>@strErrorMessage</p>
             </div>
         </div>
@@ -39,7 +39,7 @@
 
     @if (blnConfirmArchive)
     {
-        <div class="alert alert-warning opportunity-alert">
+        <div class="alert alert-warning job-alert">
             <span class="material-symbols-outlined">archive</span>
 
             <div class="alert-content">
@@ -61,7 +61,7 @@
 
     @if (blnConfirmDelete)
     {
-        <div class="alert alert-danger opportunity-alert">
+        <div class="alert alert-danger job-alert">
             <span class="material-symbols-outlined">delete</span>
 
             <div class="alert-content">
@@ -86,13 +86,13 @@
         <div class="crm-card">
             <div class="crm-loading">
                 <span class="spinner-border spinner-border-sm"></span>
-                Loading opportunity...
+                Loading job...
             </div>
         </div>
     }
     else if (objJob == null)
     {
-        <div class="alert alert-danger opportunity-alert" role="alert">
+        <div class="alert alert-danger job-alert" role="alert">
             <span class="material-symbols-outlined">search_off</span>
 
             <div class="alert-content">
@@ -103,14 +103,14 @@
     }
     else
     {
-        <div class="opportunity-profile-card crm-card">
-            <div class="opportunity-profile-main">
-                <div class="opportunity-avatar">
+        <div class="job-profile-card crm-card">
+            <div class="job-profile-main">
+                <div class="job-avatar">
                     @GetJobInitial(objJob)
                 </div>
 
                 <div>
-                    <div class="opportunity-title-row">
+                    <div class="job-title-row">
                         <h2>@objJob.Name</h2>
 
                         <span class="@GetStageBadgeClass(objJob.Stage)">
@@ -127,11 +127,11 @@
                         }
                     </div>
 
-                    <p class="opportunity-subtitle">
+                    <p class="job-subtitle">
                         @(objJob.Company?.Name ?? "No company linked")
                     </p>
 
-                    <div class="opportunity-meta-row">
+                    <div class="job-meta-row">
                         <span>
                             <span class="material-symbols-outlined">payments</span>
                             @FormatMoney(objJob.Value)
@@ -150,7 +150,7 @@
                 </div>
             </div>
 
-            <div class="opportunity-profile-actions">
+            <div class="job-profile-actions">
                 <button type="button" class="btn btn-primary" @onclick="GoToEdit">
                     <span class="material-symbols-outlined">edit</span>
                     Edit job
@@ -178,19 +178,19 @@
             </div>
         </div>
 
-        <div class="opportunity-layout">
-            <div class="opportunity-main-column">
+        <div class="job-layout">
+            <div class="job-main-column">
                 <div class="crm-card">
                     <div class="crm-card-header">
                         <div>
-                            <h3>Opportunity details</h3>
+                            <h3>job details</h3>
                             <p>Value, probability, source and expected close date.</p>
                         </div>
                     </div>
 
-                    <div class="opportunity-card-body">
-                        <div class="opportunity-details-grid">
-                            <div class="opportunity-detail-item">
+                    <div class="job-card-body">
+                        <div class="job-details-grid">
+                            <div class="job-detail-item">
                                 <span class="material-symbols-outlined">payments</span>
 
                                 <div>
@@ -199,7 +199,7 @@
                                 </div>
                             </div>
 
-                            <div class="opportunity-detail-item">
+                            <div class="job-detail-item">
                                 <span class="material-symbols-outlined">percent</span>
 
                                 <div>
@@ -208,7 +208,7 @@
                                 </div>
                             </div>
 
-                            <div class="opportunity-detail-item">
+                            <div class="job-detail-item">
                                 <span class="material-symbols-outlined">event</span>
 
                                 <div>
@@ -217,7 +217,7 @@
                                 </div>
                             </div>
 
-                            <div class="opportunity-detail-item">
+                            <div class="job-detail-item">
                                 <span class="material-symbols-outlined">campaign</span>
 
                                 <div>
@@ -237,14 +237,14 @@
                         </div>
                     </div>
 
-                    <div class="opportunity-card-body">
+                    <div class="job-card-body">
                         @if (!String.IsNullOrWhiteSpace(objJob.Description))
                         {
-                            <p class="opportunity-description">@objJob.Description</p>
+                            <p class="job-description">@objJob.Description</p>
                         }
                         else
                         {
-                            <div class="opportunity-muted-panel">
+                            <div class="job-muted-panel">
                                 <span class="material-symbols-outlined">notes</span>
                                 <span>No description has been added yet.</span>
                             </div>
@@ -258,12 +258,12 @@
                              EmptyText="No notes have been added for this job yet." />
             </div>
 
-            <aside class="opportunity-side-column">
+            <aside class="job-side-column">
                 <div class="crm-card">
-                    <div class="opportunity-card-body">
-                        <h4 class="opportunity-side-heading">Quick actions</h4>
+                    <div class="job-card-body">
+                        <h4 class="job-side-heading">Quick actions</h4>
 
-                        <div class="opportunity-action-list">
+                        <div class="job-action-list">
                             @if (objJob.Company != null)
                             {
                                 <a href="@GetCompanyUrl(objJob.Company.Id)" class="btn btn-soft-primary w-100">
@@ -289,10 +289,10 @@
                 </div>
 
                 <div class="crm-card">
-                    <div class="opportunity-card-body">
-                        <h4 class="opportunity-side-heading">Overview</h4>
+                    <div class="job-card-body">
+                        <h4 class="job-side-heading">Overview</h4>
 
-                        <div class="opportunity-meta-list">
+                        <div class="job-meta-list">
                             <div>
                                 <span>Company</span>
 
@@ -341,10 +341,10 @@
                 </div>
 
                 <div class="crm-card">
-                    <div class="opportunity-card-body">
-                        <h4 class="opportunity-side-heading">Record details</h4>
+                    <div class="job-card-body">
+                        <h4 class="job-side-heading">Record details</h4>
 
-                        <div class="opportunity-meta-list">
+                        <div class="job-meta-list">
                             <div>
                                 <span>Created</span>
                                 <strong>@FormatNullableDate(objJob.Entity.CreatedUtc)</strong>

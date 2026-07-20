@@ -1,11 +1,11 @@
-﻿.opportunity-item-page,
-.opportunity-edit-page {
+﻿.job-item-page,
+.job-edit-page {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.opportunity-profile-card {
+.job-profile-card {
     padding: 1.25rem;
     display: flex;
     justify-content: space-between;
@@ -13,14 +13,14 @@
     gap: 1rem;
 }
 
-.opportunity-profile-main {
+.job-profile-main {
     display: flex;
     align-items: center;
     gap: 1rem;
     min-width: 0;
 }
 
-.opportunity-avatar {
+.job-avatar {
     width: 64px;
     height: 64px;
     border-radius: 1rem;
@@ -35,26 +35,26 @@
     box-shadow: 0 10px 24px rgba(13, 110, 253, .22);
 }
 
-.opportunity-title-row {
+.job-title-row {
     display: flex;
     align-items: center;
     gap: .7rem;
     flex-wrap: wrap;
 }
 
-.opportunity-title-row h2 {
+.job-title-row h2 {
     font-size: 1.6rem;
     font-weight: 850;
     letter-spacing: -.035em;
     margin: 0;
 }
 
-.opportunity-subtitle {
+.job-subtitle {
     color: #64748b;
     margin: .25rem 0 0;
 }
 
-.opportunity-meta-row {
+.job-meta-row {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -63,18 +63,18 @@
     color: #475569;
 }
 
-.opportunity-meta-row span {
+.job-meta-row span {
     display: inline-flex;
     align-items: center;
     gap: .3rem;
 }
 
-.opportunity-meta-row .material-symbols-outlined {
+.job-meta-row .material-symbols-outlined {
     font-size: 18px;
     color: #64748b;
 }
 
-.opportunity-profile-actions {
+.job-profile-actions {
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -82,44 +82,44 @@
     flex-wrap: wrap;
 }
 
-.opportunity-profile-actions .btn,
-.opportunity-action-list .btn {
+.job-profile-actions .btn,
+.job-action-list .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: .4rem;
 }
 
-.opportunity-layout {
+.job-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 360px;
     gap: 1rem;
     align-items: flex-start;
 }
 
-.opportunity-main-column,
-.opportunity-side-column {
+.job-main-column,
+.job-side-column {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.opportunity-side-column {
+.job-side-column {
     position: sticky;
     top: 138px;
 }
 
-.opportunity-card-body {
+.job-card-body {
     padding: 1.25rem;
 }
 
-.opportunity-details-grid {
+.job-details-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
 }
 
-.opportunity-detail-item {
+.job-detail-item {
     display: flex;
     align-items: flex-start;
     gap: .8rem;
@@ -130,7 +130,7 @@
     min-width: 0;
 }
 
-.opportunity-detail-item > .material-symbols-outlined {
+.job-detail-item > .material-symbols-outlined {
     width: 38px;
     height: 38px;
     border-radius: .75rem;
@@ -142,28 +142,28 @@
     flex: 0 0 auto;
 }
 
-.opportunity-detail-item small,
-.opportunity-meta-list span {
+.job-detail-item small,
+.job-meta-list span {
     display: block;
     color: #64748b;
     font-size: .84rem;
     margin-bottom: .15rem;
 }
 
-.opportunity-detail-item strong,
-.opportunity-detail-item a {
+.job-detail-item strong,
+.job-detail-item a {
     font-weight: 750;
     word-break: break-word;
 }
 
-.opportunity-description {
+.job-description {
     margin: 0;
     color: #334155;
     line-height: 1.65;
     white-space: pre-wrap;
 }
 
-.opportunity-muted-panel {
+.job-muted-panel {
     display: flex;
     align-items: center;
     gap: .6rem;
@@ -174,25 +174,25 @@
     background: #fbfdff;
 }
 
-.opportunity-side-heading {
+.job-side-heading {
     font-size: 1rem;
     font-weight: 850;
     margin: 0 0 1rem;
 }
 
-.opportunity-action-list {
+.job-action-list {
     display: flex;
     flex-direction: column;
     gap: .65rem;
 }
 
-.opportunity-meta-list {
+.job-meta-list {
     display: flex;
     flex-direction: column;
     gap: .8rem;
 }
 
-.opportunity-meta-list div {
+.job-meta-list div {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -201,26 +201,26 @@
     border-bottom: 1px solid #eef2f7;
 }
 
-.opportunity-meta-list div:last-child {
+.job-meta-list div:last-child {
     border-bottom: none;
     padding-bottom: 0;
 }
 
-.opportunity-meta-list strong {
+.job-meta-list strong {
     text-align: right;
     word-break: break-word;
 }
 
-.opportunity-meta-list a {
+.job-meta-list a {
     color: #0b5cff;
     text-decoration: none;
 }
 
-.opportunity-meta-list a:hover {
+.job-meta-list a:hover {
     text-decoration: underline;
 }
 
-.opportunity-stage {
+.job-stage {
     display: inline-flex;
     align-items: center;
     min-height: 1.75rem;
@@ -232,36 +232,36 @@
     font-weight: 800;
 }
 
-.opportunity-stage-qualified {
+.job-stage-qualified {
     background: #e0f2fe;
     color: #075985;
 }
 
-.opportunity-stage-proposal {
+.job-stage-proposal {
     background: #fef3c7;
     color: #92400e;
 }
 
-.opportunity-stage-negotiation {
+.job-stage-negotiation {
     background: #fae8ff;
     color: #86198f;
 }
 
-.opportunity-stage-won {
+.job-stage-won {
     background: #dcfce7;
     color: #166534;
 }
 
-.opportunity-stage-lost {
+.job-stage-lost {
     background: #fee2e2;
     color: #991b1b;
 }
 
-.opportunity-alert {
+.job-alert {
     align-items: center;
 }
 
-.opportunity-alert > .material-symbols-outlined {
+.job-alert > .material-symbols-outlined {
     width: 38px;
     height: 38px;
     border-radius: 50%;
@@ -271,39 +271,39 @@
     justify-content: center;
 }
 
-.alert-success.opportunity-alert > .material-symbols-outlined {
+.alert-success.job-alert > .material-symbols-outlined {
     background: #16a34a;
 }
 
-.alert-danger.opportunity-alert > .material-symbols-outlined {
+.alert-danger.job-alert > .material-symbols-outlined {
     background: #dc2626;
 }
 
-.alert-warning.opportunity-alert > .material-symbols-outlined {
+.alert-warning.job-alert > .material-symbols-outlined {
     background: #f59e0b;
 }
 
 @media (max-width: 1199.98px) {
-    .opportunity-layout {
+    .job-layout {
         grid-template-columns: 1fr;
     }
 
-    .opportunity-side-column {
+    .job-side-column {
         position: static;
     }
 }
 
 @media (max-width: 767.98px) {
-    .opportunity-profile-card {
+    .job-profile-card {
         align-items: flex-start;
         flex-direction: column;
     }
 
-    .opportunity-profile-actions {
+    .job-profile-actions {
         justify-content: flex-start;
     }
 
-    .opportunity-details-grid {
+    .job-details-grid {
         grid-template-columns: 1fr;
     }
 }

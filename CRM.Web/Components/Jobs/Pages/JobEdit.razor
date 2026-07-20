@@ -116,17 +116,17 @@
 
                             <div class="col-12">
                                 <label class="form-label" for="description">Description</label>
-                                <InputTextArea id="description" class="form-control opportunity-textarea" @bind-Value="objJob.Description" />
+                                <InputTextArea id="description" class="form-control job-textarea" @bind-Value="objJob.Description" />
                             </div>
 
                             <div class="col-12">
                                 <label class="form-label" for="notes">Notes</label>
-                                <InputTextArea id="notes" class="form-control opportunity-textarea" @bind-Value="objJob.Notes" />
+                                <InputTextArea id="notes" class="form-control job-textarea" @bind-Value="objJob.Notes" />
                             </div>
                         </div>
                     </div>
 
-                    <div class="opportunity-save-bar">
+                    <div class="job-save-bar">
                         <button type="button" class="btn crm-btn-secondary" disabled="@blnSaving" @onclick="GoBack">
                             Cancel
                         </button>
@@ -138,8 +138,8 @@
                     </div>
                 </div>
 
-                <aside class="opportunity-side-column">
-                    <div class="crm-card opportunity-summary-card">
+                <aside class="job-side-column">
+                    <div class="crm-card job-summary-card">
                         <h3>Preview</h3>
 
                         <dl>
