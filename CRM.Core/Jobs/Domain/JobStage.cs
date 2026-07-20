@@ -11,12 +11,12 @@ namespace CRM.Core.Jobs.Domain
         [Display(Name = "To Do")]
         ToDo = 2,
         [Display(Name = "In Progress")]
-        InProgress = 2,
+        InProgress = 3,
         [Display(Name = "Invoiced")]
-        Invoiced = 3,
+        Invoiced = 4,
         [Display(Name = "Paid")]
-        Paid = 4,
+        Paid = 5,
         [Display(Name = "Lost")]
-        Lost = 5
+        Lost = 6
     }
 }
