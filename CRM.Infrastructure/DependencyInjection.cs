@@ -24,6 +24,7 @@ using CRM.Infrastructure.Users.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using CRM.Infrastructure.Users.Services;
 
 namespace CRM.Infrastructure
 {
@@ -45,6 +46,7 @@ namespace CRM.Infrastructure
             });
 
             colServices.AddScoped<IUserRepository, UserRepository>();
+            colServices.AddScoped<IUserIdentityWriter, UserIdentityWriter>();
 
             colServices.AddScoped<ILogRepository,       SqlLogRepository>();
             colServices.AddScoped<IMailService,         SmtpMailService>();

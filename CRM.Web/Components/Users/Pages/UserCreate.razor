@@ -1,7 +1,5 @@
 ﻿@page "/users/create"
-@using CompCRM.Core.LinkedAccounts.Abstraction
-@using CompCRM.Core.Users.Abstractions
-@using CompCRM.Data.Enums
+@using CRM.Core.Users.Abstraction
 @using Microsoft.AspNetCore.Identity
 @inherits BasePage
 @rendermode InteractiveServer
@@ -10,7 +8,7 @@
 @inject IUserStore<ApplicationUser> UserStore
 @attribute [Authorize]
 
-<PageTitle>User Create - @Primitives.Constants.Application.Name</PageTitle>
+<PageTitle>User Create</PageTitle>
 
 @* <TopBar Title="Create user" Summary="Create a new user" ReturnUrl="/users">
     <Body>
@@ -95,14 +93,14 @@
     {
         if (UserCreateInput == null || String.IsNullOrWhiteSpace(UserCreateInput.Password))
         {
-            NotificationService.Toast(ToastType.Error, "Check form and try again", "Error");
+            //NotificationService.Toast(ToastType.Error, "Check form and try again", "Error");
             return;
         }
 
         ApplicationUser objUser = NewUser();
         objUser.Forename        = UserCreateInput.Forename;
         objUser.Surname         = UserCreateInput.Surname;
-        objUser.CreateDate      = DateTime.Now;
+        objUser.CreatedUtc      = DateTimeOffset.UtcNow;
         //objUser.Enabled         = true;
 
         await UserStore.SetUserNameAsync(objUser, UserCreateInput.Email, CancellationToken.None);
@@ -113,13 +111,13 @@
         if (!objIdResult.Succeeded)
         {
             identityErrors = objIdResult.Errors;
-            NotificationService.Toast(ToastType.Error, "Failed to save: " + (objIdResult.Errors.Any() ? String.Join(", ", objIdResult.Errors.Select(x => x.Description)) : ""), "Error");
+            //NotificationService.Toast(ToastType.Error, "Failed to save: " + (objIdResult.Errors.Any() ? String.Join(", ", objIdResult.Errors.Select(x => x.Description)) : ""), "Error");
             return;
         }
 
         String? strUserId = await UserManager.GetUserIdAsync(objUser);
 
-        NotificationService.Toast(ToastType.Success, "User was saved", "Saved");
+        //NotificationService.Toast(ToastType.Success, "User was saved", "Saved");
         NavigationManager.NavigateTo("/users/" + strUserId);
     }
 

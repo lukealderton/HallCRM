@@ -1,4 +1,5 @@
-﻿using CRM.Core.Logging.Abstraction;
+﻿using CRM.Contracts.Results;
+using CRM.Core.Logging.Abstraction;
 using CRM.Core.Users.Abstraction.Repositories;
 using CRM.Core.Users.Abstraction.Services;
 using CRM.Core.Users.Domain;
@@ -9,13 +10,16 @@ namespace CRM.Core.Users.Services
     {
         private readonly IUserRepository    _userRepository;
         private readonly ILogService        _logService;
+        private readonly IUserIdentityWriter _identityWriter;
 
         public UserService(
             ILogService     objLogService,
-            IUserRepository objUserRepository)
+            IUserRepository objUserRepository,
+            IUserIdentityWriter objIdentityWriter)
         {
             _logService     = objLogService;
             _userRepository = objUserRepository;
+            _identityWriter = objIdentityWriter;
         }
 
         ///<inheritdoc/>
@@ -41,6 +45,15 @@ namespace CRM.Core.Users.Services
             }
 
             return _userRepository.GetUserAsync(objUserId, objToken);
+        }
+
+        public Task<BasicResult> UpdateUserAsync(
+            UpdateUserRequest objRequest,
+            CancellationToken objToken = default)
+        {
+            return _identityWriter.UpdateUserAsync(
+                objRequest,
+                objToken);
         }
     }
 }

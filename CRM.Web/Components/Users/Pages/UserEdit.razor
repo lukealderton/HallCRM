@@ -1,21 +1,18 @@
 ﻿@page "/users/{_userId}"
-@using CompCRM.Contracts.Results
-@using CompCRM.Core.Users.Abstractions
-@using CompCRM.Core.Users.Domain
-@using CompCRM.Data.Enums
+@using CRM.Contracts.Results
+@using CRM.Core.Users.Domain
 @using System.ComponentModel.DataAnnotations
 @inherits BasePage
 @rendermode InteractiveServer
 @attribute [Authorize]
 
 <PageTitle>
-    @(User == null ? "User" : $"Edit {User.Forename} {User.Surname}") -
-    @Primitives.Constants.Application.Name
+    @(User == null ? "User" : $"Edit {User.Forename} {User.Surname}")
 </PageTitle>
 
-<TopBar Title="@GetPageTitle()"
+@* <TopBar Title="@GetPageTitle()"
         Summary="@GetPageSummary()"
-        ReturnUrl="/users" />
+        ReturnUrl="/users" /> *@
 
 <article class="content px-4">
     @if (_blnLoading)
@@ -122,7 +119,7 @@
                     <div class="row">
                         <div class="col-12 col-md-4">
                             <div class="form-floating mb-3">
-                                <InputSelect id="user-access-level"
+@*                                 <InputSelect id="user-access-level"
                                              @bind-Value="UserEditInput.AccessLevel"
                                              class="form-select">
 
@@ -133,14 +130,14 @@
                                             @enmAccessLevel.GetDisplay().Name
                                         </option>
                                     }
-                                </InputSelect>
+                                </InputSelect> *@
 
-                                <label for="user-access-level">
+                                @* <label for="user-access-level">
                                     Access level
                                 </label>
 
                                 <ValidationMessage For="() => UserEditInput.AccessLevel"
-                                                   class="text-danger" />
+                                                   class="text-danger" /> *@
                             </div>
                         </div>
 
@@ -263,10 +260,10 @@
         }
         catch (Exception objError)
         {
-            NotificationService.Toast(
-                ToastType.Error,
-                $"Failed to load user: {objError.Message}",
-                "Error");
+            // NotificationService.Toast(
+            //     ToastType.Error,
+            //     $"Failed to load user: {objError.Message}",
+            //     "Error");
         }
         finally
         {
@@ -292,7 +289,7 @@
                 Surname = CleanString(UserEditInput.Surname),
                 Email = CleanString(UserEditInput.Email),
                 Enabled = UserEditInput.Enabled,
-                AccessLevel = UserEditInput.AccessLevel,
+                //AccessLevel = UserEditInput.AccessLevel,
                 NewPassword = CleanString(UserEditInput.NewPassword)
             };
 
@@ -301,12 +298,12 @@
 
             if (!objResult.Success)
             {
-                NotificationService.Toast(
-                    ToastType.Error,
-                    String.IsNullOrWhiteSpace(objResult.Message)
-                        ? "The user could not be saved."
-                        : objResult.Message,
-                    "Error");
+                // NotificationService.Toast(
+                //     ToastType.Error,
+                //     String.IsNullOrWhiteSpace(objResult.Message)
+                //         ? "The user could not be saved."
+                //         : objResult.Message,
+                //     "Error");
 
                 return;
             }
@@ -315,23 +312,23 @@
             User.Surname = objRequest.Surname;
             User.Email = objRequest.Email;
             User.Enabled = objRequest.Enabled;
-            User.AccessLevel = objRequest.AccessLevel;
+            //User.AccessLevel = objRequest.AccessLevel;
 
             UserEditInput.NewPassword = null;
 
-            NotificationService.Toast(
-                ToastType.Success,
-                String.IsNullOrWhiteSpace(objResult.Message)
-                    ? "User was saved successfully."
-                    : objResult.Message,
-                "Saved");
+            // NotificationService.Toast(
+            //     ToastType.Success,
+            //     String.IsNullOrWhiteSpace(objResult.Message)
+            //         ? "User was saved successfully."
+            //         : objResult.Message,
+            //     "Saved");
         }
         catch (Exception objError)
         {
-            NotificationService.Toast(
-                ToastType.Error,
-                $"Failed to save user: {objError.Message}",
-                "Error");
+            // NotificationService.Toast(
+            //     ToastType.Error,
+            //     $"Failed to save user: {objError.Message}",
+            //     "Error");
         }
         finally
         {
@@ -365,7 +362,7 @@
             ? "Enabled"
             : "Disabled";
 
-        return $"{strStatus} · Access level: {User.AccessLevel.GetDisplay().Name}";
+        return $"{strStatus}";// · Access level: {User.AccessLevel.GetDisplay().Name}";
     }
 
     private static String? CleanString(String? strValue)
@@ -387,7 +384,7 @@
             Surname = objUser.Surname;
             Email = objUser.Email;
             Enabled = objUser.Enabled;
-            AccessLevel = objUser.AccessLevel;
+            //AccessLevel = objUser.AccessLevel;
         }
 
         [Required(ErrorMessage = "Forename is required.")]
@@ -405,7 +402,8 @@
 
         public Boolean Enabled { get; set; }
 
-        public UserAccessLevel AccessLevel { get; set; }
+        //[StringLength(400)]
+        //public UserAccessLevel AccessLevel { get; set; }
 
         [StringLength(
             400,

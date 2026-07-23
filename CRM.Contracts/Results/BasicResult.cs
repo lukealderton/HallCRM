@@ -6,6 +6,7 @@
     {
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
+        public string? AltMessage { get; set; } = null;
         public T? Result { get; set; }
     }
 }
