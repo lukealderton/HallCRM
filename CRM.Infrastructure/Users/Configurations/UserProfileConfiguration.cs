@@ -52,11 +52,11 @@ namespace CRM.Infrastructure.Users.Configurations
             objEntity.Property(x => x.UpdatedUtc)
                 .HasColumnName("uspUpdatedUtc");
 
-            objEntity.HasOne<ApplicationUser>()
-                .WithOne(x => x.Profile)
-                .HasForeignKey<UserProfile>(x => x.Id)
-                .HasPrincipalKey<ApplicationUser>(x => x.DomainUserId)
-                .OnDelete(DeleteBehavior.Cascade);
+            //objEntity.HasOne<ApplicationUser>()
+            //    .WithOne(x => x.Profile)
+            //    .HasForeignKey<UserProfile>(x => x.Id)
+            //    .HasPrincipalKey<ApplicationUser>(x => x.DomainUserId)
+            //    .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -1,24 +1,19 @@
 ﻿@page "/users"
-@using CompCRM.Core.Common.Extensions
-@using CompCRM.Core.LinkedAccounts.Abstraction
-@using CompCRM.Core.Users.Abstractions
+@using CRM.Core.Common.Extensions
 
 @inherits BasePage
 @rendermode InteractiveServer
 @attribute [Authorize]
 
-<PageTitle>Users - @Primitives.Constants.Application.Name</PageTitle>
+<PageTitle>Users</PageTitle>
 
-<TopBar Title="Users" Summary="Search and manager user accounts and their access to this system." ReturnUrl="/">
+@* <TopBar Title="Users" Summary="Search and manager user accounts and their access to this system." ReturnUrl="/">
     <Body>
         <a href="/users/create" class="btn btn-primary flex-grow-0" title="Create a user">
             Create User
-            @* <span class="material-symbols-outlined ms-3 align-middle">
-                person_add
-            </span> *@
         </a>
     </Body>
-</TopBar>
+</TopBar> *@
 
 @if (objCurrentUser == null)
 {
@@ -103,10 +98,10 @@
                                 </a><br />
                                 <small class="text-muted">
                                     @objUser.Email
-                                    @if (UserService.HasAccess(objCurrentUser, CompCRM.Data.Enums.UserAccessLevel.Admin))
+@*                                     @if (UserService.HasAccess(objCurrentUser, CRM.Data.Enums.UserAccessLevel.Admin))
                                     {
                                         <span> - <span class="fw-bold">@(objUser.AccessLevel.GetDisplayNamesForList("and"))</span></span>
-                                    }
+                                    } *@
                                 </small>
                             </div>
                             <div class="col-4 fw-bold">

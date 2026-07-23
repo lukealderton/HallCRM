@@ -1,4 +1,5 @@
-﻿using CRM.Core.Users.Domain;
+﻿using CRM.Contracts.Results;
+using CRM.Core.Users.Domain;
 
 namespace CRM.Core.Users.Abstraction.Services
 {
@@ -16,6 +17,10 @@ namespace CRM.Core.Users.Abstraction.Services
 
         Task<User?> GetUserAsync(
             Guid objUserId,
+            CancellationToken objToken = default);
+
+        Task<BasicResult> UpdateUserAsync(
+            UpdateUserRequest objRequest,
             CancellationToken objToken = default);
     }
 }

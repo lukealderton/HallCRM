@@ -1,4 +1,5 @@
-﻿using CRM.Core.Users.Abstraction.Repositories;
+﻿using CRM.Contracts.Results;
+using CRM.Core.Users.Abstraction.Repositories;
 using CRM.Core.Users.Domain;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +9,14 @@ namespace CRM.Infrastructure.Users.Repositories
     public sealed class UserRepository : IUserRepository
     {
         private readonly IDbContextFactory<CRMDbContext> _dbContextFactory;
+        private readonly IUserIdentityWriter _identityWriter;
 
         public UserRepository(
-            IDbContextFactory<CRMDbContext> objDbContextFactory)
+            IDbContextFactory<CRMDbContext> objDbContextFactory, 
+            IUserIdentityWriter identityWriter)
         {
             _dbContextFactory = objDbContextFactory;
+            _identityWriter = identityWriter;
         }
 
         public async Task<Dictionary<Guid, String>> GetDisplayNamesByUserIdsAsync(
@@ -103,6 +107,15 @@ namespace CRM.Infrastructure.Users.Repositories
 
             return await GetUserQuery(objDbContext)
                 .FirstOrDefaultAsync(x => x.Id == objUserId, objToken);
+        }
+
+        public Task<BasicResult> UpdateUserAsync(
+            UpdateUserRequest objRequest,
+            CancellationToken objToken = default)
+        {
+            return _identityWriter.UpdateUserAsync(
+                objRequest,
+                objToken);
         }
 
         private static IQueryable<User> GetUserQuery(
