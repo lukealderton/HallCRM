@@ -55,6 +55,15 @@ namespace CRM.Infrastructure.Users.Configurations
             objEntity.Property(x => x.AccessFailedCount)
                 .HasColumnName("usrAccessFailed");
 
+            objEntity.Property(x => x.LastLoginUtc)
+                .HasColumnName("usrLastLoginUtc");
+
+            objEntity.Property(x => x.CreatedUtc)
+                .HasColumnName("usrCreatedUtc");
+
+            objEntity.Property(x => x.UpdatedUtc)
+                .HasColumnName("usrUpdatedUtc");
+
             objEntity.Property(x => x.DomainUserId)
                 .HasColumnName("usrDomainUserId")
                 .IsRequired();

@@ -1,0 +1,195 @@
+﻿@page "/users"
+@using CompCRM.Core.Common.Extensions
+@using CompCRM.Core.LinkedAccounts.Abstraction
+@using CompCRM.Core.Users.Abstractions
+
+@inherits BasePage
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+<PageTitle>Users - @Primitives.Constants.Application.Name</PageTitle>
+
+<TopBar Title="Users" Summary="Search and manager user accounts and their access to this system." ReturnUrl="/">
+    <Body>
+        <a href="/users/create" class="btn btn-primary flex-grow-0" title="Create a user">
+            Create User
+            @* <span class="material-symbols-outlined ms-3 align-middle">
+                person_add
+            </span> *@
+        </a>
+    </Body>
+</TopBar>
+
+@if (objCurrentUser == null)
+{
+    return;
+}
+
+<!form class="mt-2 mb-4 pb-3" style="border-bottom: 1px solid #c1d0e5;" method="get">
+    <p class="h2 mb-3">
+        Filter users
+    </p>
+    <div class="row g-3">
+        <div class="col-10">
+            <input class="form-control" name="q" value="@Query" placeholder="Keyword" />
+        </div>
+        <div class="col-2">
+            <button class="btn btn-primary w-100">
+                Search
+            </button>
+        </div>
+    </div>
+</!form>
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-8 fw-bold">
+                Name
+            </div>
+            <div class="col-4 fw-bold">
+                <div class="row">
+                    <div class="col-6">
+                        Enabled
+                    </div>
+                    <div class="col-6">
+                        Locked Out
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+            @if (!Loaded)
+            {
+                for (Int32 intIndex = 0; intIndex < 5; intIndex++)
+                {
+                    <li class="list-group-item py-3">
+                        <div class="row placeholder-glow">
+                            <div class="col-8">
+                                <span class="placeholder col-2"></span><br />
+                                <span class="placeholder col-4"></span>
+                            </div>
+                            <div class="col-4 fw-bold">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <span class="material-symbols-outlined text-light" title="Not featured">
+                                            do_not_disturb_on
+                                        </span>
+                                    </div>
+                                    <div class="col-6">
+                                        <span class="material-symbols-outlined text-light" title="Not featured">
+                                            do_not_disturb_on
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                }
+            }
+            else
+            {
+                foreach (User objUser in Results.OrderByDescending(x => x.Surname))
+                {
+                    String strName = String.IsNullOrWhiteSpace(objUser.Forename) ? "User?" : objUser.Forename;
+
+                    <li class="list-group-item py-3">
+                        <div class="row">
+                            <div class="col-8">
+                                <a href="/users/@objUser.Id" title="@objUser.Forename">
+                                    @strName
+                                </a><br />
+                                <small class="text-muted">
+                                    @objUser.Email
+                                    @if (UserService.HasAccess(objCurrentUser, CompCRM.Data.Enums.UserAccessLevel.Admin))
+                                    {
+                                        <span> - <span class="fw-bold">@(objUser.AccessLevel.GetDisplayNamesForList("and"))</span></span>
+                                    }
+                                </small>
+                            </div>
+                            <div class="col-4 fw-bold">
+                                <div class="row">
+                                    <div class="col-6">
+                                        @if (objUser.Enabled)
+                                        {
+                                            <span class="material-symbols-outlined text-success" title="Is enabled">
+                                                check_circle
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="material-symbols-outlined text-danger" title="Not enabled">
+                                                cancel
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="col-6">
+                                        @if (!objUser.IsLockedOut)
+                                        {
+                                            <span class="material-symbols-outlined text-danger" title="Is locked out">
+                                                check_circle
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="material-symbols-outlined text-success" title="Not locked out">
+                                                cancel
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </li>
+                }
+            }
+        </ul>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")]
+    public String? Query { get; set; }
+
+    private List<User> Results { get; set; } = [];
+
+    private User? objCurrentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        objCurrentUser = await UserState.GetAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Loaded)
+        {
+            return;
+        }
+
+        if (!String.IsNullOrWhiteSpace(Query))
+        {
+            Results = (await UserService.GetUsersAsync(true)).Where(x => x.GetFullName().ToLower().Contains(Query.ToLower())).ToList();
+        }
+        else
+        {
+            Results = await UserService.GetUsersAsync(true);
+        }
+
+        Loaded = true;
+
+        StateHasChanged();
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    protected override Task OnParametersSetAsync()
+    {
+        Loaded = false;
+
+        return base.OnParametersSetAsync();
+    }
+}

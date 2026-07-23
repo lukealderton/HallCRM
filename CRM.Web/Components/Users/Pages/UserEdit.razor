@@ -1,0 +1,416 @@
+﻿@page "/users/{_userId}"
+@using CompCRM.Contracts.Results
+@using CompCRM.Core.Users.Abstractions
+@using CompCRM.Core.Users.Domain
+@using CompCRM.Data.Enums
+@using System.ComponentModel.DataAnnotations
+@inherits BasePage
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+<PageTitle>
+    @(User == null ? "User" : $"Edit {User.Forename} {User.Surname}") -
+    @Primitives.Constants.Application.Name
+</PageTitle>
+
+<TopBar Title="@GetPageTitle()"
+        Summary="@GetPageSummary()"
+        ReturnUrl="/users" />
+
+<article class="content px-4">
+    @if (_blnLoading)
+    {
+        <div class="card">
+            <div class="card-body py-5 text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading user...</span>
+                </div>
+
+                <p class="text-muted mt-3 mb-0">
+                    Loading user...
+                </p>
+            </div>
+        </div>
+    }
+    else if (User == null)
+    {
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <span class="material-symbols-outlined me-2">
+                error
+            </span>
+
+            <div>
+                The requested user could not be found.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="mb-4">
+                    <h2 class="h5 mb-1">
+                        User details
+                    </h2>
+
+                    <p class="text-muted mb-0">
+                        Update the user's name, email address, access level and account status.
+                        Leave the password blank to keep their current password.
+                    </p>
+                </div>
+
+                <EditForm Model="UserEditInput"
+                          OnValidSubmit="UpdateUserAsync"
+                          FormName="editUser">
+
+                    <DataAnnotationsValidator />
+
+                    <div class="row">
+                        <div class="col-12 col-md-4">
+                            <div class="form-floating mb-3">
+                                <InputText id="user-forename"
+                                           @bind-Value="UserEditInput.Forename"
+                                           maxlength="400"
+                                           class="form-control"
+                                           placeholder="Forename" />
+
+                                <label for="user-forename">
+                                    Forename
+                                </label>
+
+                                <ValidationMessage For="() => UserEditInput.Forename"
+                                                   class="text-danger" />
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <div class="form-floating mb-3">
+                                <InputText id="user-surname"
+                                           @bind-Value="UserEditInput.Surname"
+                                           maxlength="400"
+                                           class="form-control"
+                                           placeholder="Surname" />
+
+                                <label for="user-surname">
+                                    Surname
+                                </label>
+
+                                <ValidationMessage For="() => UserEditInput.Surname"
+                                                   class="text-danger" />
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <div class="form-floating mb-3">
+                                <InputText id="user-email"
+                                           @bind-Value="UserEditInput.Email"
+                                           maxlength="400"
+                                           type="email"
+                                           class="form-control"
+                                           placeholder="Email address" />
+
+                                <label for="user-email">
+                                    Email address
+                                </label>
+
+                                <ValidationMessage For="() => UserEditInput.Email"
+                                                   class="text-danger" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 col-md-4">
+                            <div class="form-floating mb-3">
+                                <InputSelect id="user-access-level"
+                                             @bind-Value="UserEditInput.AccessLevel"
+                                             class="form-select">
+
+                                    @foreach (UserAccessLevel enmAccessLevel in
+                                        Enum.GetValues<UserAccessLevel>())
+                                    {
+                                        <option value="@enmAccessLevel">
+                                            @enmAccessLevel.GetDisplay().Name
+                                        </option>
+                                    }
+                                </InputSelect>
+
+                                <label for="user-access-level">
+                                    Access level
+                                </label>
+
+                                <ValidationMessage For="() => UserEditInput.AccessLevel"
+                                                   class="text-danger" />
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <div class="form-floating mb-3">
+                                <InputText id="user-password"
+                                           @bind-Value="UserEditInput.NewPassword"
+                                           maxlength="400"
+                                           type="password"
+                                           autocomplete="new-password"
+                                           class="form-control"
+                                           placeholder="New password" />
+
+                                <label for="user-password">
+                                    New password
+                                </label>
+
+                                <ValidationMessage For="() => UserEditInput.NewPassword"
+                                                   class="text-danger" />
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <div class="border rounded-3 px-3 py-3 mb-3">
+                                <div class="form-check form-switch mb-0">
+                                    <InputCheckbox id="user-enabled"
+                                                   @bind-Value="UserEditInput.Enabled"
+                                                   class="form-check-input"
+                                                   role="switch" />
+
+                                    <label class="form-check-label ms-2"
+                                           for="user-enabled">
+                                        <strong>Account enabled</strong>
+                                    </label>
+                                </div>
+
+                                <small class="text-muted d-block mt-2">
+                                    Disabled users cannot sign in, regardless of their access level.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!UserEditInput.Enabled)
+                    {
+                        <div class="alert alert-warning d-flex align-items-start" role="alert">
+                            <span class="material-symbols-outlined me-2">
+                                person_off
+                            </span>
+
+                            <div>
+                                <strong>This account will be disabled.</strong>
+
+                                <div class="small mt-1">
+                                    The user will no longer be able to sign in after these changes are saved.
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="border-top mt-3 pt-3 border-muted d-flex justify-content-end">
+                        <button type="submit"
+                                class="btn btn-primary d-inline-flex align-items-center"
+                                disabled="@_blnSaving">
+
+                            @if (_blnSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"
+                                      aria-hidden="true">
+                                </span>
+
+                                <span>Saving...</span>
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined me-2">
+                                    save
+                                </span>
+
+                                <span>Save changes</span>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+</article>
+
+@code {
+    [Parameter]
+    public String _userId { get; set; } = String.Empty;
+
+    private User? User { get; set; }
+
+    private UserEditModel UserEditInput { get; set; } = new();
+
+    private Boolean _blnLoading = true;
+    private Boolean _blnSaving;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _blnLoading = true;
+        User = null;
+
+        try
+        {
+            if (!Guid.TryParse(_userId, out Guid objUserId) ||
+                objUserId == Guid.Empty)
+            {
+                return;
+            }
+
+            User = await UserService.GetUserAsync(objUserId);
+
+            if (User != null)
+            {
+                UserEditInput = new UserEditModel(User);
+            }
+        }
+        catch (Exception objError)
+        {
+            NotificationService.Toast(
+                ToastType.Error,
+                $"Failed to load user: {objError.Message}",
+                "Error");
+        }
+        finally
+        {
+            _blnLoading = false;
+        }
+    }
+
+    private async Task UpdateUserAsync()
+    {
+        if (User == null || _blnSaving)
+        {
+            return;
+        }
+
+        _blnSaving = true;
+
+        try
+        {
+            UpdateUserRequest objRequest = new()
+            {
+                Id = User.Id,
+                Forename = CleanString(UserEditInput.Forename),
+                Surname = CleanString(UserEditInput.Surname),
+                Email = CleanString(UserEditInput.Email),
+                Enabled = UserEditInput.Enabled,
+                AccessLevel = UserEditInput.AccessLevel,
+                NewPassword = CleanString(UserEditInput.NewPassword)
+            };
+
+            BasicResult objResult =
+                await UserService.UpdateUserAsync(objRequest);
+
+            if (!objResult.Success)
+            {
+                NotificationService.Toast(
+                    ToastType.Error,
+                    String.IsNullOrWhiteSpace(objResult.Message)
+                        ? "The user could not be saved."
+                        : objResult.Message,
+                    "Error");
+
+                return;
+            }
+
+            User.Forename = objRequest.Forename;
+            User.Surname = objRequest.Surname;
+            User.Email = objRequest.Email;
+            User.Enabled = objRequest.Enabled;
+            User.AccessLevel = objRequest.AccessLevel;
+
+            UserEditInput.NewPassword = null;
+
+            NotificationService.Toast(
+                ToastType.Success,
+                String.IsNullOrWhiteSpace(objResult.Message)
+                    ? "User was saved successfully."
+                    : objResult.Message,
+                "Saved");
+        }
+        catch (Exception objError)
+        {
+            NotificationService.Toast(
+                ToastType.Error,
+                $"Failed to save user: {objError.Message}",
+                "Error");
+        }
+        finally
+        {
+            _blnSaving = false;
+        }
+    }
+
+    private String GetPageTitle()
+    {
+        if (User == null)
+        {
+            return "Edit user";
+        }
+
+        String strFullName =
+            $"{User.Forename} {User.Surname}".Trim();
+
+        return String.IsNullOrWhiteSpace(strFullName)
+            ? User.Email ?? "Edit user"
+            : strFullName;
+    }
+
+    private String? GetPageSummary()
+    {
+        if (User == null)
+        {
+            return null;
+        }
+
+        String strStatus = User.Enabled
+            ? "Enabled"
+            : "Disabled";
+
+        return $"{strStatus} · Access level: {User.AccessLevel.GetDisplay().Name}";
+    }
+
+    private static String? CleanString(String? strValue)
+    {
+        return String.IsNullOrWhiteSpace(strValue)
+            ? null
+            : strValue.Trim();
+    }
+
+    private sealed class UserEditModel
+    {
+        public UserEditModel()
+        {
+        }
+
+        public UserEditModel(User objUser)
+        {
+            Forename = objUser.Forename;
+            Surname = objUser.Surname;
+            Email = objUser.Email;
+            Enabled = objUser.Enabled;
+            AccessLevel = objUser.AccessLevel;
+        }
+
+        [Required(ErrorMessage = "Forename is required.")]
+        [StringLength(400)]
+        public String? Forename { get; set; }
+
+        [Required(ErrorMessage = "Surname is required.")]
+        [StringLength(400)]
+        public String? Surname { get; set; }
+
+        [Required(ErrorMessage = "Email address is required.")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address.")]
+        [StringLength(400)]
+        public String? Email { get; set; }
+
+        public Boolean Enabled { get; set; }
+
+        public UserAccessLevel AccessLevel { get; set; }
+
+        [StringLength(
+            400,
+            MinimumLength = 8,
+            ErrorMessage = "The new password must be at least 8 characters.")]
+        public String? NewPassword { get; set; }
+    }
+}

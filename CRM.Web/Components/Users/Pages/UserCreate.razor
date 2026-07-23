@@ -1,0 +1,176 @@
+﻿@page "/users/create"
+@using CompCRM.Core.LinkedAccounts.Abstraction
+@using CompCRM.Core.Users.Abstractions
+@using CompCRM.Data.Enums
+@using Microsoft.AspNetCore.Identity
+@inherits BasePage
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IUserStore<ApplicationUser> UserStore
+@attribute [Authorize]
+
+<PageTitle>User Create - @Primitives.Constants.Application.Name</PageTitle>
+
+@* <TopBar Title="Create user" Summary="Create a new user" ReturnUrl="/users">
+    <Body>
+
+    </Body>
+</TopBar> *@
+
+<article class="content px-4">
+    <div class="card">
+        <div class="card-body">
+            <p>Enter the new user details and submit to add a new user to the system, once created users cannot be removed due to system audit logs.</p>
+            <h2 class="h3 text-primary mb-3">New user details</h2>
+            <EditForm Model="UserCreateInput" method="post" OnValidSubmit="CreateUser" FormName="createUser">
+                <div class="row">
+                    <div class="col-12 col-md-4">
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="UserCreateInput.Forename" maxlength="400" class="form-control" placeholder="Forename" />
+                            <label for="email" class="form-label">Forename</label>
+                            <ValidationMessage For="() => UserCreateInput.Forename" class="text-danger" />
+                        </div>
+                    </div>
+                     <div class="col-12 col-md-4">
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="UserCreateInput.Surname" maxlength="400" class="form-control" placeholder="Surname" />
+                            <label for="email" class="form-label">Surname</label>
+                            <ValidationMessage For="() => UserCreateInput.Surname" class="text-danger" />
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="UserCreateInput.Email" maxlength="400" class="form-control" placeholder="Email address" />
+                            <label for="email" class="form-label">Email</label>
+                            <ValidationMessage For="() => UserCreateInput.Email" class="text-danger" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="form-floating mb-3">
+                            <InputTextArea @bind-Value="UserCreateInput.Description" maxlength="400" class="form-control" placeholder="Description" />
+                            <label for="email" class="form-label">Description</label>
+                            <ValidationMessage For="() => UserCreateInput.Description" class="text-danger" />
+                        </div>
+                    </div>
+                </div>
+                 <div class="row">
+                    <div class="col-12 col-md-4">
+                        <div class="form-floating mb-3">
+                            <InputText @bind-Value="UserCreateInput.Password" maxlength="400" class="form-control" placeholder="Password" type="password" />
+                            <label for="email" class="form-label">Password</label>
+                            <ValidationMessage For="() => UserCreateInput.Password" class="text-danger" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit button -->
+                <div class="border-top mt-3 pt-3 border-muted text-end">
+                    <button type="submit" class="btn btn-primary mt-0">
+                        <span class="material-symbols-outlined me-3">
+                            person_add
+                        </span>
+                        Create user
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</article>
+
+@code {
+    [SupplyParameterFromForm]
+    private UserCreateModel UserCreateInput { get; set; } = new();
+
+    private IEnumerable<IdentityError>? identityErrors;
+
+    protected override Task OnParametersSetAsync()
+    {
+        return base.OnParametersSetAsync();
+    }
+
+    private async void CreateUser()
+    {
+        if (UserCreateInput == null || String.IsNullOrWhiteSpace(UserCreateInput.Password))
+        {
+            NotificationService.Toast(ToastType.Error, "Check form and try again", "Error");
+            return;
+        }
+
+        ApplicationUser objUser = NewUser();
+        objUser.Forename        = UserCreateInput.Forename;
+        objUser.Surname         = UserCreateInput.Surname;
+        objUser.CreateDate      = DateTime.Now;
+        //objUser.Enabled         = true;
+
+        await UserStore.SetUserNameAsync(objUser, UserCreateInput.Email, CancellationToken.None);
+        IUserEmailStore<ApplicationUser> objEmailStore = GetEmailStore();
+        await objEmailStore.SetEmailAsync(objUser, UserCreateInput.Email, CancellationToken.None);
+        IdentityResult objIdResult = await UserManager.CreateAsync(objUser, UserCreateInput.Password);
+
+        if (!objIdResult.Succeeded)
+        {
+            identityErrors = objIdResult.Errors;
+            NotificationService.Toast(ToastType.Error, "Failed to save: " + (objIdResult.Errors.Any() ? String.Join(", ", objIdResult.Errors.Select(x => x.Description)) : ""), "Error");
+            return;
+        }
+
+        String? strUserId = await UserManager.GetUserIdAsync(objUser);
+
+        NotificationService.Toast(ToastType.Success, "User was saved", "Saved");
+        NavigationManager.NavigateTo("/users/" + strUserId);
+    }
+
+    private ApplicationUser NewUser()
+    {
+        try
+        {
+            return Activator.CreateInstance<ApplicationUser>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor.");
+        }
+    }
+
+    private IUserEmailStore<ApplicationUser> GetEmailStore()
+    {
+        if (!UserManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException("The default UI requires a user store with email support.");
+        }
+        return (IUserEmailStore<ApplicationUser>)UserStore;
+    }
+
+    private sealed class UserCreateModel
+    {
+        public UserCreateModel() { }
+        public UserCreateModel(ApplicationUser? objUser)
+        {
+            if (objUser == null)
+            {
+                return;
+            }
+
+            Forename    = objUser.Forename;
+            Surname     = objUser.Surname;
+            Email       = objUser.Email;
+            //Description = objUser.Description;
+            //Password    = objUser.Password;
+            //Enabled     = objUser.Enabled;
+            //LockedOut   = false;
+        }
+
+        public String? Forename { get; set; }
+        public String? Surname { get; set; }
+        public String? Email { get; set; }
+        public String? Description { get; set; }
+        public String? Password { get; set; }
+
+        //public Boolean Enabled { get; set; }
+        public Boolean LockedOut { get; set; }
+    }
+}

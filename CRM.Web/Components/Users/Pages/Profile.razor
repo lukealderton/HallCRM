@@ -1,0 +1,123 @@
+﻿@page "/my-profile"
+@page "/profile/{_userId}"
+@using CRM.Core.Users.Abstraction
+@inherits BasePage
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+<PageTitle>Profile</PageTitle>
+
+@* <TopBar Title="@(MyProfile ? "My Profile" : User?.Forename + " " + User?.Surname)" Summary="@("Created " + User?.CreateDate.ToString("dd-MM-yyyy"))" ReturnUrl="/">
+    <Body>
+
+    </Body>
+</TopBar> *@
+
+@if (!Loaded)
+{
+    <div class="container-fluid">
+        <p class="small text-muted">Loading...</p>
+    </div>
+    return;
+}
+else if (User == null)
+{
+    <div class="container-fluid">
+        <p>The user you've tried to view doesn't exist.</p>
+        <a href="/" title="Back" class="btn btn-primary">
+            Back to dashboard
+        </a>
+    </div>
+    return;
+}
+
+<article class="content px-4">
+    <div class="row gx-3">
+        <div class="col-3">
+            <img src="@ProfileImageUrl" class="w-100 h-auto" />
+        </div>
+        <div class="col-9">
+            <div class="card">
+                <div class="card-body">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <th class="pe-3">Email: </th>
+                                <td>@User.Email</td>
+                            </tr>
+                            <tr>
+                                <th class="pe-3">Created: </th>
+                                <td>@User.CreatedUtc</td>
+                            </tr>
+                            <tr>
+                                <th class="pe-3">Last Updated: </th>
+                                <td>@User.UpdatedUtc</td>
+                            </tr>
+                            <tr>
+                                <th class="pe-3">Last Login: </th>
+                                <td>@User.LastLoginUtc</td>
+                            </tr>
+@*                             <tr>
+                                <th class="pe-3">Enabled: </th>
+                                <td>@User.Enabled</td>
+                            </tr> *@
+                            <tr>
+                                <th class="pe-3">Locked Out: </th>
+                                <td>@User.LockoutEnabled</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</article>
+
+@code {
+    [Parameter]
+    public String _userId { get; set; } = "";
+
+    private ApplicationUser? User { get; set; }
+
+    private Boolean MyProfile = false;
+
+    private String? ProfileImageUrl = "";
+
+    private ApplicationUser? objCurrentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        objCurrentUser = await UserState.GetAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (User == null)
+        {
+            if (_userId != null)
+            {
+                Guid objUserId;
+
+                if (Guid.TryParse(_userId, out objUserId) && objUserId != Guid.Empty)
+                {
+                    User = await UserService.GetUserAsync(objUserId);
+                }
+            }
+            else if (NavigationManager.Uri.Contains("my-profile"))
+            {
+                MyProfile = true;
+                User = objCurrentUser;
+            }
+
+            // if (User != null)
+            // {
+            //     ProfileImageUrl = UserService.GetProfileImageUrl(User);
+            // }
+        }
+
+        Loaded = true;
+
+        await base.OnParametersSetAsync();
+    }
+}

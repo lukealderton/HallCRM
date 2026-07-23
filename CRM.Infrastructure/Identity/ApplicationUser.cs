@@ -7,5 +7,7 @@ namespace CRM.Infrastructure.Identity
         public Guid DomainUserId { get; set; }
         public Core.Users.Domain.UserProfile? Profile { get; set; }
         public DateTimeOffset? LastLoginUtc { get; set; }
+        public DateTimeOffset? CreatedUtc { get; set; }
+        public DateTimeOffset? UpdatedUtc { get; set; }
     }
 }
