@@ -47,6 +47,24 @@ namespace CRM.Core.Users.Services
             return _userRepository.GetUserAsync(objUserId, objToken);
         }
 
+        public Task<List<User>> GetUsersAsync(
+            IEnumerable<Guid> colUserIds,
+            CancellationToken objToken = default)
+        {
+            return _userRepository.GetUsersAsync(
+                colUserIds,
+                objToken);
+        }
+
+        public Task<List<User>> GetUsersAsync(
+            Boolean blnIncludeDisabled = false,
+            CancellationToken objToken = default)
+        {
+            return _userRepository.GetUsersAsync(
+                blnIncludeDisabled,
+                objToken);
+        }
+
         public Task<BasicResult> UpdateUserAsync(
             UpdateUserRequest objRequest,
             CancellationToken objToken = default)

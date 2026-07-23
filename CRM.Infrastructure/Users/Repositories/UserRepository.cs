@@ -109,6 +109,53 @@ namespace CRM.Infrastructure.Users.Repositories
                 .FirstOrDefaultAsync(x => x.Id == objUserId, objToken);
         }
 
+        public async Task<List<User>> GetUsersAsync(
+            IEnumerable<Guid> colUserIds,
+            CancellationToken objToken = default)
+        {
+            Guid[] colIds = colUserIds
+                .Where(x => x != Guid.Empty)
+                .Distinct()
+                .ToArray();
+
+            if (colIds.Length == 0)
+            {
+                return [];
+            }
+
+            await using CRMDbContext objContext =
+                await _dbContextFactory.CreateDbContextAsync(objToken);
+
+            return await GetUserQuery(objContext)
+                .Where(x => colIds.Contains(x.Id))
+                .OrderBy(x => x.Surname)
+                .ThenBy(x => x.Forename)
+                .ThenBy(x => x.Email)
+                .ToListAsync(objToken);
+        }
+
+        public async Task<List<User>> GetUsersAsync(
+            Boolean blnIncludeDisabled = false,
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objContext =
+                await _dbContextFactory.CreateDbContextAsync(objToken);
+
+            IQueryable<User> colQuery =
+                GetUserQuery(objContext);
+
+            if (!blnIncludeDisabled)
+            {
+                colQuery = colQuery.Where(x => x.Enabled);
+            }
+
+            return await colQuery
+                .OrderBy(x => x.Surname)
+                .ThenBy(x => x.Forename)
+                .ThenBy(x => x.Email)
+                .ToListAsync(objToken);
+        }
+
         public Task<BasicResult> UpdateUserAsync(
             UpdateUserRequest objRequest,
             CancellationToken objToken = default)

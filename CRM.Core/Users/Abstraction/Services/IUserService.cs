@@ -19,6 +19,14 @@ namespace CRM.Core.Users.Abstraction.Services
             Guid objUserId,
             CancellationToken objToken = default);
 
+        Task<List<User>> GetUsersAsync(
+            IEnumerable<Guid> colUserIds,
+            CancellationToken objToken = default);
+
+        Task<List<User>> GetUsersAsync(
+            Boolean blnIncludeDisabled = false,
+            CancellationToken objToken = default);
+
         Task<BasicResult> UpdateUserAsync(
             UpdateUserRequest objRequest,
             CancellationToken objToken = default);
