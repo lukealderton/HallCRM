@@ -1,4 +1,6 @@
-﻿namespace CRM.Core.Users.Abstraction.Services
+﻿using CRM.Core.Users.Domain;
+
+namespace CRM.Core.Users.Abstraction.Services
 {
     public interface IUserService
     {
@@ -10,6 +12,10 @@
         /// <returns></returns>
         Task<Dictionary<Guid, String>> GetDisplayNamesByUserIdsAsync(
             IReadOnlyCollection<Guid> colUserIds,
+            CancellationToken objToken = default);
+
+        Task<User?> GetUserAsync(
+            Guid objUserId,
             CancellationToken objToken = default);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using CRM.Core.Users.Abstraction.Repositories;
+using CRM.Core.Users.Domain;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -88,6 +89,46 @@ namespace CRM.Infrastructure.Users.Repositories
 
             return colDisplayNamesByUserId;
         }
+
+        public async Task<User?> GetUserAsync(
+            Guid objUserId,
+            CancellationToken objToken = default)
+        {
+            if (objUserId == Guid.Empty)
+            {
+                return null;
+            }
+
+            await using CRMDbContext objDbContext = await _dbContextFactory.CreateDbContextAsync(objToken);
+
+            return await GetUserQuery(objDbContext)
+                .FirstOrDefaultAsync(x => x.Id == objUserId, objToken);
+        }
+
+        private static IQueryable<User> GetUserQuery(
+            CRMDbContext objContext)
+        {
+            return objContext.Users
+                .AsNoTracking()
+                .Select(x => new User
+                {
+                    Id = x.DomainUserId,
+                    Username = x.UserName,
+                    Email = x.Email,
+                    Forename = x.Forename,
+                    Surname = x.Surname,
+                    //AccessLevel = x.AccessLevel,
+                    EmailConfirmed = x.EmailConfirmed,
+                    IsLockedOut =
+                        x.LockoutEnd.HasValue &&
+                        x.LockoutEnd > DateTimeOffset.UtcNow,
+                    Enabled = x.Enabled,
+                    CreatedUtc = x.CreatedUtc,
+                    LastLoginUtc = x.LastLoginUtc,
+                    UpdatedUtc = x.UpdatedUtc
+                });
+        }
+
 
         private static String BuildDisplayName(
             String? strFirstName,

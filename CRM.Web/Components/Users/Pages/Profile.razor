@@ -1,6 +1,7 @@
 ﻿@page "/my-profile"
 @page "/profile/{_userId}"
 @using CRM.Core.Users.Abstraction
+@using CRM.Core.Users.Domain
 @inherits BasePage
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
@@ -58,13 +59,13 @@ else if (User == null)
                                 <th class="pe-3">Last Login: </th>
                                 <td>@User.LastLoginUtc</td>
                             </tr>
-@*                             <tr>
+                             <tr>
                                 <th class="pe-3">Enabled: </th>
                                 <td>@User.Enabled</td>
-                            </tr> *@
+                            </tr>
                             <tr>
                                 <th class="pe-3">Locked Out: </th>
-                                <td>@User.LockoutEnabled</td>
+                                <td>@User.IsLockedOut</td>
                             </tr>
                         </tbody>
                     </table>
@@ -78,13 +79,13 @@ else if (User == null)
     [Parameter]
     public String _userId { get; set; } = "";
 
-    private ApplicationUser? User { get; set; }
+    private User? User { get; set; }
 
     private Boolean MyProfile = false;
 
     private String? ProfileImageUrl = "";
 
-    private ApplicationUser? objCurrentUser;
+    private User? objCurrentUser;
 
     protected override async Task OnInitializedAsync()
     {

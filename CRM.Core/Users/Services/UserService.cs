@@ -1,6 +1,7 @@
 ﻿using CRM.Core.Logging.Abstraction;
 using CRM.Core.Users.Abstraction.Repositories;
 using CRM.Core.Users.Abstraction.Services;
+using CRM.Core.Users.Domain;
 
 namespace CRM.Core.Users.Services
 {
@@ -30,14 +31,15 @@ namespace CRM.Core.Users.Services
             return _userRepository.GetDisplayNamesByUserIdsAsync(colUserIds, objToken);
         }
 
-        public Task<Dictionary<Guid, String>> GetUserAsync(
+        public Task<User?> GetUserAsync(
             Guid objUserId,
             CancellationToken objToken = default)
         {
             if (objUserId == Guid.Empty)
             {
-                return Task.FromResult(new Dictionary<Guid, String>());
+                return Task.FromResult<User?>(null);
             }
+
             return _userRepository.GetUserAsync(objUserId, objToken);
         }
     }

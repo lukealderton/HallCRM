@@ -1,30 +1,31 @@
-﻿using CRM.Infrastructure.Identity;
+﻿using CRM.Core.Users.Abstraction.Services;
+using CRM.Core.Users.Domain;
+using CRM.Core.Users.Services;
 using CRM.Web.Users.Abstraction;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 namespace CRM.Web.Users.Services
 {
     public sealed class CurrentUserState : ICurrentUserState
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserService _userService;
         private readonly AuthenticationStateProvider _objAuthenticationStateProvider;
         private readonly SemaphoreSlim _objGate = new(1, 1);
 
-        private ApplicationUser? _objCurrentUser;
+        private User? _objCurrentUser;
         private Guid? _objCurrentUserId;
 
         public CurrentUserState(
-            UserManager<ApplicationUser> objUserManager,
+            UserService objUserService,
             AuthenticationStateProvider objAuthenticationStateProvider)
         {
-            _userManager = objUserManager;
+            _userService = objUserService;
             _objAuthenticationStateProvider = objAuthenticationStateProvider;
         }
 
         public Guid? CurrentUserId => _objCurrentUserId;
-        public ApplicationUser? CurrentUser => _objCurrentUser;
+        public User? CurrentUser => _objCurrentUser;
 
         public async Task<Guid?> GetCurrentUserIdAsync(CancellationToken objToken = default)
         {
@@ -66,7 +67,7 @@ namespace CRM.Web.Users.Services
             }
         }
 
-        public async Task<ApplicationUser?> GetAsync(CancellationToken objToken = default)
+        public async Task<User?> GetAsync(CancellationToken objToken = default)
         {
             if (_objCurrentUser != null)
             {
@@ -87,7 +88,7 @@ namespace CRM.Web.Users.Services
                     return _objCurrentUser;
                 }
 
-                _objCurrentUser = _userManager.Users.FirstOrDefault(x => x.DomainUserId == objUserId);
+                _objCurrentUser = await _userService.GetUserAsync((Guid)objUserId, objToken);
                 return _objCurrentUser;
             }
             finally
@@ -96,7 +97,7 @@ namespace CRM.Web.Users.Services
             }
         }
 
-        public async Task<ApplicationUser?> RefreshAsync(CancellationToken objToken = default)
+        public async Task<User?> RefreshAsync(CancellationToken objToken = default)
         {
             Guid? objUserId = await GetCurrentUserIdAsync(objToken);
 
@@ -109,7 +110,7 @@ namespace CRM.Web.Users.Services
             await _objGate.WaitAsync(objToken);
             try
             {
-                _objCurrentUser = _userManager.Users.FirstOrDefault(x => x.DomainUserId == objUserId);
+                _objCurrentUser = await _userService.GetUserAsync((Guid)objUserId, objToken);
                 return _objCurrentUser;
             }
             finally
@@ -118,10 +119,10 @@ namespace CRM.Web.Users.Services
             }
         }
 
-        public void Set(ApplicationUser? objUser)
+        public void Set(User? objUser)
         {
             _objCurrentUser = objUser;
-            _objCurrentUserId = objUser?.DomainUserId;
+            _objCurrentUserId = objUser?.Id;
         }
 
         public void Clear()
