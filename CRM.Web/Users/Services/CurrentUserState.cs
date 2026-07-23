@@ -1,6 +1,5 @@
 ﻿using CRM.Core.Users.Abstraction.Services;
 using CRM.Core.Users.Domain;
-using CRM.Core.Users.Services;
 using CRM.Web.Users.Abstraction;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
@@ -17,7 +16,7 @@ namespace CRM.Web.Users.Services
         private Guid? _objCurrentUserId;
 
         public CurrentUserState(
-            UserService objUserService,
+            IUserService objUserService,
             AuthenticationStateProvider objAuthenticationStateProvider)
         {
             _userService = objUserService;
