@@ -180,7 +180,7 @@
                                     <input id="activityDueTime"
                                            type="time"
                                            class="form-control"
-                                           @bind="strDueTime" />
+                                           @bind="tmeDueTime" />
 
                                     <div class="form-text">
                                         Defaults to 09:00 when a date is selected.
@@ -545,7 +545,7 @@
     [Parameter]
     public Guid ActivityId { get; set; }
 
-    private ActivityItem objActivity = new();
+    private Activity objActivity = new();
 
     private List<Company> colCompanies = [];
     private List<Contact> colContacts = [];
@@ -553,7 +553,7 @@
     private List<User> colUsers = [];
 
     private DateTime? dtmDueDate;
-    private String? strDueTime;
+    private TimeOnly? tmeDueTime;
 
     private Boolean blnLoading = true;
     private Boolean blnSaving;
@@ -707,7 +707,7 @@
 
     private async Task LoadActivityAsync()
     {
-        ActivityItem? objExistingActivity =
+        Activity? objExistingActivity =
             await ActivityService.GetActivityByIdAsync(
                 ActivityId);
 
@@ -737,14 +737,14 @@
             await CurrentUserState.GetCurrentUserIdAsync();
 
         objActivity =
-            new ActivityItem
+            new Activity
             {
                 Type = ActivityType.Task,
                 AssignedUserId = objCurrentUserId
             };
 
         dtmDueDate = null;
-        strDueTime = "09:00";
+        tmeDueTime = new TimeOnly(9, 0);
 
         strPageTitle =
             "Add activity";
@@ -804,7 +804,7 @@
 
             if (blnEditMode)
             {
-                ActivityItem? objUpdatedActivity =
+                Activity? objUpdatedActivity =
                     await ActivityService.UpdateActivityAsync(
                         objActivity,
                         objCurrentUserId);
@@ -831,7 +831,7 @@
             }
             else
             {
-                ActivityItem objCreatedActivity =
+                Activity objCreatedActivity =
                     await ActivityService.AddActivityAsync(
                         objActivity,
                         objCurrentUserId);
@@ -861,16 +861,6 @@
         {
             colErrors.Add(
                 "Activity subject is required.");
-        }
-
-        if (dtmDueDate.HasValue &&
-            !String.IsNullOrWhiteSpace(strDueTime) &&
-            !TimeSpan.TryParse(
-                strDueTime,
-                out _))
-        {
-            colErrors.Add(
-                "Due time is not valid.");
         }
 
         if (objActivity.ContactId.HasValue)
@@ -1020,7 +1010,7 @@
         if (!objActivity.DueUtc.HasValue)
         {
             dtmDueDate = null;
-            strDueTime = "09:00";
+            tmeDueTime = new TimeOnly(9, 0);
             return;
         }
 
@@ -1030,8 +1020,8 @@
         dtmDueDate =
             dtmLocal.Date;
 
-        strDueTime =
-            dtmLocal.ToString("HH:mm");
+        tmeDueTime =
+            TimeOnly.FromDateTime(dtmLocal);
     }
 
     private void ApplyDueDate()
@@ -1042,19 +1032,13 @@
             return;
         }
 
-        TimeSpan tmsDueTime =
-            new(9, 0, 0);
-
-        if (!String.IsNullOrWhiteSpace(strDueTime))
-        {
-            TimeSpan.TryParse(
-                strDueTime,
-                out tmsDueTime);
-        }
+        TimeOnly tmeDue =
+            tmeDueTime ??
+            new TimeOnly(9, 0);
 
         DateTime dtmLocal =
             dtmDueDate.Value.Date
-                .Add(tmsDueTime);
+                .Add(tmeDue.ToTimeSpan());
 
         objActivity.DueUtc =
             dtmLocal.ToUniversalTime();
