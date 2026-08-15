@@ -8,7 +8,7 @@
 @inject IActivityService ActivityService
 @inject NavigationManager Navigation
 
-<PageTitle>Activities - HallCRM</PageTitle>
+<SeoHead Title="Activities" />
 
 <section class="activities-page">
 
@@ -216,7 +216,7 @@
                     </thead>
 
                     <tbody>
-                        @foreach (ActivityItem objActivity in colActivities)
+                        @foreach (Activity objActivity in colActivities)
                         {
                             <tr class="@GetRowClass(objActivity)">
                                 <td>
@@ -355,7 +355,7 @@
     [SupplyParameterFromQuery(Name = "due")]
     public String? Due { get; set; }
 
-    private List<ActivityItem> colActivities = [];
+    private List<Activity> colActivities = [];
 
     private String? strSearch;
     private String strSelectedType = String.Empty;
@@ -545,7 +545,7 @@
     }
 
     private static Boolean IsOverdue(
-        ActivityItem objActivity)
+        Activity objActivity)
     {
         return !objActivity.IsCompleted &&
                objActivity.DueUtc.HasValue &&
@@ -553,7 +553,7 @@
     }
 
     private static String GetDueClass(
-        ActivityItem objActivity)
+        Activity objActivity)
     {
         if (objActivity.IsCompleted ||
             !objActivity.DueUtc.HasValue)
@@ -612,7 +612,7 @@
     }
 
     private static String GetRowClass(
-        ActivityItem objActivity)
+        Activity objActivity)
     {
         if (objActivity.IsCompleted)
         {

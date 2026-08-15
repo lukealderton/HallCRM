@@ -1,0 +1,70 @@
+﻿@inject NavigationManager NavigationManager
+
+<PageTitle>@GetPageTitle()</PageTitle>
+
+<HeadContent>
+    <link rel="canonical" href="@GetCanonicalUrl()" />
+
+    <meta name="description" content="@Description" />
+
+    <meta property="og:title" content="@GetSocialTitle()" />
+    <meta property="og:type" content="@OgType" />
+    <meta property="og:image" content="@ImageUrl" />
+    <meta property="og:image:secure_url" content="@ImageUrl" />
+    <meta property="og:image:type" content="@ImageType" />
+    <meta property="og:image:width" content="@ImageWidth" />
+    <meta property="og:image:height" content="@ImageHeight" />
+    <meta property="og:image:alt" content="@ImageAlt" />
+    <meta property="og:url" content="@GetCanonicalUrl()" />
+    <meta property="og:site_name" content="@SiteName" />
+    <meta property="og:description" content="@Description" />
+
+    <meta name="twitter:card" content="@TwitterCard" />
+    <meta name="twitter:title" content="@GetSocialTitle()" />
+    <meta name="twitter:description" content="@Description" />
+    <meta name="twitter:image" content="@ImageUrl" />
+    <meta name="twitter:image:alt" content="@ImageAlt" />
+</HeadContent>
+
+@code {
+    [Parameter] public String Title { get; set; } = Primitives.Constants.Application.ApplicationName;
+    [Parameter] public String? SocialTitle { get; set; }
+    [Parameter] public String Description { get; set; } = $"";
+    [Parameter] public String? CanonicalUrl { get; set; }
+
+    [Parameter] public String SiteName { get; set; } = Primitives.Constants.Application.ApplicationName;
+    [Parameter] public String OgType { get; set; } = "website";
+
+    [Parameter] public String ImageUrl { get; set; } = $"{Primitives.Constants.Application.ApplicationAddress}/images/social-share.jpg";
+    [Parameter] public String ImageType { get; set; } = "image/jpeg";
+    [Parameter] public String ImageWidth { get; set; } = "1200";
+    [Parameter] public String ImageHeight { get; set; } = "630";
+    [Parameter] public String ImageAlt { get; set; } = Primitives.Constants.Application.ApplicationName;
+
+    [Parameter] public String TwitterCard { get; set; } = "summary_large_image";
+
+    private String GetPageTitle()
+    {
+        return Title;
+    }
+
+    private String GetSocialTitle()
+    {
+        if (!String.IsNullOrWhiteSpace(SocialTitle))
+        {
+            return SocialTitle;
+        }
+
+        return Title;
+    }
+
+    private String GetCanonicalUrl()
+    {
+        if (!String.IsNullOrWhiteSpace(CanonicalUrl))
+        {
+            return CanonicalUrl;
+        }
+
+        return NavigationManager.Uri.Split('?')[0].TrimEnd('/');
+    }
+}
