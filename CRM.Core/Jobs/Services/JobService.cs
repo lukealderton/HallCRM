@@ -26,6 +26,7 @@ namespace CRM.Core.Jobs.Services
             Guid? objCompanyId = null,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
+            Boolean blnOverdueOnly = false,
             CancellationToken objToken = default)
         {
             return _jobRepository.GetJobsAsync(
@@ -34,6 +35,7 @@ namespace CRM.Core.Jobs.Services
                 objCompanyId,
                 blnIncludeArchived,
                 blnIncludeDeleted,
+                blnOverdueOnly,
                 objToken);
         }
 

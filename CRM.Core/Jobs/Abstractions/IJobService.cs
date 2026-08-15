@@ -20,6 +20,7 @@ namespace CRM.Core.Jobs.Abstractions
         /// <param name="objCompanyId"></param>
         /// <param name="blnIncludeArchived"></param>
         /// <param name="blnIncludeDeleted"></param>
+        /// <param name="blnOverdueOnly"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
         Task<List<Job>> GetJobsAsync(
@@ -28,6 +29,7 @@ namespace CRM.Core.Jobs.Abstractions
             Guid? objCompanyId = null,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
+            Boolean blnOverdueOnly = false,
             CancellationToken objToken = default);
 
         /// <summary>

@@ -4,14 +4,22 @@
 
 @using CRM.Core.Companies.Abstractions
 @using CRM.Core.Companies.Domain
+@using CRM.Core.Contacts.Abstractions
+@using CRM.Core.Jobs.Abstractions
+@using CRM.Core.Jobs.Domain
 
-<PageTitle>Dashboard - 101CRM</PageTitle>
+@inject ICompanyService CompanyService
+@inject IContactService ContactService
+@inject IJobService JobService
+
+<PageTitle>Dashboard - HallCRM</PageTitle>
 
 <div class="dashboard-page">
+
     <div class="dashboard-hero">
         <div>
             <h2>Welcome back</h2>
-            <p>Here’s what is happening across your CRM.</p>
+            <p>Here’s what needs your attention across the CRM.</p>
         </div>
 
         <div class="dashboard-hero-actions">
@@ -20,7 +28,7 @@
                 New company
             </a>
 
-            <a href="/contacts/add" class="btn btn-outline-primary">
+            <a href="/contacts/add" class="btn btn-light">
                 <span class="material-symbols-outlined">person_add</span>
                 New contact
             </a>
@@ -33,10 +41,19 @@
                 <div class="dashboard-stat-icon">
                     <span class="material-symbols-outlined">business</span>
                 </div>
-                <div>
-                    <div class="dashboard-stat-label">Companies</div>
-                    <div class="dashboard-stat-value">@intCompanyCount</div>
-                    <div class="dashboard-stat-meta">Active records</div>
+
+                <div class="dashboard-stat-content">
+                    <div class="dashboard-stat-label">
+                        Companies
+                    </div>
+
+                    <div class="dashboard-stat-value">
+                        @intCompanyCount
+                    </div>
+
+                    <div class="dashboard-stat-meta">
+                        Active records
+                    </div>
                 </div>
             </a>
         </div>
@@ -46,10 +63,19 @@
                 <div class="dashboard-stat-icon">
                     <span class="material-symbols-outlined">contacts</span>
                 </div>
-                <div>
-                    <div class="dashboard-stat-label">Contacts</div>
-                    <div class="dashboard-stat-value">0</div>
-                    <div class="dashboard-stat-meta">Ready to connect</div>
+
+                <div class="dashboard-stat-content">
+                    <div class="dashboard-stat-label">
+                        Contacts
+                    </div>
+
+                    <div class="dashboard-stat-value">
+                        @intContactCount
+                    </div>
+
+                    <div class="dashboard-stat-meta">
+                        @intContactableCount contactable
+                    </div>
                 </div>
             </a>
         </div>
@@ -57,12 +83,23 @@
         <div class="col-12 col-md-6 col-xl-3">
             <a href="/jobs" class="dashboard-stat-card">
                 <div class="dashboard-stat-icon">
-                    <span class="material-symbols-outlined">trending_up</span>
+                    <span class="material-symbols-outlined">
+                        home_repair_service
+                    </span>
                 </div>
-                <div>
-                    <div class="dashboard-stat-label">Jobs</div>
-                    <div class="dashboard-stat-value">0</div>
-                    <div class="dashboard-stat-meta">Open pipeline</div>
+
+                <div class="dashboard-stat-content">
+                    <div class="dashboard-stat-label">
+                        Open jobs
+                    </div>
+
+                    <div class="dashboard-stat-value">
+                        @intOpenJobCount
+                    </div>
+
+                    <div class="dashboard-stat-meta">
+                        @FormatCurrency(decOpenJobValue) pipeline value
+                    </div>
                 </div>
             </a>
         </div>
@@ -72,27 +109,34 @@
                 <div class="dashboard-stat-icon">
                     <span class="material-symbols-outlined">task_alt</span>
                 </div>
-                <div>
-                    <div class="dashboard-stat-label">Activities</div>
-                    <div class="dashboard-stat-value">0</div>
-                    <div class="dashboard-stat-meta">Due soon</div>
+
+                <div class="dashboard-stat-content">
+                    <div class="dashboard-stat-label">
+                        Activities
+                    </div>
+
+                    <div class="dashboard-stat-value">
+                        @intActivityCount
+                    </div>
+
+                    <div class="dashboard-stat-meta">
+                        Due soon
+                    </div>
                 </div>
             </a>
         </div>
     </div>
 
-    <div class="row g-3 mt-1">
-        <div class="col-12 col-xl-8">
+    <div class="dashboard-content-grid">
+
+        <div class="dashboard-content-main">
+
             <div class="crm-card">
                 <div class="crm-card-header">
                     <div>
-                        <h3>Recent companies</h3>
-                        <p>Latest company records added to the CRM.</p>
+                        <h3>Needs attention</h3>
+                        <p>Items that may need action.</p>
                     </div>
-
-                    <a href="/companies" class="btn btn-sm btn-light">
-                        View all
-                    </a>
                 </div>
 
                 @if (blnLoading)
@@ -102,13 +146,188 @@
                         Loading dashboard...
                     </div>
                 }
+                else if (!HasAttentionItems)
+                {
+                    <div class="dashboard-attention-empty">
+                        <div class="dashboard-attention-empty-icon">
+                            <span class="material-symbols-outlined">
+                                check_circle
+                            </span>
+                        </div>
+
+                        <div>
+                            <strong>Nothing needs attention</strong>
+                            <span>
+                                There are no outstanding job items right now.
+                            </span>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="dashboard-attention-list">
+
+                        @if (intOverdueJobCount > 0)
+                        {
+                            <a href="/jobs?overdue=true"
+                               class="dashboard-attention-item dashboard-attention-item-danger">
+
+                                <div class="dashboard-attention-icon">
+                                    <span class="material-symbols-outlined">
+                                        warning
+                                    </span>
+                                </div>
+
+                                <div class="dashboard-attention-content">
+                                    <strong>
+                                        @GetPluralText(
+                                            intOverdueJobCount,
+                                            "overdue job",
+                                            "overdue jobs")
+                                    </strong>
+
+                                    <span>
+                                        Expected close date has passed.
+                                    </span>
+                                </div>
+
+                                <span class="material-symbols-outlined dashboard-attention-arrow">
+                                    chevron_right
+                                </span>
+                            </a>
+                        }
+
+                        @if (QuotedJobCount > 0)
+                        {
+                            <a href="@GetJobsStageUrl(JobStage.Quoted)"
+                               class="dashboard-attention-item">
+
+                                <div class="dashboard-attention-icon">
+                                    <span class="material-symbols-outlined">
+                                        request_quote
+                                    </span>
+                                </div>
+
+                                <div class="dashboard-attention-content">
+                                    <strong>
+                                        @GetPluralText(
+                                            QuotedJobCount,
+                                            "quote awaiting progress",
+                                            "quotes awaiting progress")
+                                    </strong>
+
+                                    <span>
+                                        Jobs currently sitting at the quoted stage.
+                                    </span>
+                                </div>
+
+                                <span class="material-symbols-outlined dashboard-attention-arrow">
+                                    chevron_right
+                                </span>
+                            </a>
+                        }
+
+                        @if (ToDoJobCount > 0)
+                        {
+                            <a href="@GetJobsStageUrl(JobStage.ToDo)"
+                               class="dashboard-attention-item">
+
+                                <div class="dashboard-attention-icon">
+                                    <span class="material-symbols-outlined">
+                                        event_available
+                                    </span>
+                                </div>
+
+                                <div class="dashboard-attention-content">
+                                    <strong>
+                                        @GetPluralText(
+                                            ToDoJobCount,
+                                            "job ready to start",
+                                            "jobs ready to start")
+                                    </strong>
+
+                                    <span>
+                                        Work currently waiting in the To Do stage.
+                                    </span>
+                                </div>
+
+                                <span class="material-symbols-outlined dashboard-attention-arrow">
+                                    chevron_right
+                                </span>
+                            </a>
+                        }
+
+                        @if (InvoicedJobCount > 0)
+                        {
+                            <a href="@GetJobsStageUrl(JobStage.Invoiced)"
+                               class="dashboard-attention-item">
+
+                                <div class="dashboard-attention-icon">
+                                    <span class="material-symbols-outlined">
+                                        receipt_long
+                                    </span>
+                                </div>
+
+                                <div class="dashboard-attention-content">
+                                    <strong>
+                                        @GetPluralText(
+                                            InvoicedJobCount,
+                                            "invoice awaiting payment",
+                                            "invoices awaiting payment")
+                                    </strong>
+
+                                    <span>
+                                        @FormatCurrency(InvoicedJobValue) currently invoiced.
+                                    </span>
+                                </div>
+
+                                <span class="material-symbols-outlined dashboard-attention-arrow">
+                                    chevron_right
+                                </span>
+                            </a>
+                        }
+
+                    </div>
+                }
+            </div>
+
+            <div class="crm-card">
+                <div class="crm-card-header">
+                    <div>
+                        <h3>Recent companies</h3>
+                        <p>Latest company records added to the CRM.</p>
+                    </div>
+
+                    <a href="/companies"
+                       class="btn btn-sm btn-light">
+                        View all
+                    </a>
+                </div>
+
+                @if (blnLoading)
+                {
+                    <div class="crm-loading">
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Loading companies...
+                    </div>
+                }
                 else if (!colRecentCompanies.Any())
                 {
                     <div class="crm-empty-state">
-                        <span class="material-symbols-outlined">business</span>
+                        <span class="material-symbols-outlined">
+                            business
+                        </span>
+
                         <h4>No companies yet</h4>
-                        <p>Add your first company to start building the CRM.</p>
-                        <a href="/companies/add" class="btn btn-primary">Add company</a>
+
+                        <p>
+                            Add your first company to start building the CRM.
+                        </p>
+
+                        <a href="/companies/add"
+                           class="btn btn-primary">
+                            Add company
+                        </a>
                     </div>
                 }
                 else
@@ -123,31 +342,51 @@
                                     <th class="text-end">Action</th>
                                 </tr>
                             </thead>
+
                             <tbody>
                                 @foreach (Company objCompany in colRecentCompanies)
                                 {
                                     <tr>
                                         <td>
-                                            <a href="@($"/companies/{objCompany.Id}")" class="fw-semibold d-block text-black">@objCompany.Name</a>
+                                            <a href="@($"/companies/{objCompany.Id}")"
+                                               class="fw-semibold d-block text-black">
+                                                @objCompany.Name
+                                            </a>
 
                                             @if (!String.IsNullOrWhiteSpace(objCompany.TradingName))
                                             {
-                                                <small class="text-muted">@objCompany.TradingName</small>
+                                                <small class="text-muted">
+                                                    @objCompany.TradingName
+                                                </small>
                                             }
                                         </td>
-                                        <td>@(objCompany.Industry ?? "-")</td>
+
+                                        <td>
+                                            @(objCompany.Industry ?? "-")
+                                        </td>
+
                                         <td>
                                             @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
                                             {
-                                                <a href="mailto:@objCompany.PrimaryEmail">@objCompany.PrimaryEmail</a>
+                                                <a href="mailto:@objCompany.PrimaryEmail">
+                                                    @objCompany.PrimaryEmail
+                                                </a>
+                                            }
+                                            else if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
+                                            {
+                                                <a href="tel:@objCompany.PrimaryPhone">
+                                                    @objCompany.PrimaryPhone
+                                                </a>
                                             }
                                             else
                                             {
                                                 <span>-</span>
                                             }
                                         </td>
+
                                         <td class="text-end">
-                                            <a href="@($"/companies/{objCompany.Id}")" class="btn btn-sm btn-outline-primary">
+                                            <a href="@($"/companies/{objCompany.Id}")"
+                                               class="btn btn-sm btn-outline-primary">
                                                 Open
                                             </a>
                                         </td>
@@ -158,9 +397,11 @@
                     </div>
                 }
             </div>
+
         </div>
 
-        <div class="col-12 col-xl-4">
+        <div class="dashboard-content-sidebar">
+
             <div class="crm-card">
                 <div class="crm-card-header">
                     <div>
@@ -170,32 +411,52 @@
                 </div>
 
                 <div class="dashboard-actions-list">
-                    <a href="/companies/add" class="dashboard-action">
-                        <span class="material-symbols-outlined">add_business</span>
+                    <a href="/companies/add"
+                       class="dashboard-action">
+
+                        <span class="material-symbols-outlined">
+                            add_business
+                        </span>
+
                         <div>
                             <strong>Add company</strong>
                             <small>Create a new organisation record</small>
                         </div>
                     </a>
 
-                    <a href="/contacts/add" class="dashboard-action">
-                        <span class="material-symbols-outlined">person_add</span>
+                    <a href="/contacts/add"
+                       class="dashboard-action">
+
+                        <span class="material-symbols-outlined">
+                            person_add
+                        </span>
+
                         <div>
                             <strong>Add contact</strong>
                             <small>Add a person to a company</small>
                         </div>
                     </a>
 
-                    <a href="/jobs/add" class="dashboard-action">
-                        <span class="material-symbols-outlined">add_chart</span>
+                    <a href="/jobs/add"
+                       class="dashboard-action">
+
+                        <span class="material-symbols-outlined">
+                            add_chart
+                        </span>
+
                         <div>
                             <strong>Add job</strong>
                             <small>Track a new job</small>
                         </div>
                     </a>
 
-                    <a href="/activities/add" class="dashboard-action">
-                        <span class="material-symbols-outlined">event</span>
+                    <a href="/activities/add"
+                       class="dashboard-action">
+
+                        <span class="material-symbols-outlined">
+                            event
+                        </span>
+
                         <div>
                             <strong>Add activity</strong>
                             <small>Schedule a call, task, or meeting</small>
@@ -204,41 +465,124 @@
                 </div>
             </div>
 
-            <div class="crm-card mt-3">
+            <div class="crm-card">
                 <div class="crm-card-header">
                     <div>
-                        <h3>Pipeline snapshot</h3>
-                        <p>Placeholder until Jobs are wired in.</p>
+                        <h3>Jobs pipeline</h3>
+                        <p>Current active workload and value.</p>
                     </div>
+
+                    <a href="/jobs"
+                       class="btn btn-sm btn-light">
+                        View all
+                    </a>
                 </div>
 
-                <div class="pipeline-list">
-                    <div class="pipeline-row">
-                        <span>Lead</span>
-                        <strong>0</strong>
+                @if (blnLoading)
+                {
+                    <div class="crm-loading">
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Loading pipeline...
                     </div>
-                    <div class="pipeline-row">
-                        <span>Qualified</span>
-                        <strong>0</strong>
+                }
+                else
+                {
+                    <div class="pipeline-list">
+                        @foreach (JobStage enmStage in colPipelineStages)
+                        {
+                            JobStageSummary? objSummary = GetStageSummary(enmStage);
+
+                            <a href="@GetJobsStageUrl(enmStage)" class="pipeline-row">
+
+                                <div class="pipeline-stage">
+                                    <div class="pipeline-stage-heading">
+                                        <span class="pipeline-stage-dot"></span>
+
+                                        <span class="pipeline-stage-name">
+                                            @enmStage.GetDisplay().Name
+                                        </span>
+                                    </div>
+
+                                    <small>
+                                        @FormatCurrency(objSummary?.Value ?? 0m)
+                                    </small>
+                                </div>
+
+                                <strong>
+                                    @(objSummary?.Count ?? 0)
+                                </strong>
+                            </a>
+                        }
                     </div>
-                    <div class="pipeline-row">
-                        <span>Proposal</span>
-                        <strong>0</strong>
+
+                    <div class="pipeline-total">
+                        <span>Open pipeline</span>
+
+                        <div>
+                            <strong>
+                                @GetPluralText(
+                                    intOpenJobCount,
+                                    "job",
+                                    "jobs")
+                            </strong>
+
+                            <small>
+                                @FormatCurrency(decOpenJobValue)
+                            </small>
+                        </div>
                     </div>
-                    <div class="pipeline-row">
-                        <span>Won</span>
-                        <strong>0</strong>
-                    </div>
-                </div>
+                }
             </div>
+
         </div>
+
     </div>
+
 </div>
 
 @code {
     private Boolean blnLoading = true;
+
     private Int32 intCompanyCount;
+    private Int32 intContactCount;
+    private Int32 intContactableCount;
+
+    private Int32 intOpenJobCount;
+    private Int32 intOverdueJobCount;
+
+    private Int32 intActivityCount;
+
+    private Decimal decOpenJobValue;
+
     private List<Company> colRecentCompanies = [];
+    private List<JobStageSummary> colPipeline = [];
+
+    private readonly JobStage[] colPipelineStages =
+    [
+        JobStage.New,
+        JobStage.Quoted,
+        JobStage.ToDo,
+        JobStage.InProgress,
+        JobStage.Invoiced
+    ];
+
+    private Int32 QuotedJobCount =>
+        GetStageCount(JobStage.Quoted);
+
+    private Int32 ToDoJobCount =>
+        GetStageCount(JobStage.ToDo);
+
+    private Int32 InvoicedJobCount =>
+        GetStageCount(JobStage.Invoiced);
+
+    private Decimal InvoicedJobValue =>
+        GetStageValue(JobStage.Invoiced);
+
+    private Boolean HasAttentionItems =>
+        intOverdueJobCount > 0 ||
+        QuotedJobCount > 0 ||
+        ToDoJobCount > 0 ||
+        InvoicedJobCount > 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -246,15 +590,111 @@
             "Dashboard",
             "Overview of your CRM activity");
 
-        List<Company> colCompanies = await CompanyService.GetCompaniesAsync();
+        try
+        {
+            Task<Int32> objCompanyCountTask =
+                CompanyService.CountCompaniesAsync();
 
-        intCompanyCount = colCompanies.Count;
+            Task<List<Company>> objRecentCompaniesTask =
+                CompanyService.GetRecentCompaniesAsync(5);
 
-        colRecentCompanies = colCompanies
-            .OrderByDescending(objCompany => objCompany.Entity.CreatedUtc)
-            .Take(5)
-            .ToList();
+            Task<Int32> objContactCountTask =
+                ContactService.CountContactsAsync();
 
-        blnLoading = false;
+            Task<Int32> objContactableCountTask =
+                ContactService.CountContactableContactsAsync();
+
+            Task<Int32> objOpenJobCountTask =
+                JobService.CountOpenJobsAsync();
+
+            Task<Decimal> objOpenJobValueTask =
+                JobService.GetOpenJobValueAsync();
+
+            Task<List<JobStageSummary>> objPipelineTask =
+                JobService.GetStageSummaryAsync();
+
+            Task<Int32> objOverdueJobCountTask =
+                JobService.CountOverdueJobsAsync();
+
+            await Task.WhenAll(
+                objCompanyCountTask,
+                objRecentCompaniesTask,
+                objContactCountTask,
+                objContactableCountTask,
+                objOpenJobCountTask,
+                objOpenJobValueTask,
+                objPipelineTask,
+                objOverdueJobCountTask);
+
+            intCompanyCount =
+                await objCompanyCountTask;
+
+            colRecentCompanies =
+                await objRecentCompaniesTask;
+
+            intContactCount =
+                await objContactCountTask;
+
+            intContactableCount =
+                await objContactableCountTask;
+
+            intOpenJobCount =
+                await objOpenJobCountTask;
+
+            decOpenJobValue =
+                await objOpenJobValueTask;
+
+            colPipeline =
+                await objPipelineTask;
+
+            intOverdueJobCount =
+                await objOverdueJobCountTask;
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private JobStageSummary? GetStageSummary(
+        JobStage enmStage)
+    {
+        return colPipeline.FirstOrDefault(
+            objSummary =>
+                objSummary.Stage == enmStage);
+    }
+
+    private Int32 GetStageCount(
+        JobStage enmStage)
+    {
+        return GetStageSummary(enmStage)?.Count ?? 0;
+    }
+
+    private static String GetJobsStageUrl(
+    JobStage enmStage)
+    {
+        return $"/jobs?stage={enmStage}";
+    }
+
+    private Decimal GetStageValue(
+        JobStage enmStage)
+    {
+        return GetStageSummary(enmStage)?.Value ?? 0m;
+    }
+
+    private static String FormatCurrency(
+        Decimal decValue)
+    {
+        return decValue.ToString("C0");
+    }
+
+    private static String GetPluralText(
+        Int32 intCount,
+        String strSingular,
+        String strPlural)
+    {
+        return intCount == 1
+            ? $"{intCount} {strSingular}"
+            : $"{intCount} {strPlural}";
     }
 }

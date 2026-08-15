@@ -10,7 +10,7 @@
 @inject NavigationManager Navigation
 @inject PageHeaderState HeaderState
 
-<PageTitle>Jobs - 101CRM</PageTitle>
+<PageTitle>Jobs - HallCRM</PageTitle>
 
 <section class="jobs-page">
     <div class="crm-card jobs-toolbar">
@@ -31,12 +31,14 @@
         <div class="jobs-filters">
             <select class="form-select jobs-stage-filter"
                     @bind="strSelectedStage"
-                    @bind:after="LoadJobsAsync">
+                    @bind:after="StageChangedAsync">
                 <option value="">All stages</option>
 
                 @foreach (JobStage enmStage in Enum.GetValues<JobStage>())
                 {
-                    <option value="@enmStage.ToString()">@enmStage.GetDisplay().Name</option>
+                    <option value="@enmStage.ToString()">
+                        @enmStage.GetDisplay().Name
+                    </option>
                 }
             </select>
 
@@ -48,12 +50,18 @@
                        type="checkbox"
                        @bind="blnIncludeArchived"
                        @bind:after="LoadJobsAsync" />
-                <label class="form-check-label" for="includeArchived">Include archived</label>
+
+                <label class="form-check-label"
+                       for="includeArchived">
+                    Include archived
+                </label>
             </div>
         </div>
 
         <div class="jobs-toolbar-actions">
-            <button class="btn btn-primary" type="button" @onclick="SearchAsync">
+            <button class="btn btn-primary"
+                    type="button"
+                    @onclick="SearchAsync">
                 <span class="material-symbols-outlined">search</span>
                 Search
             </button>
@@ -63,11 +71,17 @@
     <div class="jobs-summary row g-3">
         <div class="col-12 col-md-6 col-xl-3">
             <div class="jobs-summary-card jobs-summary-card-primary">
-                <span class="material-symbols-outlined">track_changes</span>
+                <span class="material-symbols-outlined">
+                    track_changes
+                </span>
 
                 <div>
                     <small>Open shown</small>
-                    <strong>@intOpenJobs</strong>
+
+                    <strong>
+                        @intOpenJobs
+                    </strong>
+
                     <span class="jobs-summary-note">
                         @intTotalJobs total result@(GetPlural(intTotalJobs))
                     </span>
@@ -77,13 +91,19 @@
 
         <div class="col-12 col-md-6 col-xl-3">
             <div class="jobs-summary-card jobs-summary-card-success">
-                <span class="material-symbols-outlined">payments</span>
+                <span class="material-symbols-outlined">
+                    payments
+                </span>
 
                 <div>
                     <small>Open pipeline</small>
-                    <strong>@FormatMoney(dcmOpenPipelineValue)</strong>
+
+                    <strong>
+                        @FormatMoney(dcmOpenPipelineValue)
+                    </strong>
+
                     <span class="jobs-summary-note">
-                        Active non-won/lost value
+                        Active non-paid/lost value
                     </span>
                 </div>
             </div>
@@ -91,13 +111,21 @@
 
         <div class="col-12 col-md-6 col-xl-3">
             <div class="jobs-summary-card jobs-summary-card-warning">
-                <span class="material-symbols-outlined">event_upcoming</span>
+                <span class="material-symbols-outlined">
+                    event_upcoming
+                </span>
 
                 <div>
                     <small>Closing soon</small>
-                    <strong>@intClosingSoonJobs</strong>
+
+                    <strong>
+                        @intClosingSoonJobs
+                    </strong>
+
                     <span class="jobs-summary-note">
-                        Due before @dteClosingSoonCutoffUtc.ToLocalTime().ToString("dd MMM")
+                        Due before @dteClosingSoonCutoffUtc
+                        .ToLocalTime()
+                        .ToString("dd MMM")
                     </span>
                 </div>
             </div>
@@ -105,37 +133,64 @@
 
         <div class="col-12 col-md-6 col-xl-3">
             <div class="jobs-summary-card jobs-summary-card-info">
-                <span class="material-symbols-outlined">emoji_events</span>
+                <span class="material-symbols-outlined">
+                    emoji_events
+                </span>
 
                 <div>
-                    <small>Won shown</small>
-                    <strong>@intWonJobs</strong>
+                    <small>Paid shown</small>
+
+                    <strong>
+                        @intWonJobs
+                    </strong>
+
                     <span class="jobs-summary-note">
-                        @FormatMoney(dcmWonValue) won value
+                        @FormatMoney(dcmWonValue) paid value
                     </span>
                 </div>
             </div>
         </div>
     </div>
 
-    @if (blnShowErrorAlert && !String.IsNullOrWhiteSpace(strErrorMessage))
+    @if (blnShowErrorAlert &&
+         !String.IsNullOrWhiteSpace(strErrorMessage))
     {
-        <div class="alert alert-danger jobs-alert" role="alert">
-            <span class="material-symbols-outlined">error</span>
+        <div class="alert alert-danger jobs-alert"
+             role="alert">
+
+            <span class="material-symbols-outlined">
+                error
+            </span>
 
             <div class="alert-content">
-                <strong class="alert-title">Unable to load jobs</strong>
-                <p>@strErrorMessage</p>
+                <strong class="alert-title">
+                    Unable to load jobs
+                </strong>
+
+                <p>
+                    @strErrorMessage
+                </p>
             </div>
 
             <div class="alert-actions">
-                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="LoadJobsAsync">
-                    <span class="material-symbols-outlined">refresh</span>
+                <button class="btn btn-soft-danger btn-sm"
+                        type="button"
+                        @onclick="LoadJobsAsync">
+
+                    <span class="material-symbols-outlined">
+                        refresh
+                    </span>
+
                     Try again
                 </button>
 
-                <button class="btn btn-soft-danger btn-sm jobs-alert-close" type="button" @onclick="DismissErrorAlert">
-                    <span class="material-symbols-outlined">close</span>
+                <button class="btn btn-soft-danger btn-sm jobs-alert-close"
+                        type="button"
+                        @onclick="DismissErrorAlert">
+
+                    <span class="material-symbols-outlined">
+                        close
+                    </span>
                 </button>
             </div>
         </div>
@@ -150,8 +205,14 @@
 
             @if (HasActiveFilters)
             {
-                <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="ClearFiltersAsync">
-                    <span class="material-symbols-outlined">filter_alt_off</span>
+                <button class="btn btn-soft-secondary btn-sm"
+                        type="button"
+                        @onclick="ClearFiltersAsync">
+
+                    <span class="material-symbols-outlined">
+                        filter_alt_off
+                    </span>
+
                     Clear filters
                 </button>
             }
@@ -167,12 +228,23 @@
         else if (!colJobs.Any())
         {
             <div class="crm-empty-state">
-                <span class="material-symbols-outlined">empty_dashboard</span>
-                <h4>No jobs found</h4>
-                <p>Create your first job or adjust the filters.</p>
+                <span class="material-symbols-outlined">
+                    empty_dashboard
+                </span>
 
-                <a class="btn btn-primary" href="/jobs/add">
-                    <span class="material-symbols-outlined">add_circle</span>
+                <h4>No jobs found</h4>
+
+                <p>
+                    Create your first job or adjust the filters.
+                </p>
+
+                <a class="btn btn-primary"
+                   href="/jobs/add">
+
+                    <span class="material-symbols-outlined">
+                        add_circle
+                    </span>
+
                     Add job
                 </a>
             </div>
@@ -205,7 +277,8 @@
                                         </div>
 
                                         <div>
-                                            <a class="jobs-name-link" href="@GetJobUrl(objJob.Id)">
+                                            <a class="jobs-name-link"
+                                               href="@GetJobUrl(objJob.Id)">
                                                 @objJob.Name
                                             </a>
 
@@ -222,26 +295,32 @@
                                 <td>
                                     @if (objJob.Company != null)
                                     {
-                                        <a class="jobs-company-link" href="@GetCompanyUrl(objJob.Company.Id)">
+                                        <a class="jobs-company-link"
+                                           href="@GetCompanyUrl(objJob.Company.Id)">
                                             @objJob.Company.Name
                                         </a>
                                     }
                                     else
                                     {
-                                        <span class="text-muted">Not linked</span>
+                                        <span class="text-muted">
+                                            Not linked
+                                        </span>
                                     }
                                 </td>
 
                                 <td>
                                     @if (objJob.Contact != null)
                                     {
-                                        <a class="jobs-contact-link" href="@GetContactUrl(objJob.Contact.Id)">
+                                        <a class="jobs-contact-link"
+                                           href="@GetContactUrl(objJob.Contact.Id)">
                                             @objJob.Contact.Entity.DisplayName
                                         </a>
                                     }
                                     else
                                     {
-                                        <span class="text-muted">Not linked</span>
+                                        <span class="text-muted">
+                                            Not linked
+                                        </span>
                                     }
                                 </td>
 
@@ -251,7 +330,9 @@
                                     </span>
                                 </td>
 
-                                <td>@FormatMoney(objJob.Value)</td>
+                                <td>
+                                    @FormatMoney(objJob.Value)
+                                </td>
 
                                 <td>
                                     <span class="@GetCloseDateClass(objJob)">
@@ -262,23 +343,37 @@
                                 <td>
                                     @if (objJob.IsArchived)
                                     {
-                                        <span class="badge text-bg-secondary">Archived</span>
+                                        <span class="badge text-bg-secondary">
+                                            Archived
+                                        </span>
                                     }
                                     else
                                     {
-                                        <span class="badge text-bg-success">Active</span>
+                                        <span class="badge text-bg-success">
+                                            Active
+                                        </span>
                                     }
                                 </td>
 
                                 <td class="text-end">
                                     <div class="jobs-row-actions">
-                                        <a href="@GetJobUrl(objJob.Id)" class="btn btn-soft-primary btn-sm">
-                                            <span class="material-symbols-outlined">visibility</span>
+                                        <a href="@GetJobUrl(objJob.Id)"
+                                           class="btn btn-soft-primary btn-sm">
+
+                                            <span class="material-symbols-outlined">
+                                                visibility
+                                            </span>
+
                                             View
                                         </a>
 
-                                        <a href="@($"/jobs/{objJob.Id}/edit")" class="btn btn-soft-secondary btn-sm">
-                                            <span class="material-symbols-outlined">edit</span>
+                                        <a href="@($"/jobs/{objJob.Id}/edit")"
+                                           class="btn btn-soft-secondary btn-sm">
+
+                                            <span class="material-symbols-outlined">
+                                                edit
+                                            </span>
+
                                             Edit
                                         </a>
                                     </div>
@@ -293,12 +388,19 @@
 </section>
 
 @code {
+    [SupplyParameterFromQuery(Name = "stage")]
+    public String? Stage { get; set; }
+
+    [SupplyParameterFromQuery(Name = "overdue")]
+    public Boolean Overdue { get; set; }
+
     private List<Job> colJobs = [];
 
     private String? strSearch;
     private String? strErrorMessage;
     private String strSelectedStage = String.Empty;
-    private String strResultSummary = "Showing active job records.";
+    private String strResultSummary =
+        "Showing active job records.";
 
     private Boolean blnIncludeArchived;
     private Boolean blnLoading = true;
@@ -314,18 +416,23 @@
     private Decimal dcmOpenPipelineValue;
     private Decimal dcmWonValue;
 
-    private DateTime dteClosingSoonCutoffUtc = DateTime.UtcNow.Date.AddDays(30);
+    private DateTime dteClosingSoonCutoffUtc =
+        DateTime.UtcNow.Date.AddDays(30);
 
     private Boolean HasActiveFilters =>
         !String.IsNullOrWhiteSpace(strSearch) ||
         !String.IsNullOrWhiteSpace(strSelectedStage) ||
-        blnIncludeArchived;
+        blnIncludeArchived ||
+        Overdue;
 
     private JobStage? SelectedStage
     {
         get
         {
-            if (Enum.TryParse(strSelectedStage, out JobStage enmStage))
+            if (Enum.TryParse(
+                strSelectedStage,
+                true,
+                out JobStage enmStage))
             {
                 return enmStage;
             }
@@ -338,23 +445,78 @@
     {
         HeaderState.SetHeader(
             "Jobs",
-            "Track deals, pipeline value and expected close dates.",
+            "Track jobs, pipeline value and expected close dates.",
             GetHeaderActions());
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        ApplyQueryFilters();
 
         await LoadJobsAsync();
     }
 
     private RenderFragment GetHeaderActions()
     {
-        return @<a class="btn btn-primary" href="/jobs/add">
-            <span class="material-symbols-outlined">add_circle</span>
+        return @<a class="btn btn-primary"
+               href="/jobs/add">
+
+            <span class="material-symbols-outlined">
+                add_circle
+            </span>
+
             Add job
         </a>;
+    }
+
+    private void ApplyQueryFilters()
+    {
+        if (String.IsNullOrWhiteSpace(Stage))
+        {
+            strSelectedStage = String.Empty;
+        }
+        else if (Enum.TryParse(
+            Stage,
+            true,
+            out JobStage enmStage))
+        {
+            strSelectedStage = enmStage.ToString();
+        }
+        else
+        {
+            strSelectedStage = String.Empty;
+        }
     }
 
     private Task SearchAsync()
     {
         return LoadJobsAsync();
+    }
+
+    private async Task StageChangedAsync()
+    {
+        UpdateQueryString();
+
+        await LoadJobsAsync();
+    }
+
+    private void UpdateQueryString()
+    {
+        if (String.IsNullOrWhiteSpace(strSelectedStage))
+        {
+            Navigation.NavigateTo(
+                "/jobs",
+                replace: true);
+
+            return;
+        }
+
+        String strUrl =
+            $"/jobs?stage={Uri.EscapeDataString(strSelectedStage)}";
+
+        Navigation.NavigateTo(
+            strUrl,
+            replace: true);
     }
 
     private async Task LoadJobsAsync()
@@ -365,19 +527,23 @@
 
         try
         {
-            colJobs = await JobService.GetJobsAsync(
-                strSearch,
-                SelectedStage,
-                null,
-                blnIncludeArchived,
-                false);
+            colJobs =
+                await JobService.GetJobsAsync(
+                    strSearch,
+                    SelectedStage,
+                    null,
+                    blnIncludeArchived,
+                    false,
+                    Overdue);
 
             SetJobStats();
             SetResultSummary();
         }
         catch (Exception objError)
         {
-            strErrorMessage = "We couldn’t retrieve the job records right now. " + objError.Message;
+            strErrorMessage =
+                "We couldn’t retrieve the job records right now. " +
+                objError.Message;
 
             colJobs = [];
 
@@ -387,6 +553,7 @@
             intOpenJobs = 0;
             intClosingSoonJobs = 0;
             intWonJobs = 0;
+
             dcmOpenPipelineValue = 0;
             dcmWonValue = 0;
 
@@ -404,6 +571,13 @@
         strSelectedStage = String.Empty;
         blnIncludeArchived = false;
 
+        Stage = null;
+        Overdue = false;
+
+        Navigation.NavigateTo(
+            "/jobs",
+            replace: true);
+
         await LoadJobsAsync();
     }
 
@@ -414,38 +588,51 @@
 
     private void SetJobStats()
     {
-        DateTime dteTodayUtc = DateTime.UtcNow.Date;
-        dteClosingSoonCutoffUtc = dteTodayUtc.AddDays(30);
+        DateTime dteTodayUtc =
+            DateTime.UtcNow.Date;
 
-        intTotalJobs = colJobs.Count;
+        dteClosingSoonCutoffUtc =
+            dteTodayUtc.AddDays(30);
 
-        intArchivedJobs = colJobs.Count(objJob =>
-            objJob.Entity.ArchivedUtc.HasValue);
+        intTotalJobs =
+            colJobs.Count;
 
-        intActiveJobs = colJobs.Count(objJob =>
-            !objJob.Entity.ArchivedUtc.HasValue);
+        intArchivedJobs =
+            colJobs.Count(objJob =>
+                objJob.Entity.ArchivedUtc.HasValue);
 
-        intOpenJobs = colJobs.Count(IsOpenJob);
+        intActiveJobs =
+            colJobs.Count(objJob =>
+                !objJob.Entity.ArchivedUtc.HasValue);
 
-        dcmOpenPipelineValue = colJobs
-            .Where(IsOpenJob)
-            .Sum(objJob => objJob.Value ?? 0);
+        intOpenJobs =
+            colJobs.Count(IsOpenJob);
 
-        intClosingSoonJobs = colJobs.Count(objJob =>
-            IsOpenJob(objJob) &&
-            objJob.ExpectedCloseDateUtc.HasValue &&
-            objJob.ExpectedCloseDateUtc.Value.Date >= dteTodayUtc &&
-            objJob.ExpectedCloseDateUtc.Value.Date <= dteClosingSoonCutoffUtc);
+        dcmOpenPipelineValue =
+            colJobs
+                .Where(IsOpenJob)
+                .Sum(objJob =>
+                    objJob.Value ?? 0m);
 
-        intWonJobs = colJobs.Count(objJob =>
-            !objJob.Entity.ArchivedUtc.HasValue &&
-            objJob.Stage == JobStage.Paid);
+        intClosingSoonJobs =
+            colJobs.Count(objJob =>
+                IsOpenJob(objJob) &&
+                objJob.ExpectedCloseDateUtc.HasValue &&
+                objJob.ExpectedCloseDateUtc.Value.Date >= dteTodayUtc &&
+                objJob.ExpectedCloseDateUtc.Value.Date <= dteClosingSoonCutoffUtc);
 
-        dcmWonValue = colJobs
-            .Where(objJob =>
+        intWonJobs =
+            colJobs.Count(objJob =>
                 !objJob.Entity.ArchivedUtc.HasValue &&
-                objJob.Stage == JobStage.Paid)
-            .Sum(objJob => objJob.Value ?? 0);
+                objJob.Stage == JobStage.Paid);
+
+        dcmWonValue =
+            colJobs
+                .Where(objJob =>
+                    !objJob.Entity.ArchivedUtc.HasValue &&
+                    objJob.Stage == JobStage.Paid)
+                .Sum(objJob =>
+                    objJob.Value ?? 0m);
     }
 
     private void SetResultSummary()
@@ -454,94 +641,136 @@
 
         if (!String.IsNullOrWhiteSpace(strSearch))
         {
-            colFilters.Add($"matching \"{strSearch}\"");
+            colFilters.Add(
+                $"matching \"{strSearch}\"");
         }
 
         if (SelectedStage.HasValue)
         {
-            colFilters.Add($"in {SelectedStage.Value.GetDisplay().Name}");
+            colFilters.Add(
+                $"in {SelectedStage.Value.GetDisplay().Name}");
+        }
+
+        if (Overdue)
+        {
+            colFilters.Add(
+                "overdue");
         }
 
         if (blnIncludeArchived)
         {
-            colFilters.Add("including archived");
+            colFilters.Add(
+                "including archived");
         }
 
         if (!colFilters.Any())
         {
-            strResultSummary = $"Showing {intTotalJobs} job record{GetPlural(intTotalJobs)}.";
+            strResultSummary =
+                $"Showing {intTotalJobs} job record{GetPlural(intTotalJobs)}.";
+
             return;
         }
 
-        strResultSummary = $"Showing {intTotalJobs} result{GetPlural(intTotalJobs)} {String.Join(", ", colFilters)}.";
+        strResultSummary =
+            $"Showing {intTotalJobs} result{GetPlural(intTotalJobs)} " +
+            $"{String.Join(", ", colFilters)}.";
     }
 
-    private static Boolean IsOpenJob(Job objJob)
+    private static Boolean IsOpenJob(
+        Job objJob)
     {
         return !objJob.Entity.ArchivedUtc.HasValue &&
                objJob.Stage != JobStage.Paid &&
                objJob.Stage != JobStage.Lost;
     }
 
-    private static String GetPlural(Int32 intCount)
+    private static String GetPlural(
+        Int32 intCount)
     {
-        return intCount == 1 ? String.Empty : "s";
+        return intCount == 1
+            ? String.Empty
+            : "s";
     }
 
-    private static String GetJobUrl(Guid objJobId)
+    private static String GetJobUrl(
+        Guid objJobId)
     {
         return $"/jobs/{objJobId}";
     }
 
-    private static String GetCompanyUrl(Guid objCompanyId)
+    private static String GetCompanyUrl(
+        Guid objCompanyId)
     {
         return $"/companies/{objCompanyId}";
     }
 
-    private static String GetContactUrl(Guid objContactId)
+    private static String GetContactUrl(
+        Guid objContactId)
     {
         return $"/contacts/{objContactId}";
     }
 
-    private static String GetJobInitial(Job objJob)
+    private static String GetJobInitial(
+        Job objJob)
     {
         if (String.IsNullOrWhiteSpace(objJob.Name))
         {
             return "?";
         }
 
-        return objJob.Name.Trim().Substring(0, 1).ToUpperInvariant();
+        return objJob.Name
+            .Trim()
+            .Substring(0, 1)
+            .ToUpperInvariant();
     }
 
-    private static String GetStageBadgeClass(JobStage enmStage)
+    private static String GetStageBadgeClass(
+        JobStage enmStage)
     {
         return enmStage switch
         {
-            JobStage.New => "job-stage job-stage-new",
-            JobStage.Lost => "job-stage job-stage-lost",
-            JobStage.Quoted => "job-stage job-stage-quoted",
-            JobStage.ToDo => "job-stage job-stage-todo",
-            JobStage.Paid => "job-stage job-stage-paid",
-            _ => "job-stage"
+            JobStage.New =>
+                "job-stage job-stage-new",
+
+            JobStage.Lost =>
+                "job-stage job-stage-lost",
+
+            JobStage.Quoted =>
+                "job-stage job-stage-quoted",
+
+            JobStage.ToDo =>
+                "job-stage job-stage-todo",
+
+            JobStage.Paid =>
+                "job-stage job-stage-paid",
+
+            _ =>
+                "job-stage"
         };
     }
 
-    private static String GetCloseDateClass(Job objJob)
+    private static String GetCloseDateClass(
+        Job objJob)
     {
-        if (!IsOpenJob(objJob) || !objJob.ExpectedCloseDateUtc.HasValue)
+        if (!IsOpenJob(objJob) ||
+            !objJob.ExpectedCloseDateUtc.HasValue)
         {
             return String.Empty;
         }
 
-        DateTime dteTodayUtc = DateTime.UtcNow.Date;
-        DateTime dteCloseDateUtc = objJob.ExpectedCloseDateUtc.Value.Date;
+        DateTime dteTodayUtc =
+            DateTime.UtcNow.Date;
+
+        DateTime dteCloseDateUtc =
+            objJob.ExpectedCloseDateUtc.Value.Date;
 
         if (dteCloseDateUtc < dteTodayUtc)
         {
             return "jobs-close-date-overdue";
         }
 
-        if (dteCloseDateUtc <= dteTodayUtc.AddDays(30))
+        if (dteCloseDateUtc <=
+            dteTodayUtc.AddDays(30))
         {
             return "jobs-close-date-soon";
         }
@@ -549,12 +778,14 @@
         return String.Empty;
     }
 
-    private static String FormatMoney(Decimal dcmValue)
+    private static String FormatMoney(
+        Decimal dcmValue)
     {
         return dcmValue.ToString("C0");
     }
 
-    private static String FormatMoney(Decimal? dcmValue)
+    private static String FormatMoney(
+        Decimal? dcmValue)
     {
         if (!dcmValue.HasValue)
         {
@@ -564,17 +795,21 @@
         return dcmValue.Value.ToString("C0");
     }
 
-    private static String FormatDate(DateTime? dteDate)
+    private static String FormatDate(
+        DateTime? dteDate)
     {
         if (!dteDate.HasValue)
         {
             return "—";
         }
 
-        return dteDate.Value.ToLocalTime().ToString("dd MMM yyyy");
+        return dteDate.Value
+            .ToLocalTime()
+            .ToString("dd MMM yyyy");
     }
 
-    private static String GetJobRowClass(Job objJob)
+    private static String GetJobRowClass(
+        Job objJob)
     {
         if (objJob.Entity.ArchivedUtc.HasValue)
         {
