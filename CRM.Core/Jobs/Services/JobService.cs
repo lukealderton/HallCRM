@@ -70,7 +70,6 @@ namespace CRM.Core.Jobs.Services
             };
 
             await _jobRepository.AddJobAsync(objJob, objToken);
-            await _jobRepository.SaveChangesAsync(objToken);
 
             return objJob;
         }
@@ -113,7 +112,9 @@ namespace CRM.Core.Jobs.Services
             objExistingJob.Entity.UpdatedUtc = dteNow;
             objExistingJob.Entity.UpdatedByUserId = objUserId;
 
-            await _jobRepository.SaveChangesAsync(objToken);
+            await _jobRepository.UpdateJobAsync(
+                objExistingJob,
+                objToken);
 
             return objExistingJob;
         }
@@ -135,7 +136,9 @@ namespace CRM.Core.Jobs.Services
             objJob.Entity.UpdatedUtc = dteNow;
             objJob.Entity.UpdatedByUserId = objUserId;
 
-            await _jobRepository.SaveChangesAsync(objToken);
+            await _jobRepository.UpdateJobAsync(
+                objJob,
+                objToken);
 
             return true;
         }
@@ -157,7 +160,9 @@ namespace CRM.Core.Jobs.Services
             objJob.Entity.UpdatedUtc = dteNow;
             objJob.Entity.UpdatedByUserId = objUserId;
 
-            await _jobRepository.SaveChangesAsync(objToken);
+            await _jobRepository.UpdateJobAsync(
+                objJob,
+                objToken);
 
             return true;
         }
@@ -179,7 +184,9 @@ namespace CRM.Core.Jobs.Services
             objJob.Entity.UpdatedUtc = dteNow;
             objJob.Entity.UpdatedByUserId = objUserId;
 
-            await _jobRepository.SaveChangesAsync(objToken);
+            await _jobRepository.UpdateJobAsync(
+                objJob,
+                objToken);
 
             return true;
         }

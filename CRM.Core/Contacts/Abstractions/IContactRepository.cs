@@ -11,7 +11,7 @@ namespace CRM.Core.Contacts.Abstractions
         /// <param name="blnTracking"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
-        Task<Contact?> GetContactByIdAsync(Guid objContactId, Boolean blnTracking = false, CancellationToken objToken = default);
+        Task<Contact?> GetContactByIdAsync(Guid objContactId, CancellationToken objToken = default);
 
         /// <summary>
         /// Gets/searches contacts
@@ -29,14 +29,25 @@ namespace CRM.Core.Contacts.Abstractions
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default);
 
-        Task AddContactAsync(Contact objContact, CancellationToken objToken = default);
-
         /// <summary>
-        /// Updates a contact
+        /// Adds a new contact to the repository
         /// </summary>
+        /// <param name="objContact"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
-        Task SaveChangesAsync(CancellationToken objToken = default);
+        Task AddContactAsync(
+            Contact objContact,
+            CancellationToken objToken = default);
+
+        /// <summary>
+        /// Updates an existing contact in the repository
+        /// </summary>
+        /// <param name="objContact"></param>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task UpdateContactAsync(
+            Contact objContact,
+            CancellationToken objToken = default);
 
         /// <summary>
         /// Counts the total number of contacts in the repository.

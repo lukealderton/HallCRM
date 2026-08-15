@@ -37,14 +37,19 @@ namespace CRM.Core.Jobs.Abstractions
         /// <param name="objJob"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
-        Task AddJobAsync(Job objJob, CancellationToken objToken = default);
+        Task AddJobAsync(
+            Job objJob,
+            CancellationToken objToken = default);
 
         /// <summary>
-        /// Updates an existing Job in the repository.
+        /// Updates an existing job in the repository.
         /// </summary>
+        /// <param name="objJob"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
-        Task SaveChangesAsync(CancellationToken objToken = default);
+        Task UpdateJobAsync(
+            Job objJob,
+            CancellationToken objToken = default);
 
         /// <summary>
         /// Counts the total number of open jobs in the repository.

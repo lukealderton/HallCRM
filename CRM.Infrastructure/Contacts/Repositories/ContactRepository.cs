@@ -14,7 +14,7 @@ namespace CRM.Infrastructure.Contacts.Repositories
             _objDbContextFactory = objDbContextFactory;
         }
 
-        public async Task<Contact?> GetContactByIdAsync(Guid objContactId, Boolean blnTracking = false, CancellationToken objToken = default)
+        public async Task<Contact?> GetContactByIdAsync(Guid objContactId, CancellationToken objToken = default)
         {
             await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
 
@@ -22,11 +22,6 @@ namespace CRM.Infrastructure.Contacts.Repositories
                 .Include(objContact => objContact.Entity)
                 .Include(objContact => objContact.Company)
                     .ThenInclude(objCompany => objCompany!.Entity);
-
-            if (!blnTracking)
-            {
-                objQuery = objQuery.AsNoTracking();
-            }
 
             return await objQuery.FirstOrDefaultAsync(objContact => objContact.Id == objContactId, objToken);
         }
@@ -81,15 +76,35 @@ namespace CRM.Infrastructure.Contacts.Repositories
                 .ToListAsync(objToken);
         }
 
-        public async Task AddContactAsync(Contact objContact, CancellationToken objToken = default)
+        public async Task AddContactAsync(
+            Contact objContact,
+            CancellationToken objToken = default)
         {
-            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
-            await objDbContext.Contacts.AddAsync(objContact, objToken);
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            objDbContext.Entry(objContact).State =
+                EntityState.Added;
+
+            objDbContext.Entry(objContact.Entity).State =
+                EntityState.Added;
+
+            await objDbContext.SaveChangesAsync(objToken);
         }
 
-        public async Task SaveChangesAsync(CancellationToken objToken = default)
+        public async Task UpdateContactAsync(
+            Contact objContact,
+            CancellationToken objToken = default)
         {
-            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            objDbContext.Entry(objContact).State =
+                EntityState.Modified;
+
+            objDbContext.Entry(objContact.Entity).State =
+                EntityState.Modified;
+
             await objDbContext.SaveChangesAsync(objToken);
         }
 

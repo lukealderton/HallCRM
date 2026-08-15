@@ -69,16 +69,34 @@ namespace CRM.Infrastructure.Companies.Repositories
                 .ToListAsync(objToken);
         }
 
-        public async Task AddCompanyAsync(Company objCompany, CancellationToken objToken = default)
+        public async Task AddCompanyAsync(
+            Company objCompany,
+            CancellationToken objToken = default)
         {
-            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
 
-            await objDbContext.Companies.AddAsync(objCompany, objToken);
+            objDbContext.Entry(objCompany).State =
+                EntityState.Added;
+
+            objDbContext.Entry(objCompany.Entity).State =
+                EntityState.Added;
+
+            await objDbContext.SaveChangesAsync(objToken);
         }
 
-        public async Task SaveChangesAsync(CancellationToken objToken = default)
+        public async Task UpdateCompanyAsync(
+            Company objCompany,
+            CancellationToken objToken = default)
         {
-            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            objDbContext.Entry(objCompany).State =
+                EntityState.Modified;
+
+            objDbContext.Entry(objCompany.Entity).State =
+                EntityState.Modified;
 
             await objDbContext.SaveChangesAsync(objToken);
         }

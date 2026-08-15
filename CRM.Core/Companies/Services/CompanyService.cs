@@ -61,7 +61,6 @@ namespace CRM.Core.Companies.Services
             };
 
             await _companyRepository.AddCompanyAsync(objCompany, objToken);
-            await _companyRepository.SaveChangesAsync(objToken);
 
             return objCompany;
         }
@@ -112,7 +111,9 @@ namespace CRM.Core.Companies.Services
             objExistingCompany.Entity.UpdatedUtc = dteNow;
             objExistingCompany.Entity.UpdatedByUserId = objUserId;
 
-            await _companyRepository.SaveChangesAsync(objToken);
+            await _companyRepository.UpdateCompanyAsync(
+                objExistingCompany,
+                objToken);
 
             return objExistingCompany;
         }
@@ -134,7 +135,9 @@ namespace CRM.Core.Companies.Services
             objCompany.Entity.UpdatedUtc = dteNow;
             objCompany.Entity.UpdatedByUserId = objUserId;
 
-            await _companyRepository.SaveChangesAsync(objToken);
+            await _companyRepository.UpdateCompanyAsync(
+                objCompany,
+                objToken);
 
             return true;
         }
@@ -156,7 +159,9 @@ namespace CRM.Core.Companies.Services
             objCompany.Entity.UpdatedUtc = dteNow;
             objCompany.Entity.UpdatedByUserId = objUserId;
 
-            await _companyRepository.SaveChangesAsync(objToken);
+            await _companyRepository.UpdateCompanyAsync(
+                objCompany,
+                objToken);
 
             return true;
         }
@@ -178,7 +183,9 @@ namespace CRM.Core.Companies.Services
             objCompany.Entity.UpdatedUtc = dteNow;
             objCompany.Entity.UpdatedByUserId = objUserId;
 
-            await _companyRepository.SaveChangesAsync(objToken);
+            await _companyRepository.UpdateCompanyAsync(
+                objCompany,
+                objToken);
 
             return true;
         }

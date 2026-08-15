@@ -19,7 +19,7 @@ namespace CRM.Core.Contacts.Services
         ///<inheritdoc/>
         public Task<Contact?> GetContactByIdAsync(Guid objContactId, CancellationToken objToken = default)
         {
-            return _contactRepository.GetContactByIdAsync(objContactId, false, objToken);
+            return _contactRepository.GetContactByIdAsync(objContactId, objToken);
         }
 
         ///<inheritdoc/>
@@ -77,7 +77,6 @@ namespace CRM.Core.Contacts.Services
             };
 
             await _contactRepository.AddContactAsync(objContact, objToken);
-            await _contactRepository.SaveChangesAsync(objToken);
 
             return objContact;
         }
@@ -97,7 +96,7 @@ namespace CRM.Core.Contacts.Services
                 throw new ArgumentException("Contact name or email is required.", nameof(objContact));
             }
 
-            Contact? objExistingContact = await _contactRepository.GetContactByIdAsync(objContact.Id, true, objToken);
+            Contact? objExistingContact = await _contactRepository.GetContactByIdAsync(objContact.Id, objToken);
 
             if (objExistingContact == null || objExistingContact.Entity.DeletedUtc.HasValue)
             {
@@ -122,7 +121,9 @@ namespace CRM.Core.Contacts.Services
             objExistingContact.Entity.UpdatedUtc = dteNow;
             objExistingContact.Entity.UpdatedByUserId = objUserId;
 
-            await _contactRepository.SaveChangesAsync(objToken);
+            await _contactRepository.UpdateContactAsync(
+                objExistingContact,
+                objToken);
 
             return objExistingContact;
         }
@@ -130,7 +131,7 @@ namespace CRM.Core.Contacts.Services
         ///<inheritdoc/>
         public async Task<Boolean> ArchiveContactAsync(Guid objContactId, Guid? objUserId = null, CancellationToken objToken = default)
         {
-            Contact? objContact = await _contactRepository.GetContactByIdAsync(objContactId, true, objToken);
+            Contact? objContact = await _contactRepository.GetContactByIdAsync(objContactId, objToken);
 
             if (objContact == null || objContact.Entity.DeletedUtc.HasValue)
             {
@@ -144,7 +145,9 @@ namespace CRM.Core.Contacts.Services
             objContact.Entity.UpdatedUtc = dteNow;
             objContact.Entity.UpdatedByUserId = objUserId;
 
-            await _contactRepository.SaveChangesAsync(objToken);
+            await _contactRepository.UpdateContactAsync(
+                objContact,
+                objToken);
 
             return true;
         }
@@ -152,7 +155,7 @@ namespace CRM.Core.Contacts.Services
         ///<inheritdoc/>
         public async Task<Boolean> RestoreContactAsync(Guid objContactId, Guid? objUserId = null, CancellationToken objToken = default)
         {
-            Contact? objContact = await _contactRepository.GetContactByIdAsync(objContactId, true, objToken);
+            Contact? objContact = await _contactRepository.GetContactByIdAsync(objContactId, objToken);
 
             if (objContact == null || objContact.Entity.DeletedUtc.HasValue)
             {
@@ -166,7 +169,9 @@ namespace CRM.Core.Contacts.Services
             objContact.Entity.UpdatedUtc = dteNow;
             objContact.Entity.UpdatedByUserId = objUserId;
 
-            await _contactRepository.SaveChangesAsync(objToken);
+            await _contactRepository.UpdateContactAsync(
+                objContact,
+                objToken);
 
             return true;
         }
@@ -174,7 +179,7 @@ namespace CRM.Core.Contacts.Services
         ///<inheritdoc/>
         public async Task<Boolean> DeleteContactAsync(Guid objContactId, Guid? objUserId = null, CancellationToken objToken = default)
         {
-            Contact? objContact = await _contactRepository.GetContactByIdAsync(objContactId, true, objToken);
+            Contact? objContact = await _contactRepository.GetContactByIdAsync(objContactId, objToken);
 
             if (objContact == null || objContact.Entity.DeletedUtc.HasValue)
             {
@@ -188,7 +193,9 @@ namespace CRM.Core.Contacts.Services
             objContact.Entity.UpdatedUtc = dteNow;
             objContact.Entity.UpdatedByUserId = objUserId;
 
-            await _contactRepository.SaveChangesAsync(objToken);
+            await _contactRepository.UpdateContactAsync(
+                objContact,
+                objToken);
 
             return true;
         }

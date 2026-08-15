@@ -90,15 +90,35 @@ namespace CRM.Infrastructure.Jobs.Repositories
                 .ToListAsync(objToken);
         }
 
-        public async Task AddJobAsync(Job objJob, CancellationToken objToken = default)
+        public async Task AddJobAsync(
+            Job objJob,
+            CancellationToken objToken = default)
         {
-            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
-            await objDbContext.Jobs.AddAsync(objJob, objToken);
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            objDbContext.Entry(objJob).State =
+                EntityState.Added;
+
+            objDbContext.Entry(objJob.Entity).State =
+                EntityState.Added;
+
+            await objDbContext.SaveChangesAsync(objToken);
         }
 
-        public async Task SaveChangesAsync(CancellationToken objToken = default)
+        public async Task UpdateJobAsync(
+            Job objJob,
+            CancellationToken objToken = default)
         {
-            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            objDbContext.Entry(objJob).State =
+                EntityState.Modified;
+
+            objDbContext.Entry(objJob.Entity).State =
+                EntityState.Modified;
+
             await objDbContext.SaveChangesAsync(objToken);
         }
 
