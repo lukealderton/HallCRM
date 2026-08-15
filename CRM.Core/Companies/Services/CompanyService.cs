@@ -197,5 +197,27 @@ namespace CRM.Core.Companies.Services
 
             return strValue.Trim();
         }
+
+        ///<inheritdoc/>
+        public Task<Int32> CountCompaniesAsync(
+            CancellationToken objToken = default)
+        {
+            return _companyRepository.CountCompaniesAsync(objToken);
+        }
+
+        ///<inheritdoc/>
+        public Task<List<Company>> GetRecentCompaniesAsync(
+            Int32 intTake = 5,
+            CancellationToken objToken = default)
+        {
+            if (intTake <= 0)
+            {
+                return Task.FromResult(new List<Company>());
+            }
+
+            return _companyRepository.GetRecentCompaniesAsync(
+                intTake,
+                objToken);
+        }
     }
 }

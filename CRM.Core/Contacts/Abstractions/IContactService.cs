@@ -68,5 +68,21 @@ namespace CRM.Core.Contacts.Abstractions
         /// <param name="objToken"></param>
         /// <returns></returns>
         Task<Boolean> DeleteContactAsync(Guid objContactId, Guid? objUserId = null, CancellationToken objToken = default);
+
+        /// <summary>
+        /// Counts all contacts
+        /// </summary>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Int32> CountContactsAsync(
+            CancellationToken objToken = default);
+
+        /// <summary>
+        /// Counts all contactable contacts (contacts that can be reached or contacted)
+        /// </summary>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Int32> CountContactableContactsAsync(
+            CancellationToken objToken = default);
     }
 }

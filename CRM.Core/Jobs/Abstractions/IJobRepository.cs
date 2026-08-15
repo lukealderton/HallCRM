@@ -45,5 +45,37 @@ namespace CRM.Core.Jobs.Abstractions
         /// <param name="objToken"></param>
         /// <returns></returns>
         Task SaveChangesAsync(CancellationToken objToken = default);
+
+        /// <summary>
+        /// Counts the total number of open jobs in the repository.
+        /// </summary>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Int32> CountOpenJobsAsync(
+            CancellationToken objToken = default);
+
+        /// <summary>
+        /// Counts the total value of open jobs in the repository.
+        /// </summary>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Decimal> GetOpenJobValueAsync(
+            CancellationToken objToken = default);
+
+        /// <summary>
+        /// Gets a summary of jobs grouped by their stages.
+        /// </summary>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<List<JobStageSummary>> GetStageSummaryAsync(
+            CancellationToken objToken = default);
+
+        /// <summary>
+        /// Counts the total number of overdue jobs in the repository.
+        /// </summary>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Int32> CountOverdueJobsAsync(
+            CancellationToken objToken = default);
     }
 }

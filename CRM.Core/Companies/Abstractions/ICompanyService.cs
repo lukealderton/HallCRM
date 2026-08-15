@@ -70,5 +70,23 @@ namespace CRM.Core.Companies.Abstractions
         /// <param name="objToken"></param>
         /// <returns></returns>
         Task<Boolean> DeleteCompanyAsync(Guid objCompanyId, Guid? objUserId = null, CancellationToken objToken = default);
+
+        /// <summary>
+        /// Counts all companies in the system, optionally including archived or deleted ones.
+        /// </summary>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Int32> CountCompaniesAsync(
+            CancellationToken objToken = default);
+
+        /// <summary>
+        /// Gets a list of the most recently added companies, limited by the specified number.
+        /// </summary>
+        /// <param name="intTake"></param>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<List<Company>> GetRecentCompaniesAsync(
+            Int32 intTake = 5,
+            CancellationToken objToken = default);
     }
 }

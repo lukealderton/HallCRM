@@ -41,5 +41,23 @@ namespace CRM.Core.Companies.Abstractions
         /// <param name="objToken"></param>
         /// <returns></returns>
         Task SaveChangesAsync(CancellationToken objToken = default);
+
+        /// <summary>
+        /// Counts the total number of companies in the repository.
+        /// </summary>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Int32> CountCompaniesAsync(
+            CancellationToken objToken = default);
+
+        /// <summary>
+        /// Gets a list of the most recently added companies, limited by the specified number to take.
+        /// </summary>
+        /// <param name="intTake"></param>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<List<Company>> GetRecentCompaniesAsync(
+            Int32 intTake,
+            CancellationToken objToken = default);
     }
 }

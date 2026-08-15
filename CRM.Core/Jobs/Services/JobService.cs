@@ -223,5 +223,33 @@ namespace CRM.Core.Jobs.Services
 
             return intProbabilityPercent.Value;
         }
+
+        ///<inheritdoc/>
+        public Task<Int32> CountOpenJobsAsync(
+            CancellationToken objToken = default)
+        {
+            return _jobRepository.CountOpenJobsAsync(objToken);
+        }
+
+        ///<inheritdoc/>
+        public Task<Decimal> GetOpenJobValueAsync(
+            CancellationToken objToken = default)
+        {
+            return _jobRepository.GetOpenJobValueAsync(objToken);
+        }
+
+        ///<inheritdoc/>
+        public Task<List<JobStageSummary>> GetStageSummaryAsync(
+            CancellationToken objToken = default)
+        {
+            return _jobRepository.GetStageSummaryAsync(objToken);
+        }
+
+        ///<inheritdoc/>
+        public Task<Int32> CountOverdueJobsAsync(
+            CancellationToken objToken = default)
+        {
+            return _jobRepository.CountOverdueJobsAsync(objToken);
+        }
     }
 }

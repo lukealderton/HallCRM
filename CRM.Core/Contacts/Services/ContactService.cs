@@ -239,5 +239,19 @@ namespace CRM.Core.Contacts.Services
 
             return strValue.Trim();
         }
+
+        ///<inheritdoc/>
+        public Task<Int32> CountContactsAsync(
+            CancellationToken objToken = default)
+        {
+            return _contactRepository.CountContactsAsync(objToken);
+        }
+
+        ///<inheritdoc/>
+        public Task<Int32> CountContactableContactsAsync(
+            CancellationToken objToken = default)
+        {
+            return _contactRepository.CountContactableContactsAsync(objToken);
+        }
     }
 }
