@@ -7,7 +7,8 @@ namespace CRM.Core.Notes.Services
     {
         private readonly INoteRepository _noteRepository;
 
-        public NoteService(INoteRepository objNoteRepository)
+        public NoteService(
+            INoteRepository objNoteRepository)
         {
             _noteRepository = objNoteRepository;
         }
@@ -20,10 +21,16 @@ namespace CRM.Core.Notes.Services
         {
             if (objEntityId == Guid.Empty)
             {
-                throw new ArgumentException("Entity id is required.", nameof(objEntityId));
+                throw new ArgumentException(
+                    "Entity id is required.",
+                    nameof(objEntityId));
             }
 
-            return _noteRepository.GetNotesForEntityAsync(objEntityId, intTake, false, objToken);
+            return _noteRepository.GetNotesForEntityAsync(
+                objEntityId,
+                intTake,
+                false,
+                objToken);
         }
 
         ///<inheritdoc/>
@@ -32,7 +39,10 @@ namespace CRM.Core.Notes.Services
             Int32 intTake = 100,
             CancellationToken objToken = default)
         {
-            return _noteRepository.GetRecentNotesAsync(strSearch, intTake, objToken);
+            return _noteRepository.GetRecentNotesAsync(
+                strSearch,
+                intTake,
+                objToken);
         }
 
         ///<inheritdoc/>
@@ -44,34 +54,45 @@ namespace CRM.Core.Notes.Services
         {
             if (objEntityId == Guid.Empty)
             {
-                throw new ArgumentException("Entity id is required.", nameof(objEntityId));
+                throw new ArgumentException(
+                    "Entity id is required.",
+                    nameof(objEntityId));
             }
 
             if (String.IsNullOrWhiteSpace(strBody))
             {
-                throw new ArgumentException("Note text is required.", nameof(strBody));
+                throw new ArgumentException(
+                    "Note text is required.",
+                    nameof(strBody));
             }
 
-            Boolean blnEntityExists = await _noteRepository.EntityExistsAsync(objEntityId, objToken);
+            Boolean blnEntityExists =
+                await _noteRepository.EntityExistsAsync(
+                    objEntityId,
+                    objToken);
 
             if (!blnEntityExists)
             {
-                throw new InvalidOperationException("The entity could not be found.");
+                throw new InvalidOperationException(
+                    "The entity could not be found.");
             }
 
-            DateTime dtmNow = DateTime.UtcNow;
+            DateTime dtmNow =
+                DateTime.UtcNow;
 
-            Note objNote = new()
-            {
-                Id = Guid.NewGuid(),
-                EntityId = objEntityId,
-                Body = strBody.Trim(),
-                CreatedUtc = dtmNow,
-                CreatedByUserId = objUserId
-            };
+            Note objNote =
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    EntityId = objEntityId,
+                    Body = strBody.Trim(),
+                    CreatedUtc = dtmNow,
+                    CreatedByUserId = objUserId
+                };
 
-            await _noteRepository.AddNoteAsync(objNote, objToken);
-            await _noteRepository.SaveChangesAsync(objToken);
+            await _noteRepository.AddNoteAsync(
+                objNote,
+                objToken);
 
             return objNote;
         }
@@ -82,21 +103,40 @@ namespace CRM.Core.Notes.Services
             Guid? objUserId = null,
             CancellationToken objToken = default)
         {
-            Note? objNote = await _noteRepository.GetNoteByIdAsync(objNoteId, true, objToken);
-
-            if (objNote == null || objNote.DeletedUtc.HasValue)
+            if (objNoteId == Guid.Empty)
             {
                 return false;
             }
 
-            DateTime dtmNow = DateTime.UtcNow;
+            Note? objNote =
+                await _noteRepository.GetNoteByIdAsync(
+                    objNoteId,
+                    objToken);
 
-            objNote.DeletedUtc = dtmNow;
-            objNote.DeletedByUserId = objUserId;
-            objNote.UpdatedUtc = dtmNow;
-            objNote.UpdatedByUserId = objUserId;
+            if (objNote == null ||
+                objNote.DeletedUtc.HasValue)
+            {
+                return false;
+            }
 
-            await _noteRepository.SaveChangesAsync(objToken);
+            DateTime dtmNow =
+                DateTime.UtcNow;
+
+            objNote.DeletedUtc =
+                dtmNow;
+
+            objNote.DeletedByUserId =
+                objUserId;
+
+            objNote.UpdatedUtc =
+                dtmNow;
+
+            objNote.UpdatedByUserId =
+                objUserId;
+
+            await _noteRepository.UpdateNoteAsync(
+                objNote,
+                objToken);
 
             return true;
         }
