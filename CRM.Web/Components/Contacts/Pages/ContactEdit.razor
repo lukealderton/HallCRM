@@ -270,7 +270,7 @@
 
             if (blnEditMode)
             {
-                Contact? objUpdatedContact = null;// await ContactService.UpdateContactAsync(objContact);
+                Contact? objUpdatedContact = await ContactService.UpdateContactAsync(objContact);
 
                 if (objUpdatedContact == null)
                 {

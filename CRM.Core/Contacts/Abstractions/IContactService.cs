@@ -34,6 +34,15 @@ namespace CRM.Core.Contacts.Abstractions
         Task<Contact> AddContactAsync(Contact objContact, Guid? objUserId = null, CancellationToken objToken = default);
 
         /// <summary>
+        /// Updates a contact
+        /// </summary>
+        /// <param name="objContact"></param>
+        /// <param name="objUserId"></param>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Contact?> UpdateContactAsync(Contact objContact, Guid? objUserId = null, CancellationToken objToken = default);
+
+        /// <summary>
         /// Archives a contact by its unique identifier.
         /// </summary>
         /// <param name="objContactId"></param>
