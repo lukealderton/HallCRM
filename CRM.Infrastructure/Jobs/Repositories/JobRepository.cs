@@ -7,16 +7,18 @@ namespace CRM.Infrastructure.Jobs.Repositories
 {
     public sealed class JobRepository : IJobRepository
     {
-        private readonly CRMDbContext _context;
+        private readonly IDbContextFactory<CRMDbContext> _objDbContextFactory;
 
-        public JobRepository(CRMDbContext objContext)
+        public JobRepository(IDbContextFactory<CRMDbContext> objDbContextFactory)
         {
-            _context = objContext;
+            _objDbContextFactory = objDbContextFactory;
         }
 
-        public Task<Job?> GetJobByIdAsync(Guid objJobId, Boolean blnTracking = false, CancellationToken objToken = default)
+        public async Task<Job?> GetJobByIdAsync(Guid objJobId, Boolean blnTracking = false, CancellationToken objToken = default)
         {
-            IQueryable<Job> objQuery = _context.Jobs
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            IQueryable<Job> objQuery = objDbContext.Jobs
                 .Include(objJob => objJob.Entity)
                 .Include(objJob => objJob.Company)
                     .ThenInclude(objCompany => objCompany!.Entity)
@@ -28,10 +30,10 @@ namespace CRM.Infrastructure.Jobs.Repositories
                 objQuery = objQuery.AsNoTracking();
             }
 
-            return objQuery.FirstOrDefaultAsync(objJob => objJob.Id == objJobId, objToken);
+            return await objQuery.FirstOrDefaultAsync(objJob => objJob.Id == objJobId, objToken);
         }
 
-        public Task<List<Job>> GetJobsAsync(
+        public async Task<List<Job>> GetJobsAsync(
             String? strSearch = null,
             JobStage? enmStage = null,
             Guid? objCompanyId = null,
@@ -39,7 +41,9 @@ namespace CRM.Infrastructure.Jobs.Repositories
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default)
         {
-            IQueryable<Job> objQuery = _context.Jobs
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            IQueryable<Job> objQuery = objDbContext.Jobs
                 .AsNoTracking()
                 .Include(objJob => objJob.Entity)
                 .Include(objJob => objJob.Company)
@@ -79,21 +83,23 @@ namespace CRM.Infrastructure.Jobs.Repositories
                     (objJob.Contact != null && objJob.Contact.Entity.DisplayName.Contains(strKeyword)));
             }
 
-            return objQuery
+            return await objQuery
                 .OrderByDescending(objJob => objJob.ExpectedCloseDateUtc.HasValue)
                 .ThenBy(objJob => objJob.ExpectedCloseDateUtc)
                 .ThenBy(objJob => objJob.Name)
                 .ToListAsync(objToken);
         }
 
-        public Task AddJobAsync(Job objJob, CancellationToken objToken = default)
+        public async Task AddJobAsync(Job objJob, CancellationToken objToken = default)
         {
-            return _context.Jobs.AddAsync(objJob, objToken).AsTask();
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            await objDbContext.Jobs.AddAsync(objJob, objToken);
         }
 
-        public Task SaveChangesAsync(CancellationToken objToken = default)
+        public async Task SaveChangesAsync(CancellationToken objToken = default)
         {
-            return _context.SaveChangesAsync(objToken);
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            await objDbContext.SaveChangesAsync(objToken);
         }
     }
 }

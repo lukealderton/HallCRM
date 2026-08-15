@@ -7,16 +7,18 @@ namespace CRM.Infrastructure.Contacts.Repositories
 {
     public sealed class ContactRepository : IContactRepository
     {
-        private readonly CRMDbContext _context;
+        private readonly IDbContextFactory<CRMDbContext> _objDbContextFactory;
 
-        public ContactRepository(CRMDbContext objContext)
+        public ContactRepository(IDbContextFactory<CRMDbContext> objDbContextFactory)
         {
-            _context = objContext;
+            _objDbContextFactory = objDbContextFactory;
         }
 
-        public Task<Contact?> GetContactByIdAsync(Guid objContactId, Boolean blnTracking = false, CancellationToken objToken = default)
+        public async Task<Contact?> GetContactByIdAsync(Guid objContactId, Boolean blnTracking = false, CancellationToken objToken = default)
         {
-            IQueryable<Contact> objQuery = _context.Contacts
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            IQueryable<Contact> objQuery = objDbContext.Contacts
                 .Include(objContact => objContact.Entity)
                 .Include(objContact => objContact.Company)
                     .ThenInclude(objCompany => objCompany!.Entity);
@@ -26,17 +28,19 @@ namespace CRM.Infrastructure.Contacts.Repositories
                 objQuery = objQuery.AsNoTracking();
             }
 
-            return objQuery.FirstOrDefaultAsync(objContact => objContact.Id == objContactId, objToken);
+            return await objQuery.FirstOrDefaultAsync(objContact => objContact.Id == objContactId, objToken);
         }
 
-        public Task<List<Contact>> GetContactsAsync(
+        public async Task<List<Contact>> GetContactsAsync(
             String? strSearch = null,
             Guid? objCompanyId = null,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default)
         {
-            IQueryable<Contact> objQuery = _context.Contacts
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            IQueryable<Contact> objQuery = objDbContext.Contacts
                 .AsNoTracking()
                 .Include(objContact => objContact.Entity)
                 .Include(objContact => objContact.Company)
@@ -70,21 +74,23 @@ namespace CRM.Infrastructure.Contacts.Repositories
                     (objContact.Company != null && objContact.Company.Name.Contains(strKeyword)));
             }
 
-            return objQuery
+            return await objQuery
                 .OrderBy(objContact => objContact.LastName)
                 .ThenBy(objContact => objContact.FirstName)
                 .ThenBy(objContact => objContact.PrimaryEmail)
                 .ToListAsync(objToken);
         }
 
-        public Task AddContactAsync(Contact objContact, CancellationToken objToken = default)
+        public async Task AddContactAsync(Contact objContact, CancellationToken objToken = default)
         {
-            return _context.Contacts.AddAsync(objContact, objToken).AsTask();
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            await objDbContext.Contacts.AddAsync(objContact, objToken);
         }
 
-        public Task SaveChangesAsync(CancellationToken objToken = default)
+        public async Task SaveChangesAsync(CancellationToken objToken = default)
         {
-            return _context.SaveChangesAsync(objToken);
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            await objDbContext.SaveChangesAsync(objToken);
         }
     }
 }

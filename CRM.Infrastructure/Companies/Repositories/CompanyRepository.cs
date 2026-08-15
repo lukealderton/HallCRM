@@ -7,16 +7,18 @@ namespace CRM.Infrastructure.Companies.Repositories
 {
     public sealed class CompanyRepository : ICompanyRepository
     {
-        private readonly CRMDbContext _context;
+        private readonly IDbContextFactory<CRMDbContext> _objDbContextFactory;
 
-        public CompanyRepository(CRMDbContext objContext)
+        public CompanyRepository(IDbContextFactory<CRMDbContext> objDbContextFactory)
         {
-            _context = objContext;
+            _objDbContextFactory = objDbContextFactory;
         }
 
         public async Task<Company?> GetCompanyByIdAsync(Guid objCompanyId, Boolean blnAsTracking = false, CancellationToken objToken = default)
         {
-            IQueryable<Company> colQuery = _context.Companies
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            IQueryable<Company> colQuery = objDbContext.Companies
                 .Include(x => x.Entity)
                 .ThenInclude(x => x.EntityType);
 
@@ -34,7 +36,9 @@ namespace CRM.Infrastructure.Companies.Repositories
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default)
         {
-            IQueryable<Company> colQuery = _context.Companies
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            IQueryable<Company> colQuery = objDbContext.Companies
                 .Include(x => x.Entity)
                 .AsNoTracking();
 
@@ -67,12 +71,16 @@ namespace CRM.Infrastructure.Companies.Repositories
 
         public async Task AddCompanyAsync(Company objCompany, CancellationToken objToken = default)
         {
-            await _context.Companies.AddAsync(objCompany, objToken);
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            await objDbContext.Companies.AddAsync(objCompany, objToken);
         }
 
         public async Task SaveChangesAsync(CancellationToken objToken = default)
         {
-            await _context.SaveChangesAsync(objToken);
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            await objDbContext.SaveChangesAsync(objToken);
         }
     }
 }

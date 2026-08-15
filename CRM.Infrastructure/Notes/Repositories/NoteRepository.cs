@@ -8,16 +8,17 @@ namespace CRM.Infrastructure.Notes.Repositories
 {
     public sealed class NoteRepository : INoteRepository
     {
-        private readonly CRMDbContext _dbContext;
+        private readonly IDbContextFactory<CRMDbContext> _objDbContextFactory;
 
-        public NoteRepository(CRMDbContext objDbContext)
+        public NoteRepository(IDbContextFactory<CRMDbContext> objDbContextFactory)
         {
-            _dbContext = objDbContext;
+            _objDbContextFactory = objDbContextFactory;
         }
 
-        public Task<Boolean> EntityExistsAsync(Guid objEntityId, CancellationToken objToken = default)
+        public async Task<Boolean> EntityExistsAsync(Guid objEntityId, CancellationToken objToken = default)
         {
-            return _dbContext.Entities
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            return await objDbContext.Entities
                 .AnyAsync(x => x.Id == objEntityId && !x.DeletedUtc.HasValue, objToken);
         }
 
@@ -27,7 +28,8 @@ namespace CRM.Infrastructure.Notes.Repositories
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default)
         {
-            IQueryable<Note> qryNotes = _dbContext.Notes
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            IQueryable<Note> qryNotes = objDbContext.Notes
                 .AsNoTracking()
                 .Where(x => x.EntityId == objEntityId);
 
@@ -51,7 +53,8 @@ namespace CRM.Infrastructure.Notes.Repositories
             Int32 intTake = 100,
             CancellationToken objToken = default)
         {
-            IQueryable<Note> qryNotes = _dbContext.Notes
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            IQueryable<Note> qryNotes = objDbContext.Notes
                 .AsNoTracking()
                 .Include(x => x.Entity)
                     .ThenInclude(x => x!.EntityType)
@@ -76,26 +79,29 @@ namespace CRM.Infrastructure.Notes.Repositories
             return colNotes;
         }
 
-        public Task AddNoteAsync(Note objNote, CancellationToken objToken = default)
+        public async Task AddNoteAsync(Note objNote, CancellationToken objToken = default)
         {
-            return _dbContext.Notes.AddAsync(objNote, objToken).AsTask();
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            await objDbContext.Notes.AddAsync(objNote, objToken);
         }
 
-        public Task<Note?> GetNoteByIdAsync(Guid objNoteId, Boolean blnTracking = false, CancellationToken objToken = default)
+        public async Task<Note?> GetNoteByIdAsync(Guid objNoteId, Boolean blnTracking = false, CancellationToken objToken = default)
         {
-            IQueryable<Note> qryNotes = _dbContext.Notes;
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            IQueryable<Note> qryNotes = objDbContext.Notes;
 
             if (!blnTracking)
             {
                 qryNotes = qryNotes.AsNoTracking();
             }
 
-            return qryNotes.FirstOrDefaultAsync(x => x.Id == objNoteId, objToken);
+            return await qryNotes.FirstOrDefaultAsync(x => x.Id == objNoteId, objToken);
         }
 
-        public Task SaveChangesAsync(CancellationToken objToken = default)
+        public async Task SaveChangesAsync(CancellationToken objToken = default)
         {
-            return _dbContext.SaveChangesAsync(objToken);
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            await objDbContext.SaveChangesAsync(objToken);
         }
 
         private async Task PopulateAuthorDisplayNamesAsync(
@@ -113,7 +119,8 @@ namespace CRM.Infrastructure.Notes.Repositories
                 return;
             }
 
-            var colUsers = await _dbContext.Set<ApplicationUser>()
+            await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
+            var colUsers = await objDbContext.Set<ApplicationUser>()
                 .AsNoTracking()
                 .Where(x => colUserIds.Contains(x.DomainUserId))
                 .Select(x => new
