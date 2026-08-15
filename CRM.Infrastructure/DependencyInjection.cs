@@ -1,4 +1,5 @@
-﻿using CRM.Core.Companies.Abstractions;
+﻿using CRM.Core.Activities.Abstractions;
+using CRM.Core.Companies.Abstractions;
 using CRM.Core.Contacts.Abstractions;
 using CRM.Core.Entities.Abstractions;
 using CRM.Core.Geocoding.Abstraction;
@@ -9,22 +10,23 @@ using CRM.Core.Notes.Abstractions;
 using CRM.Core.Notifications.Abstractions;
 using CRM.Core.Tickets.Abstractions;
 using CRM.Core.Users.Abstraction.Repositories;
+using CRM.Infrastructure.Activities.Repositories;
 using CRM.Infrastructure.Companies.Repositories;
 using CRM.Infrastructure.Contacts.Repositories;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Entities.Repositories;
 using CRM.Infrastructure.Geocoding.Services;
+using CRM.Infrastructure.Jobs.Repositories;
 using CRM.Infrastructure.Logging.Repositories;
 using CRM.Infrastructure.Mailing.Services;
 using CRM.Infrastructure.Notes.Repositories;
 using CRM.Infrastructure.Notifications.Services;
-using CRM.Infrastructure.Jobs.Repositories;
 using CRM.Infrastructure.Tickets.Repositories;
 using CRM.Infrastructure.Users.Repositories;
+using CRM.Infrastructure.Users.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CRM.Infrastructure.Users.Services;
 
 namespace CRM.Infrastructure
 {
@@ -63,6 +65,8 @@ namespace CRM.Infrastructure
             colServices.AddScoped<IToastService,        ToastService>();
 
             colServices.AddHttpClient<IGeocodingService, GoogleGeocodingService>();
+
+            colServices.AddScoped<IActivityRepository, ActivityRepository>();
 
             return colServices;
         }

@@ -18,6 +18,8 @@ using CRM.Infrastructure.Users.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using CRM.Core.Activities.Domain;
+using CRM.Infrastructure.Activities.Configurations;
 
 namespace CRM.Infrastructure.Data
 {
@@ -50,6 +52,8 @@ namespace CRM.Infrastructure.Data
         public DbSet<TicketTimeEntry> TicketTimeEntries => Set<TicketTimeEntry>();
         public DbSet<TicketStatusHistory> TicketStatusHistory => Set<TicketStatusHistory>();
 
+        public DbSet<Activity> Activities => Set<Activity>();
+
         protected override void OnModelCreating(ModelBuilder objModelBuilder)
         {
             base.OnModelCreating(objModelBuilder);
@@ -76,6 +80,8 @@ namespace CRM.Infrastructure.Data
             objModelBuilder.ApplyConfiguration(new TicketCommentConfiguration());
             objModelBuilder.ApplyConfiguration(new TicketTimeEntryConfiguration());
             objModelBuilder.ApplyConfiguration(new TicketStatusHistoryConfiguration());
+
+            objModelBuilder.ApplyConfiguration(new ActivityConfiguration());
         }
     }
 }
