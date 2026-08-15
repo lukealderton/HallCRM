@@ -545,6 +545,15 @@
     [Parameter]
     public Guid ActivityId { get; set; }
 
+    [SupplyParameterFromQuery(Name = "companyId")]
+    public Guid? CompanyId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "contactId")]
+    public Guid? ContactId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "jobId")]
+    public Guid? JobId { get; set; }
+
     private Activity objActivity = new();
 
     private List<Company> colCompanies = [];
@@ -740,8 +749,13 @@
             new Activity
             {
                 Type = ActivityType.Task,
-                AssignedUserId = objCurrentUserId
+                AssignedUserId = objCurrentUserId,
+                CompanyId = CompanyId,
+                ContactId = ContactId,
+                JobId = JobId
             };
+
+        ApplyRelatedRecordDefaults();
 
         dtmDueDate = null;
         tmeDueTime = new TimeOnly(9, 0);
@@ -781,6 +795,42 @@
         HeaderState.SetHeader(
             "Edit activity",
             strActivitySubject);
+    }
+
+    private void ApplyRelatedRecordDefaults()
+    {
+        if (objActivity.JobId.HasValue)
+        {
+            Job? objJob =
+                colJobs.FirstOrDefault(objJob =>
+                    objJob.Id ==
+                    objActivity.JobId.Value);
+
+            if (objJob != null)
+            {
+                objActivity.CompanyId =
+                    objJob.CompanyId;
+
+                objActivity.ContactId =
+                    objJob.ContactId;
+
+                return;
+            }
+        }
+
+        if (objActivity.ContactId.HasValue)
+        {
+            Contact? objContact =
+                colContacts.FirstOrDefault(objContact =>
+                    objContact.Id ==
+                    objActivity.ContactId.Value);
+
+            if (objContact?.CompanyId.HasValue == true)
+            {
+                objActivity.CompanyId =
+                    objContact.CompanyId;
+            }
+        }
     }
 
     private async Task SaveActivityAsync()

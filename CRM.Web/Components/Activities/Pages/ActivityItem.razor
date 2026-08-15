@@ -706,7 +706,7 @@
     [Parameter]
     public Guid ActivityId { get; set; }
 
-    private ActivityItem objActivity = new();
+    private Activity objActivity = new();
 
     private User? objAssignedUser;
 
@@ -762,7 +762,7 @@
 
         try
         {
-            ActivityItem? objLoadedActivity =
+            Activity? objLoadedActivity =
                 await ActivityService.GetActivityByIdAsync(
                     ActivityId);
 

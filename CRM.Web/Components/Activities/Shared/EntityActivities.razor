@@ -1,0 +1,376 @@
+﻿@using CRM.Core.Activities.Abstractions
+@using CRM.Core.Activities.Domain
+
+@inject IActivityService ActivityService
+
+<div class="crm-card entity-activities">
+    <div class="crm-card-header">
+        <div>
+            <h3>@Title</h3>
+            <p>@Subtitle</p>
+        </div>
+
+        <a href="@GetAddActivityUrl()"
+           class="btn btn-primary btn-sm">
+
+            <span class="material-symbols-outlined">
+                add
+            </span>
+
+            Add activity
+        </a>
+    </div>
+
+    @if (blnLoading)
+    {
+        <div class="crm-loading">
+            <span class="spinner-border spinner-border-sm"></span>
+            Loading activities...
+        </div>
+    }
+    else if (!colActivities.Any())
+    {
+        <div class="entity-activities-empty">
+            <div class="entity-activities-empty-icon">
+                <span class="material-symbols-outlined">
+                    event_available
+                </span>
+            </div>
+
+            <div>
+                <strong>No activities</strong>
+                <span>@EmptyText</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="entity-activities-list">
+            @foreach (Activity objActivity in colActivities)
+            {
+                <a href="@($"/activities/{objActivity.Id}")"
+                   class="@GetActivityClass(objActivity)">
+
+                    <div class="entity-activity-icon">
+                        <span class="material-symbols-outlined">
+                            @GetActivityIcon(objActivity.Type)
+                        </span>
+                    </div>
+
+                    <div class="entity-activity-content">
+                        <div class="entity-activity-heading">
+                            <strong>
+                                @objActivity.Subject
+                            </strong>
+
+                            <span class="@GetStatusClass(objActivity)">
+                                @GetStatusText(objActivity)
+                            </span>
+                        </div>
+
+                        <div class="entity-activity-meta">
+                            <span>
+                                @objActivity.Type.GetDisplay().Name
+                            </span>
+
+                            @if (objActivity.DueUtc.HasValue)
+                            {
+                                <span class="entity-activity-separator">
+                                    ·
+                                </span>
+
+                                <span class="@GetDueClass(objActivity)">
+                                    @GetDueText(objActivity)
+                                </span>
+                            }
+                        </div>
+
+                        @if (!String.IsNullOrWhiteSpace(
+                            objActivity.Description))
+                        {
+                            <p>
+                                @GetDescriptionPreview(
+                                    objActivity.Description)
+                            </p>
+                        }
+                    </div>
+
+                    <span class="material-symbols-outlined entity-activity-arrow">
+                        chevron_right
+                    </span>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid? CompanyId { get; set; }
+
+    [Parameter]
+    public Guid? ContactId { get; set; }
+
+    [Parameter]
+    public Guid? JobId { get; set; }
+
+    [Parameter]
+    public String Title { get; set; } =
+        "Activities";
+
+    [Parameter]
+    public String Subtitle { get; set; } =
+        "Tasks, calls, meetings and follow-ups.";
+
+    [Parameter]
+    public String EmptyText { get; set; } =
+        "No activities have been added yet.";
+
+    [Parameter]
+    public Int32 MaximumItems { get; set; } = 6;
+
+    private List<Activity> colActivities = [];
+
+    private Boolean blnLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadActivitiesAsync();
+    }
+
+    private async Task LoadActivitiesAsync()
+    {
+        blnLoading = true;
+
+        try
+        {
+            List<Activity> colLoadedActivities =
+                await ActivityService.GetActivitiesAsync(
+                    null,
+                    null,
+                    false,
+                    CompanyId,
+                    ContactId,
+                    JobId,
+                    false,
+                    false,
+                    false,
+                    false);
+
+            colActivities =
+                colLoadedActivities
+                    .OrderBy(objActivity =>
+                        GetActivityOrder(objActivity))
+                    .ThenBy(objActivity =>
+                        objActivity.DueUtc ??
+                        DateTime.MaxValue)
+                    .Take(MaximumItems)
+                    .ToList();
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private String GetAddActivityUrl()
+    {
+        List<String> colParameters = [];
+
+        if (CompanyId.HasValue)
+        {
+            colParameters.Add(
+                $"companyId={CompanyId.Value}");
+        }
+
+        if (ContactId.HasValue)
+        {
+            colParameters.Add(
+                $"contactId={ContactId.Value}");
+        }
+
+        if (JobId.HasValue)
+        {
+            colParameters.Add(
+                $"jobId={JobId.Value}");
+        }
+
+        if (colParameters.Count == 0)
+        {
+            return "/activities/add";
+        }
+
+        return "/activities/add?" +
+               String.Join("&", colParameters);
+    }
+
+    private static Int32 GetActivityOrder(
+        Activity objActivity)
+    {
+        if (IsOverdue(objActivity))
+        {
+            return 0;
+        }
+
+        if (IsDueToday(objActivity))
+        {
+            return 1;
+        }
+
+        return 2;
+    }
+
+    private static Boolean IsOverdue(
+        Activity objActivity)
+    {
+        return !objActivity.CompletedUtc.HasValue &&
+               objActivity.DueUtc.HasValue &&
+               objActivity.DueUtc.Value <
+               DateTime.UtcNow;
+    }
+
+    private static Boolean IsDueToday(
+        Activity objActivity)
+    {
+        if (objActivity.CompletedUtc.HasValue ||
+            !objActivity.DueUtc.HasValue)
+        {
+            return false;
+        }
+
+        DateTime dtmLocal =
+            objActivity.DueUtc.Value.ToLocalTime();
+
+        return dtmLocal.Date ==
+               DateTime.Now.Date;
+    }
+
+    private static String GetActivityClass(
+        Activity objActivity)
+    {
+        if (IsOverdue(objActivity))
+        {
+            return "entity-activity-item entity-activity-item-overdue";
+        }
+
+        if (IsDueToday(objActivity))
+        {
+            return "entity-activity-item entity-activity-item-today";
+        }
+
+        return "entity-activity-item";
+    }
+
+    private static String GetStatusText(
+        Activity objActivity)
+    {
+        if (IsOverdue(objActivity))
+        {
+            return "Overdue";
+        }
+
+        if (IsDueToday(objActivity))
+        {
+            return "Due today";
+        }
+
+        return "Open";
+    }
+
+    private static String GetStatusClass(
+        Activity objActivity)
+    {
+        if (IsOverdue(objActivity))
+        {
+            return "entity-activity-status entity-activity-status-overdue";
+        }
+
+        if (IsDueToday(objActivity))
+        {
+            return "entity-activity-status entity-activity-status-today";
+        }
+
+        return "entity-activity-status";
+    }
+
+    private static String GetDueClass(
+        Activity objActivity)
+    {
+        if (IsOverdue(objActivity))
+        {
+            return "entity-activity-due entity-activity-due-overdue";
+        }
+
+        if (IsDueToday(objActivity))
+        {
+            return "entity-activity-due entity-activity-due-today";
+        }
+
+        return "entity-activity-due";
+    }
+
+    private static String GetDueText(
+        Activity objActivity)
+    {
+        if (!objActivity.DueUtc.HasValue)
+        {
+            return String.Empty;
+        }
+
+        DateTime dtmLocal =
+            objActivity.DueUtc.Value.ToLocalTime();
+
+        if (dtmLocal.Date ==
+            DateTime.Now.Date)
+        {
+            return $"Today at {dtmLocal:HH:mm}";
+        }
+
+        if (dtmLocal.Date ==
+            DateTime.Now.Date.AddDays(1))
+        {
+            return $"Tomorrow at {dtmLocal:HH:mm}";
+        }
+
+        return dtmLocal.ToString(
+            "dd MMM yyyy 'at' HH:mm");
+    }
+
+    private static String GetActivityIcon(
+        ActivityType enmType)
+    {
+        return enmType switch
+        {
+            ActivityType.Call =>
+                "call",
+
+            ActivityType.Meeting =>
+                "groups",
+
+            ActivityType.SiteVisit =>
+                "location_on",
+
+            ActivityType.FollowUp =>
+                "update",
+
+            _ =>
+                "task_alt"
+        };
+    }
+
+    private static String GetDescriptionPreview(
+        String strDescription)
+    {
+        const Int32 intMaximumLength = 110;
+
+        String strValue =
+            strDescription.Trim();
+
+        if (strValue.Length <= intMaximumLength)
+        {
+            return strValue;
+        }
+
+        return strValue[..intMaximumLength] + "…";
+    }
+}
