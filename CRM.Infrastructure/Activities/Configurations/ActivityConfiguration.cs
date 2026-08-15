@@ -1,4 +1,5 @@
 ﻿using CRM.Core.Activities.Domain;
+using CRM.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -6,78 +7,67 @@ namespace CRM.Infrastructure.Activities.Configurations
 {
     public sealed class ActivityConfiguration : IEntityTypeConfiguration<Activity>
     {
-        public void Configure(EntityTypeBuilder<Activity> objActivity)
+        public void Configure(EntityTypeBuilder<Activity> objEntity)
         {
-            objActivity.ToTable("T_Activity");
+            objEntity.ToTable("T_Activities");
 
-            objActivity.HasKey(x => x.Id);
+            objEntity.HasKey(objActivity => objActivity.Id);
 
-            objActivity.Property(x => x.Id)
-                .HasColumnName("actId");
-
-            objActivity.Property(x => x.CompanyId)
-                .HasColumnName("actCompanyId");
-
-            objActivity.Property(x => x.ContactId)
-                .HasColumnName("actContactId");
-
-            objActivity.Property(x => x.JobId)
-                .HasColumnName("actJobId");
-
-            objActivity.Property(x => x.AssignedUserId)
-                .HasColumnName("actAssignedUserId");
-
-            objActivity.Property(x => x.Type)
-                .HasColumnName("actType")
+            objEntity.Property(objActivity => objActivity.Type)
+                .HasConversion<Int32>()
                 .IsRequired();
 
-            objActivity.Property(x => x.Subject)
-                .HasColumnName("actSubject")
+            objEntity.Property(objActivity => objActivity.Subject)
                 .HasMaxLength(250)
                 .IsRequired();
 
-            objActivity.Property(x => x.Description)
-                .HasColumnName("actDescription")
+            objEntity.Property(objActivity => objActivity.Description)
                 .HasMaxLength(4000);
 
-            objActivity.Property(x => x.DueUtc)
-                .HasColumnName("actDueUtc");
+            objEntity.Property(objActivity => objActivity.DueUtc);
 
-            objActivity.Property(x => x.CompletedUtc)
-                .HasColumnName("actCompletedUtc");
+            objEntity.Property(objActivity => objActivity.CompletedUtc);
 
-            objActivity.HasOne(x => x.Entity)
+            objEntity.Property(objActivity => objActivity.AssignedUserId);
+
+            objEntity.HasOne(objActivity => objActivity.Entity)
                 .WithOne()
-                .HasForeignKey<Activity>(x => x.Id)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            objActivity.HasOne(x => x.Company)
-                .WithMany()
-                .HasForeignKey(x => x.CompanyId)
+                .HasForeignKey<Activity>(objActivity => objActivity.Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            objActivity.HasOne(x => x.Contact)
+            objEntity.HasOne(objActivity => objActivity.Company)
                 .WithMany()
-                .HasForeignKey(x => x.ContactId)
+                .HasForeignKey(objActivity => objActivity.CompanyId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            objActivity.HasOne(x => x.Job)
+            objEntity.HasOne(objActivity => objActivity.Contact)
                 .WithMany()
-                .HasForeignKey(x => x.JobId)
+                .HasForeignKey(objActivity => objActivity.ContactId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            objActivity.HasIndex(x => x.CompanyId);
-            objActivity.HasIndex(x => x.ContactId);
-            objActivity.HasIndex(x => x.JobId);
-            objActivity.HasIndex(x => x.AssignedUserId);
-            objActivity.HasIndex(x => x.Type);
-            objActivity.HasIndex(x => x.DueUtc);
-            objActivity.HasIndex(x => x.CompletedUtc);
+            objEntity.HasOne(objActivity => objActivity.Job)
+                .WithMany()
+                .HasForeignKey(objActivity => objActivity.JobId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            objActivity.HasIndex(x => new
+            objEntity.HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(objActivity => objActivity.AssignedUserId)
+                .HasPrincipalKey(objUser => objUser.DomainUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            objEntity.HasIndex(objActivity => objActivity.Type);
+            objEntity.HasIndex(objActivity => objActivity.CompanyId);
+            objEntity.HasIndex(objActivity => objActivity.ContactId);
+            objEntity.HasIndex(objActivity => objActivity.JobId);
+            objEntity.HasIndex(objActivity => objActivity.AssignedUserId);
+            objEntity.HasIndex(objActivity => objActivity.DueUtc);
+            objEntity.HasIndex(objActivity => objActivity.CompletedUtc);
+
+            objEntity.HasIndex(objActivity => new
             {
-                x.CompletedUtc,
-                x.DueUtc
+                objActivity.CompletedUtc,
+                objActivity.DueUtc
             });
         }
     }
