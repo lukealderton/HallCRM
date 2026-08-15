@@ -16,6 +16,7 @@ namespace CRM.Core.Activities.Abstractions
             Guid? objContactId = null,
             Guid? objJobId = null,
             Boolean blnOverdueOnly = false,
+            Boolean blnDueTodayOnly = false,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default);

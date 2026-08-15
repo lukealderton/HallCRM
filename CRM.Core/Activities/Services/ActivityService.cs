@@ -39,6 +39,7 @@ namespace CRM.Core.Activities.Services
             Guid? objContactId = null,
             Guid? objJobId = null,
             Boolean blnOverdueOnly = false,
+            Boolean blnDueTodayOnly = false,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default)
@@ -51,6 +52,7 @@ namespace CRM.Core.Activities.Services
                 objContactId,
                 objJobId,
                 blnOverdueOnly,
+                blnDueTodayOnly,
                 blnIncludeArchived,
                 blnIncludeDeleted,
                 objToken);

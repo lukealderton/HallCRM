@@ -48,6 +48,7 @@ namespace CRM.Infrastructure.Activities.Repositories
             Guid? objContactId = null,
             Guid? objJobId = null,
             Boolean blnOverdueOnly = false,
+            Boolean blnDueTodayOnly = false,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default)
@@ -128,6 +129,21 @@ namespace CRM.Infrastructure.Activities.Repositories
                     !objActivity.CompletedUtc.HasValue &&
                     objActivity.DueUtc.HasValue &&
                     objActivity.DueUtc.Value < dteTodayUtc);
+            }
+
+            if (blnDueTodayOnly)
+            {
+                DateTime dteTodayUtc =
+                    DateTime.UtcNow.Date;
+
+                DateTime dteTomorrowUtc =
+                    dteTodayUtc.AddDays(1);
+
+                objQuery = objQuery.Where(objActivity =>
+                    !objActivity.CompletedUtc.HasValue &&
+                    objActivity.DueUtc.HasValue &&
+                    objActivity.DueUtc.Value >= dteTodayUtc &&
+                    objActivity.DueUtc.Value < dteTomorrowUtc);
             }
 
             if (!String.IsNullOrWhiteSpace(strSearch))

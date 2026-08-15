@@ -1,0 +1,1240 @@
+﻿@page "/activities/{ActivityId:guid}"
+
+@using CRM.Core.Activities.Abstractions
+@using CRM.Core.Activities.Domain
+@using CRM.Core.Users.Abstraction.Services
+@using CRM.Core.Users.Domain
+@using CRM.Web.State
+@using CRM.Web.Users.Abstraction
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@inject IActivityService ActivityService
+@inject IUserService UserService
+@inject ICurrentUserState CurrentUserState
+@inject NavigationManager objNavigationManager
+@inject PageHeaderState HeaderState
+
+<PageTitle>@strPageTitle - 101CRM</PageTitle>
+
+<div class="activity-page">
+    @if (blnLoading)
+    {
+        <div class="crm-card">
+            <div class="crm-loading">
+                <span class="spinner-border spinner-border-sm"></span>
+                Loading activity...
+            </div>
+        </div>
+    }
+    else if (!blnFound)
+    {
+        <div class="alert alert-danger">
+            <span class="material-symbols-outlined">
+                error
+            </span>
+
+            <div class="alert-content">
+                <strong class="alert-title">
+                    Activity not found
+                </strong>
+
+                <p>
+                    @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+                    {
+                        @strErrorMessage
+                    }
+                    else
+                    {
+                        <text>
+                            The activity could not be found or may have been deleted.
+                        </text>
+                    }
+                </p>
+            </div>
+        </div>
+    }
+    else
+    {
+        @if (!String.IsNullOrWhiteSpace(strMessage))
+        {
+            <div class="alert alert-success">
+                <span class="material-symbols-outlined">
+                    check_circle
+                </span>
+
+                <div class="alert-content">
+                    <strong class="alert-title">
+                        @strMessage
+                    </strong>
+
+                    <p>
+                        The activity record has been updated.
+                    </p>
+                </div>
+            </div>
+        }
+
+        @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+        {
+            <div class="alert alert-danger">
+                <span class="material-symbols-outlined">
+                    error
+                </span>
+
+                <div class="alert-content">
+                    <strong class="alert-title">
+                        Unable to update activity
+                    </strong>
+
+                    <p>
+                        @strErrorMessage
+                    </p>
+                </div>
+            </div>
+        }
+
+        @if (blnConfirmArchive)
+        {
+            <div class="alert alert-warning">
+                <span class="material-symbols-outlined">
+                    archive
+                </span>
+
+                <div class="alert-content">
+                    <strong class="alert-title">
+                        Archive this activity?
+                    </strong>
+
+                    <p>
+                        Archived activities are hidden from normal CRM views
+                        but can be restored later.
+                    </p>
+                </div>
+
+                <div class="alert-actions">
+                    <button class="btn btn-soft-danger btn-sm"
+                            type="button"
+                            @onclick="ArchiveActivityAsync">
+                        Archive activity
+                    </button>
+
+                    <button class="btn btn-soft-secondary btn-sm"
+                            type="button"
+                            @onclick="CancelActions">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        }
+
+        @if (blnConfirmDelete)
+        {
+            <div class="alert alert-danger">
+                <span class="material-symbols-outlined">
+                    delete
+                </span>
+
+                <div class="alert-content">
+                    <strong class="alert-title">
+                        Delete this activity?
+                    </strong>
+
+                    <p>
+                        This will mark the activity as deleted.
+                        It will no longer appear in normal activity lists.
+                    </p>
+                </div>
+
+                <div class="alert-actions">
+                    <button class="btn btn-soft-danger btn-sm"
+                            type="button"
+                            @onclick="DeleteActivityAsync">
+                        Delete activity
+                    </button>
+
+                    <button class="btn btn-soft-secondary btn-sm"
+                            type="button"
+                            @onclick="CancelActions">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        }
+
+        <div class="activity-profile-card crm-card">
+            <div class="activity-profile-main">
+
+                <div class="@GetActivityIconClass()">
+                    <span class="material-symbols-outlined">
+                        @GetActivityIcon(objActivity.Type)
+                    </span>
+                </div>
+
+                <div class="activity-profile-content">
+                    <div class="activity-title-row">
+                        <h2>
+                            @objActivity.Subject
+                        </h2>
+
+                        <span class="@GetStatusBadgeClass()">
+                            @GetStatusText()
+                        </span>
+                    </div>
+
+                    <div class="activity-meta-row">
+                        <span>
+                            <span class="material-symbols-outlined">
+                                category
+                            </span>
+
+                            @objActivity.Type.GetDisplay().Name
+                        </span>
+
+                        <span>
+                            <span class="material-symbols-outlined">
+                                event
+                            </span>
+
+                            @GetDueText()
+                        </span>
+
+                        <span>
+                            <span class="material-symbols-outlined">
+                                person
+                            </span>
+
+                            @GetAssigneeText()
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="activity-profile-actions">
+
+                @if (!objActivity.CompletedUtc.HasValue &&
+                     !IsDeleted())
+                {
+                    <button class="btn btn-soft-success"
+                            type="button"
+                            disabled="@blnActionRunning"
+                            @onclick="CompleteActivityAsync">
+
+                        <span class="material-symbols-outlined">
+                            check_circle
+                        </span>
+
+                        Mark complete
+                    </button>
+                }
+                else if (objActivity.CompletedUtc.HasValue &&
+                         !IsDeleted())
+                {
+                    <button class="btn btn-soft-primary"
+                            type="button"
+                            disabled="@blnActionRunning"
+                            @onclick="ReopenActivityAsync">
+
+                        <span class="material-symbols-outlined">
+                            refresh
+                        </span>
+
+                        Reopen
+                    </button>
+                }
+
+                <a href="@($"/activities/{ActivityId}/edit")"
+                   class="btn btn-primary">
+
+                    <span class="material-symbols-outlined">
+                        edit
+                    </span>
+
+                    Edit activity
+                </a>
+
+                @if (IsArchived())
+                {
+                    <button class="btn btn-soft-primary"
+                            type="button"
+                            disabled="@blnActionRunning"
+                            @onclick="RestoreActivityAsync">
+
+                        <span class="material-symbols-outlined">
+                            unarchive
+                        </span>
+
+                        Restore
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-soft-secondary"
+                            type="button"
+                            disabled="@(IsDeleted() || blnActionRunning)"
+                            @onclick="ShowArchiveConfirmation">
+
+                        <span class="material-symbols-outlined">
+                            archive
+                        </span>
+
+                        Archive
+                    </button>
+                }
+
+                <button class="btn btn-soft-danger"
+                        type="button"
+                        disabled="@(IsDeleted() || blnActionRunning)"
+                        @onclick="ShowDeleteConfirmation">
+
+                    <span class="material-symbols-outlined">
+                        delete
+                    </span>
+
+                    Delete
+                </button>
+
+            </div>
+        </div>
+
+        <div class="activity-layout">
+
+            <div class="activity-main">
+
+                <div class="crm-card">
+                    <div class="crm-card-header">
+                        <div>
+                            <h3>Activity details</h3>
+                            <p>
+                                Details and instructions for this activity.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="activity-card-body">
+
+                        <div class="activity-info-grid">
+
+                            <div class="activity-info-item">
+                                <span class="material-symbols-outlined">
+                                    category
+                                </span>
+
+                                <div>
+                                    <small>Type</small>
+
+                                    <strong>
+                                        @objActivity.Type.GetDisplay().Name
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <div class="activity-info-item">
+                                <span class="material-symbols-outlined">
+                                    event
+                                </span>
+
+                                <div>
+                                    <small>Due</small>
+
+                                    <strong class="@GetDueTextClass()">
+                                        @GetDueText()
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <div class="activity-info-item">
+                                <span class="material-symbols-outlined">
+                                    person
+                                </span>
+
+                                <div>
+                                    <small>Assigned to</small>
+
+                                    <strong>
+                                        @GetAssigneeText()
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <div class="activity-info-item">
+                                <span class="material-symbols-outlined">
+                                    task_alt
+                                </span>
+
+                                <div>
+                                    <small>Status</small>
+
+                                    <strong class="@GetStatusTextClass()">
+                                        @GetStatusText()
+                                    </strong>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="activity-description">
+                            <small>Description</small>
+
+                            @if (!String.IsNullOrWhiteSpace(
+                                objActivity.Description))
+                            {
+                                <p>
+                                    @objActivity.Description
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="text-muted">
+                                    No description has been added.
+                                </p>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="crm-card">
+                    <div class="crm-card-header">
+                        <div>
+                            <h3>Related records</h3>
+                            <p>
+                                CRM records linked to this activity.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="activity-card-body">
+                        @if (!HasRelatedRecords())
+                        {
+                            <div class="activity-related-empty">
+                                <span class="material-symbols-outlined">
+                                    link_off
+                                </span>
+
+                                <div>
+                                    <strong>No linked records</strong>
+
+                                    <span>
+                                        This activity is not currently linked
+                                        to a company, contact or job.
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="activity-related-grid">
+
+                                @if (objActivity.Company != null)
+                                {
+                                    <a href="@($"/companies/{objActivity.Company.Id}")"
+                                       class="activity-related-card">
+
+                                        <span class="material-symbols-outlined">
+                                            apartment
+                                        </span>
+
+                                        <div>
+                                            <small>Company</small>
+
+                                            <strong>
+                                                @objActivity.Company.Name
+                                            </strong>
+                                        </div>
+
+                                        <span class="material-symbols-outlined activity-related-arrow">
+                                            chevron_right
+                                        </span>
+                                    </a>
+                                }
+
+                                @if (objActivity.Contact != null)
+                                {
+                                    <a href="@($"/contacts/{objActivity.Contact.Id}")"
+                                       class="activity-related-card">
+
+                                        <span class="material-symbols-outlined">
+                                            person
+                                        </span>
+
+                                        <div>
+                                            <small>Contact</small>
+
+                                            <strong>
+                                                @objActivity.Contact.Entity.DisplayName
+                                            </strong>
+                                        </div>
+
+                                        <span class="material-symbols-outlined activity-related-arrow">
+                                            chevron_right
+                                        </span>
+                                    </a>
+                                }
+
+                                @if (objActivity.Job != null)
+                                {
+                                    <a href="@($"/jobs/{objActivity.Job.Id}")"
+                                       class="activity-related-card">
+
+                                        <span class="material-symbols-outlined">
+                                            home_repair_service
+                                        </span>
+
+                                        <div>
+                                            <small>Job</small>
+
+                                            <strong>
+                                                @objActivity.Job.Name
+                                            </strong>
+                                        </div>
+
+                                        <span class="material-symbols-outlined activity-related-arrow">
+                                            chevron_right
+                                        </span>
+                                    </a>
+                                }
+
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <EntityNotes EntityId="@ActivityId"
+                             Title="Notes"
+                             Subtitle="Internal notes for this activity."
+                             EmptyText="No notes have been added for this activity yet." />
+
+            </div>
+
+            <aside class="activity-side">
+
+                <div class="crm-card">
+                    <div class="activity-card-body">
+                        <h4 class="activity-side-heading">
+                            Quick actions
+                        </h4>
+
+                        <div class="activity-action-list">
+
+                            @if (!objActivity.CompletedUtc.HasValue &&
+                                 !IsDeleted())
+                            {
+                                <button type="button"
+                                        class="btn btn-soft-success w-100"
+                                        disabled="@blnActionRunning"
+                                        @onclick="CompleteActivityAsync">
+
+                                    <span class="material-symbols-outlined">
+                                        check_circle
+                                    </span>
+
+                                    Mark complete
+                                </button>
+                            }
+                            else if (objActivity.CompletedUtc.HasValue &&
+                                     !IsDeleted())
+                            {
+                                <button type="button"
+                                        class="btn btn-soft-primary w-100"
+                                        disabled="@blnActionRunning"
+                                        @onclick="ReopenActivityAsync">
+
+                                    <span class="material-symbols-outlined">
+                                        refresh
+                                    </span>
+
+                                    Reopen activity
+                                </button>
+                            }
+
+                            <a href="@($"/activities/{ActivityId}/edit")"
+                               class="btn btn-soft-secondary w-100">
+
+                                <span class="material-symbols-outlined">
+                                    edit
+                                </span>
+
+                                Edit activity
+                            </a>
+
+                            @if (objActivity.Company != null)
+                            {
+                                <a href="@($"/companies/{objActivity.Company.Id}")"
+                                   class="btn btn-soft-secondary w-100">
+
+                                    <span class="material-symbols-outlined">
+                                        apartment
+                                    </span>
+
+                                    Open company
+                                </a>
+                            }
+
+                            @if (objActivity.Contact != null)
+                            {
+                                <a href="@($"/contacts/{objActivity.Contact.Id}")"
+                                   class="btn btn-soft-secondary w-100">
+
+                                    <span class="material-symbols-outlined">
+                                        person
+                                    </span>
+
+                                    Open contact
+                                </a>
+                            }
+
+                            @if (objActivity.Job != null)
+                            {
+                                <a href="@($"/jobs/{objActivity.Job.Id}")"
+                                   class="btn btn-soft-secondary w-100">
+
+                                    <span class="material-symbols-outlined">
+                                        home_repair_service
+                                    </span>
+
+                                    Open job
+                                </a>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card">
+                    <div class="activity-card-body">
+                        <h4 class="activity-side-heading">
+                            Schedule
+                        </h4>
+
+                        <div class="activity-meta-list">
+
+                            <div>
+                                <span>Due</span>
+
+                                <strong class="@GetDueTextClass()">
+                                    @GetDueText()
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Assigned to</span>
+
+                                <strong>
+                                    @GetAssigneeText()
+                                </strong>
+                            </div>
+
+                            @if (objActivity.CompletedUtc.HasValue)
+                            {
+                                <div>
+                                    <span>Completed</span>
+
+                                    <strong>
+                                        @FormatNullableDateTime(
+                                            objActivity.CompletedUtc)
+                                    </strong>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card">
+                    <div class="activity-card-body">
+                        <h4 class="activity-side-heading">
+                            Record details
+                        </h4>
+
+                        <div class="activity-meta-list">
+
+                            <div>
+                                <span>Created</span>
+
+                                <strong>
+                                    @FormatNullableDate(
+                                        objActivity.Entity?.CreatedUtc)
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Updated</span>
+
+                                <strong>
+                                    @FormatNullableDate(
+                                        objActivity.Entity?.UpdatedUtc)
+                                </strong>
+                            </div>
+
+                            @if (objActivity.Entity?.ArchivedUtc != null)
+                            {
+                                <div>
+                                    <span>Archived</span>
+
+                                    <strong>
+                                        @FormatNullableDate(
+                                            objActivity.Entity.ArchivedUtc)
+                                    </strong>
+                                </div>
+                            }
+
+                            @if (objActivity.Entity?.DeletedUtc != null)
+                            {
+                                <div>
+                                    <span>Deleted</span>
+
+                                    <strong>
+                                        @FormatNullableDate(
+                                            objActivity.Entity.DeletedUtc)
+                                    </strong>
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+
+            </aside>
+
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid ActivityId { get; set; }
+
+    private ActivityItem objActivity = new();
+
+    private User? objAssignedUser;
+
+    private Boolean blnLoading = true;
+    private Boolean blnFound;
+    private Boolean blnConfirmArchive;
+    private Boolean blnConfirmDelete;
+    private Boolean blnActionRunning;
+
+    private String strPageTitle = "Activity";
+    private String? strMessage;
+    private String? strErrorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadActivityAsync();
+    }
+
+    private RenderFragment GetHeaderActions()
+    {
+        return @<a href="/activities"
+               class="btn btn-soft-secondary">
+            <span class="material-symbols-outlined">
+                arrow_back
+            </span>
+
+            Back to activities
+        </a>;
+    }
+
+    private async Task LoadActivityAsync(
+        Boolean blnClearMessage = true)
+    {
+        blnLoading = true;
+        blnFound = false;
+
+        if (blnClearMessage)
+        {
+            strMessage = null;
+        }
+
+        strErrorMessage = null;
+
+        blnConfirmArchive = false;
+        blnConfirmDelete = false;
+
+        objAssignedUser = null;
+
+        HeaderState.SetHeader(
+            "Activity",
+            "Loading activity...",
+            GetHeaderActions());
+
+        try
+        {
+            ActivityItem? objLoadedActivity =
+                await ActivityService.GetActivityByIdAsync(
+                    ActivityId);
+
+            if (objLoadedActivity == null)
+            {
+                HeaderState.SetHeader(
+                    "Activity not found",
+                    "The activity could not be loaded",
+                    GetHeaderActions());
+
+                return;
+            }
+
+            objActivity =
+                objLoadedActivity;
+
+            if (objActivity.AssignedUserId.HasValue)
+            {
+                objAssignedUser =
+                    await UserService.GetUserAsync(
+                        objActivity.AssignedUserId.Value);
+            }
+
+            blnFound = true;
+
+            strPageTitle =
+                objActivity.Subject;
+
+            HeaderState.SetHeader(
+                objActivity.Subject,
+                objActivity.Type.GetDisplay().Name,
+                GetHeaderActions());
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                objError.Message;
+
+            HeaderState.SetHeader(
+                "Activity",
+                "Unable to load activity",
+                GetHeaderActions());
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private void ShowArchiveConfirmation()
+    {
+        blnConfirmArchive = true;
+        blnConfirmDelete = false;
+
+        strMessage = null;
+        strErrorMessage = null;
+    }
+
+    private void ShowDeleteConfirmation()
+    {
+        blnConfirmDelete = true;
+        blnConfirmArchive = false;
+
+        strMessage = null;
+        strErrorMessage = null;
+    }
+
+    private void CancelActions()
+    {
+        blnConfirmArchive = false;
+        blnConfirmDelete = false;
+    }
+
+    private async Task CompleteActivityAsync()
+    {
+        await RunActivityActionAsync(
+            async objUserId =>
+                await ActivityService.CompleteActivityAsync(
+                    ActivityId,
+                    objUserId),
+            "Activity completed");
+    }
+
+    private async Task ReopenActivityAsync()
+    {
+        await RunActivityActionAsync(
+            async objUserId =>
+                await ActivityService.ReopenActivityAsync(
+                    ActivityId,
+                    objUserId),
+            "Activity reopened");
+    }
+
+    private async Task ArchiveActivityAsync()
+    {
+        await RunActivityActionAsync(
+            async objUserId =>
+                await ActivityService.ArchiveActivityAsync(
+                    ActivityId,
+                    objUserId),
+            "Activity archived");
+    }
+
+    private async Task RestoreActivityAsync()
+    {
+        await RunActivityActionAsync(
+            async objUserId =>
+                await ActivityService.RestoreActivityAsync(
+                    ActivityId,
+                    objUserId),
+            "Activity restored");
+    }
+
+    private async Task DeleteActivityAsync()
+    {
+        if (blnActionRunning)
+        {
+            return;
+        }
+
+        blnActionRunning = true;
+
+        strErrorMessage = null;
+        strMessage = null;
+
+        try
+        {
+            Guid? objCurrentUserId =
+                await CurrentUserState.GetCurrentUserIdAsync();
+
+            Boolean blnDeleted =
+                await ActivityService.DeleteActivityAsync(
+                    ActivityId,
+                    objCurrentUserId);
+
+            if (!blnDeleted)
+            {
+                strErrorMessage =
+                    "The activity could not be deleted. " +
+                    "It may already have been deleted.";
+
+                return;
+            }
+
+            objNavigationManager.NavigateTo(
+                "/activities");
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                objError.Message;
+        }
+        finally
+        {
+            blnActionRunning = false;
+        }
+    }
+
+    private async Task RunActivityActionAsync(
+        Func<Guid?, Task<Boolean>> objAction,
+        String strSuccessMessage)
+    {
+        if (blnActionRunning)
+        {
+            return;
+        }
+
+        blnActionRunning = true;
+
+        strErrorMessage = null;
+        strMessage = null;
+
+        blnConfirmArchive = false;
+        blnConfirmDelete = false;
+
+        try
+        {
+            Guid? objCurrentUserId =
+                await CurrentUserState.GetCurrentUserIdAsync();
+
+            Boolean blnSuccess =
+                await objAction(
+                    objCurrentUserId);
+
+            if (!blnSuccess)
+            {
+                strErrorMessage =
+                    "The activity could not be updated. " +
+                    "It may have been deleted or no longer exists.";
+
+                return;
+            }
+
+            await LoadActivityAsync(
+                false);
+
+            strMessage =
+                strSuccessMessage;
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                objError.Message;
+        }
+        finally
+        {
+            blnActionRunning = false;
+        }
+    }
+
+    private Boolean IsArchived()
+    {
+        return objActivity.Entity?.ArchivedUtc.HasValue == true &&
+               objActivity.Entity?.DeletedUtc.HasValue != true;
+    }
+
+    private Boolean IsDeleted()
+    {
+        return objActivity.Entity?.DeletedUtc.HasValue == true;
+    }
+
+    private Boolean IsOverdue()
+    {
+        return !objActivity.CompletedUtc.HasValue &&
+               objActivity.DueUtc.HasValue &&
+               objActivity.DueUtc.Value <
+               DateTime.UtcNow;
+    }
+
+    private Boolean IsDueToday()
+    {
+        if (objActivity.CompletedUtc.HasValue ||
+            !objActivity.DueUtc.HasValue)
+        {
+            return false;
+        }
+
+        DateTime dtmLocal =
+            objActivity.DueUtc.Value.ToLocalTime();
+
+        return dtmLocal.Date ==
+               DateTime.Now.Date;
+    }
+
+    private Boolean HasRelatedRecords()
+    {
+        return objActivity.Company != null ||
+               objActivity.Contact != null ||
+               objActivity.Job != null;
+    }
+
+    private String GetStatusText()
+    {
+        if (IsDeleted())
+        {
+            return "Deleted";
+        }
+
+        if (IsArchived())
+        {
+            return "Archived";
+        }
+
+        if (objActivity.CompletedUtc.HasValue)
+        {
+            return "Completed";
+        }
+
+        if (IsOverdue())
+        {
+            return "Overdue";
+        }
+
+        if (IsDueToday())
+        {
+            return "Due today";
+        }
+
+        return "Open";
+    }
+
+    private String GetStatusBadgeClass()
+    {
+        if (IsDeleted())
+        {
+            return "badge text-bg-danger";
+        }
+
+        if (IsArchived())
+        {
+            return "badge text-bg-secondary";
+        }
+
+        if (objActivity.CompletedUtc.HasValue)
+        {
+            return "badge text-bg-success";
+        }
+
+        if (IsOverdue())
+        {
+            return "badge text-bg-danger";
+        }
+
+        if (IsDueToday())
+        {
+            return "badge text-bg-warning";
+        }
+
+        return "badge text-bg-primary";
+    }
+
+    private String GetStatusTextClass()
+    {
+        if (IsDeleted())
+        {
+            return "text-danger";
+        }
+
+        if (IsArchived())
+        {
+            return "text-secondary";
+        }
+
+        if (objActivity.CompletedUtc.HasValue)
+        {
+            return "text-success";
+        }
+
+        if (IsOverdue())
+        {
+            return "text-danger";
+        }
+
+        if (IsDueToday())
+        {
+            return "text-warning";
+        }
+
+        return String.Empty;
+    }
+
+    private String GetDueText()
+    {
+        if (!objActivity.DueUtc.HasValue)
+        {
+            return "No due date";
+        }
+
+        DateTime dtmLocal =
+            objActivity.DueUtc.Value.ToLocalTime();
+
+        if (!objActivity.CompletedUtc.HasValue)
+        {
+            if (dtmLocal.Date == DateTime.Now.Date)
+            {
+                return $"Today at {dtmLocal:HH:mm}";
+            }
+
+            if (dtmLocal.Date ==
+                DateTime.Now.Date.AddDays(1))
+            {
+                return $"Tomorrow at {dtmLocal:HH:mm}";
+            }
+        }
+
+        return dtmLocal.ToString(
+            "dd MMM yyyy 'at' HH:mm");
+    }
+
+    private String GetDueTextClass()
+    {
+        if (objActivity.CompletedUtc.HasValue)
+        {
+            return String.Empty;
+        }
+
+        if (IsOverdue())
+        {
+            return "text-danger";
+        }
+
+        if (IsDueToday())
+        {
+            return "text-warning";
+        }
+
+        return String.Empty;
+    }
+
+    private String GetAssigneeText()
+    {
+        if (objAssignedUser == null)
+        {
+            return objActivity.AssignedUserId.HasValue
+                ? "Unknown user"
+                : "Unassigned";
+        }
+
+        if (objAssignedUser.Id ==
+            CurrentUserState.CurrentUserId)
+        {
+            return $"{objAssignedUser.DisplayName} (You)";
+        }
+
+        return objAssignedUser.DisplayName;
+    }
+
+    private String GetActivityIconClass()
+    {
+        if (objActivity.CompletedUtc.HasValue)
+        {
+            return "activity-profile-icon activity-profile-icon-completed";
+        }
+
+        if (IsOverdue())
+        {
+            return "activity-profile-icon activity-profile-icon-overdue";
+        }
+
+        if (IsDueToday())
+        {
+            return "activity-profile-icon activity-profile-icon-today";
+        }
+
+        return "activity-profile-icon";
+    }
+
+    private static String GetActivityIcon(
+        ActivityType enmType)
+    {
+        return enmType switch
+        {
+            ActivityType.Call =>
+                "call",
+
+            ActivityType.Meeting =>
+                "groups",
+
+            ActivityType.SiteVisit =>
+                "location_on",
+
+            ActivityType.FollowUp =>
+                "update",
+
+            _ =>
+                "task_alt"
+        };
+    }
+
+    private static String FormatNullableDate(
+        DateTime? dtmDate)
+    {
+        if (!dtmDate.HasValue)
+        {
+            return "-";
+        }
+
+        return dtmDate.Value
+            .ToLocalTime()
+            .ToString("dd MMM yyyy");
+    }
+
+    private static String FormatNullableDateTime(
+        DateTime? dtmDate)
+    {
+        if (!dtmDate.HasValue)
+        {
+            return "-";
+        }
+
+        return dtmDate.Value
+            .ToLocalTime()
+            .ToString("dd MMM yyyy 'at' HH:mm");
+    }
+}

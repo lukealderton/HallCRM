@@ -1,0 +1,629 @@
+﻿@page "/activities"
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using CRM.Core.Activities.Abstractions
+@using CRM.Core.Activities.Domain
+
+@inject IActivityService ActivityService
+@inject NavigationManager Navigation
+
+<PageTitle>Activities - HallCRM</PageTitle>
+
+<section class="activities-page">
+
+    <div class="crm-card activities-toolbar">
+        <div class="activities-search">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <span class="material-symbols-outlined">search</span>
+                </span>
+
+                <input class="form-control"
+                       placeholder="Search activities, companies, contacts or jobs..."
+                       @bind="strSearch"
+                       @bind:event="oninput" />
+            </div>
+        </div>
+
+        <div class="activities-filters">
+            <select class="form-select activities-type-filter"
+                    @bind="strSelectedType"
+                    @bind:after="FiltersChangedAsync">
+
+                <option value="">All types</option>
+
+                @foreach (ActivityType enmType in Enum.GetValues<ActivityType>())
+                {
+                    <option value="@enmType.ToString()">
+                        @enmType.GetDisplay().Name
+                    </option>
+                }
+            </select>
+
+            <select class="form-select activities-status-filter"
+                    @bind="strSelectedStatus"
+                    @bind:after="FiltersChangedAsync">
+
+                <option value="">All statuses</option>
+                <option value="open">Open</option>
+                <option value="completed">Completed</option>
+            </select>
+
+            <div class="activities-filter-divider"></div>
+
+            <div class="form-check form-switch">
+                <input id="activityArchived"
+                       class="form-check-input"
+                       type="checkbox"
+                       @bind="blnIncludeArchived"
+                       @bind:after="LoadActivitiesAsync" />
+
+                <label class="form-check-label"
+                       for="activityArchived">
+                    Include archived
+                </label>
+            </div>
+        </div>
+
+        <div class="activities-toolbar-actions">
+            <button class="btn btn-primary"
+                    type="button"
+                    @onclick="LoadActivitiesAsync">
+
+                <span class="material-symbols-outlined">search</span>
+                Search
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="activities-summary-card">
+                <span class="material-symbols-outlined">
+                    pending_actions
+                </span>
+
+                <div>
+                    <small>Open shown</small>
+                    <strong>@intOpenCount</strong>
+                    <span>@intTotalCount total shown</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="activities-summary-card activities-summary-danger">
+                <span class="material-symbols-outlined">
+                    assignment_late
+                </span>
+
+                <div>
+                    <small>Overdue shown</small>
+                    <strong>@intOverdueCount</strong>
+                    <span>Past their due date</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="activities-summary-card activities-summary-warning">
+                <span class="material-symbols-outlined">
+                    today
+                </span>
+
+                <div>
+                    <small>Due today</small>
+                    <strong>@intDueTodayCount</strong>
+                    <span>Scheduled for today</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="activities-summary-card activities-summary-success">
+                <span class="material-symbols-outlined">
+                    task_alt
+                </span>
+
+                <div>
+                    <small>Completed shown</small>
+                    <strong>@intCompletedCount</strong>
+                    <span>Finished activities</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="crm-card">
+        <div class="crm-card-header">
+            <div>
+                <h3>Activity records</h3>
+                <p>@strResultSummary</p>
+            </div>
+
+            <div class="activities-header-actions">
+                @if (HasActiveFilters)
+                {
+                    <button class="btn btn-soft-secondary btn-sm"
+                            type="button"
+                            @onclick="ClearFiltersAsync">
+
+                        <span class="material-symbols-outlined">
+                            filter_alt_off
+                        </span>
+
+                        Clear filters
+                    </button>
+                }
+
+                <a href="/activities/add"
+                   class="btn btn-primary btn-sm">
+
+                    <span class="material-symbols-outlined">
+                        add_circle
+                    </span>
+
+                    Add activity
+                </a>
+            </div>
+        </div>
+
+        @if (blnLoading)
+        {
+            <div class="crm-loading">
+                <span class="spinner-border spinner-border-sm"></span>
+                Loading activities...
+            </div>
+        }
+        else if (!colActivities.Any())
+        {
+            <div class="crm-empty-state">
+                <span class="material-symbols-outlined">
+                    pending_actions
+                </span>
+
+                <h4>No activities found</h4>
+
+                <p>
+                    Add an activity or adjust the current filters.
+                </p>
+
+                <a href="/activities/add"
+                   class="btn btn-primary">
+
+                    <span class="material-symbols-outlined">
+                        add_circle
+                    </span>
+
+                    Add activity
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle crm-table activities-table">
+                    <thead>
+                        <tr>
+                            <th>Activity</th>
+                            <th>Type</th>
+                            <th>Related to</th>
+                            <th>Due</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (ActivityItem objActivity in colActivities)
+                        {
+                            <tr class="@GetRowClass(objActivity)">
+                                <td>
+                                    <div class="activities-name-cell">
+                                        <div class="activities-icon">
+                                            <span class="material-symbols-outlined">
+                                                @GetActivityIcon(objActivity.Type)
+                                            </span>
+                                        </div>
+
+                                        <div>
+                                            <a href="@($"/activities/{objActivity.Id}")"
+                                               class="activities-name-link">
+                                                @objActivity.Subject
+                                            </a>
+
+                                            @if (!String.IsNullOrWhiteSpace(objActivity.Description))
+                                            {
+                                                <small class="text-muted d-block">
+                                                    @GetDescriptionPreview(objActivity.Description)
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="activity-type">
+                                        @objActivity.Type.GetDisplay().Name
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <div class="activities-related">
+                                        @if (objActivity.Company != null)
+                                        {
+                                            <a href="@($"/companies/{objActivity.Company.Id}")">
+                                                @objActivity.Company.Name
+                                            </a>
+                                        }
+
+                                        @if (objActivity.Job != null)
+                                        {
+                                            <a href="@($"/jobs/{objActivity.Job.Id}")">
+                                                @objActivity.Job.Name
+                                            </a>
+                                        }
+
+                                        @if (objActivity.Contact != null)
+                                        {
+                                            <a href="@($"/contacts/{objActivity.Contact.Id}")">
+                                                @objActivity.Contact.Entity.DisplayName
+                                            </a>
+                                        }
+
+                                        @if (objActivity.Company == null &&
+                                             objActivity.Contact == null &&
+                                             objActivity.Job == null)
+                                        {
+                                            <span class="text-muted">
+                                                Not linked
+                                            </span>
+                                        }
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="@GetDueClass(objActivity)">
+                                        @FormatDate(objActivity.DueUtc)
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @if (objActivity.IsCompleted)
+                                    {
+                                        <span class="badge text-bg-success">
+                                            Completed
+                                        </span>
+                                    }
+                                    else if (IsOverdue(objActivity))
+                                    {
+                                        <span class="badge text-bg-danger">
+                                            Overdue
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-primary">
+                                            Open
+                                        </span>
+                                    }
+                                </td>
+
+                                <td class="text-end">
+                                    <div class="activities-row-actions">
+
+                                        @if (!objActivity.IsCompleted)
+                                        {
+                                            <button class="btn btn-soft-success btn-sm"
+                                                    type="button"
+                                                    @onclick="() => CompleteAsync(objActivity.Id)">
+
+                                                <span class="material-symbols-outlined">
+                                                    check
+                                                </span>
+
+                                                Complete
+                                            </button>
+                                        }
+
+                                        <a href="@($"/activities/{objActivity.Id}/edit")"
+                                           class="btn btn-soft-secondary btn-sm">
+
+                                            <span class="material-symbols-outlined">
+                                                edit
+                                            </span>
+
+                                            Edit
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "overdue")]
+    public Boolean Overdue { get; set; }
+
+    [SupplyParameterFromQuery(Name = "due")]
+    public String? Due { get; set; }
+
+    private List<ActivityItem> colActivities = [];
+
+    private String? strSearch;
+    private String strSelectedType = String.Empty;
+    private String strSelectedStatus = String.Empty;
+    private String strResultSummary = "Showing activity records.";
+
+    private Boolean blnIncludeArchived;
+    private Boolean blnLoading = true;
+
+    private Int32 intTotalCount;
+    private Int32 intOpenCount;
+    private Int32 intCompletedCount;
+    private Int32 intOverdueCount;
+    private Int32 intDueTodayCount;
+
+    private ActivityType? SelectedType
+    {
+        get
+        {
+            if (Enum.TryParse(
+                strSelectedType,
+                true,
+                out ActivityType enmType))
+            {
+                return enmType;
+            }
+
+            return null;
+        }
+    }
+
+    private Boolean? CompletedFilter =>
+        strSelectedStatus switch
+        {
+            "open" => false,
+            "completed" => true,
+            _ => null
+        };
+
+    private Boolean DueToday =>
+        String.Equals(
+            Due,
+            "today",
+            StringComparison.OrdinalIgnoreCase);
+
+    private Boolean HasActiveFilters =>
+        !String.IsNullOrWhiteSpace(strSearch) ||
+        !String.IsNullOrWhiteSpace(strSelectedType) ||
+        !String.IsNullOrWhiteSpace(strSelectedStatus) ||
+        blnIncludeArchived ||
+        Overdue ||
+        DueToday;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadActivitiesAsync();
+    }
+
+    private Task FiltersChangedAsync()
+    {
+        return LoadActivitiesAsync();
+    }
+
+    private async Task LoadActivitiesAsync()
+    {
+        blnLoading = true;
+
+        try
+        {
+            colActivities =
+                await ActivityService.GetActivitiesAsync(
+                    strSearch,
+                    SelectedType,
+                    CompletedFilter,
+                    null,
+                    null,
+                    null,
+                    Overdue,
+                    DueToday,
+                    blnIncludeArchived,
+                    false);
+
+            SetStatistics();
+            SetResultSummary();
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private async Task CompleteAsync(
+        Guid objActivityId)
+    {
+        Boolean blnCompleted =
+            await ActivityService.CompleteActivityAsync(
+                objActivityId);
+
+        if (blnCompleted)
+        {
+            await LoadActivitiesAsync();
+        }
+    }
+
+    private Task ClearFiltersAsync()
+    {
+        strSearch = null;
+        strSelectedType = String.Empty;
+        strSelectedStatus = String.Empty;
+        blnIncludeArchived = false;
+
+        Navigation.NavigateTo(
+            "/activities",
+            replace: true);
+
+        return Task.CompletedTask;
+    }
+
+    private void SetStatistics()
+    {
+        DateTime dteTodayUtc =
+            DateTime.UtcNow.Date;
+
+        DateTime dteTomorrowUtc =
+            dteTodayUtc.AddDays(1);
+
+        intTotalCount =
+            colActivities.Count;
+
+        intOpenCount =
+            colActivities.Count(x =>
+                !x.IsCompleted);
+
+        intCompletedCount =
+            colActivities.Count(x =>
+                x.IsCompleted);
+
+        intOverdueCount =
+            colActivities.Count(IsOverdue);
+
+        intDueTodayCount =
+            colActivities.Count(x =>
+                !x.IsCompleted &&
+                x.DueUtc.HasValue &&
+                x.DueUtc.Value >= dteTodayUtc &&
+                x.DueUtc.Value < dteTomorrowUtc);
+    }
+
+    private void SetResultSummary()
+    {
+        List<String> colFilters = [];
+
+        if (!String.IsNullOrWhiteSpace(strSearch))
+        {
+            colFilters.Add(
+                $"matching \"{strSearch}\"");
+        }
+
+        if (SelectedType.HasValue)
+        {
+            colFilters.Add(
+                $"type {SelectedType.Value.GetDisplay().Name}");
+        }
+
+        if (CompletedFilter.HasValue)
+        {
+            colFilters.Add(
+                CompletedFilter.Value
+                    ? "completed"
+                    : "open");
+        }
+
+        if (Overdue)
+        {
+            colFilters.Add("overdue");
+        }
+
+        if (DueToday)
+        {
+            colFilters.Add("due today");
+        }
+
+        strResultSummary =
+            colFilters.Count == 0
+                ? $"Showing {intTotalCount} activit{(intTotalCount == 1 ? "y" : "ies")}."
+                : $"Showing {intTotalCount} result{(intTotalCount == 1 ? String.Empty : "s")} {String.Join(", ", colFilters)}.";
+    }
+
+    private static Boolean IsOverdue(
+        ActivityItem objActivity)
+    {
+        return !objActivity.IsCompleted &&
+               objActivity.DueUtc.HasValue &&
+               objActivity.DueUtc.Value < DateTime.UtcNow.Date;
+    }
+
+    private static String GetDueClass(
+        ActivityItem objActivity)
+    {
+        if (objActivity.IsCompleted ||
+            !objActivity.DueUtc.HasValue)
+        {
+            return String.Empty;
+        }
+
+        DateTime dteTodayUtc =
+            DateTime.UtcNow.Date;
+
+        DateTime dteDueUtc =
+            objActivity.DueUtc.Value;
+
+        if (dteDueUtc < dteTodayUtc)
+        {
+            return "activities-due-overdue";
+        }
+
+        if (dteDueUtc < dteTodayUtc.AddDays(1))
+        {
+            return "activities-due-today";
+        }
+
+        return String.Empty;
+    }
+
+    private static String GetActivityIcon(
+        ActivityType enmType)
+    {
+        return enmType switch
+        {
+            ActivityType.Call => "call",
+            ActivityType.Meeting => "groups",
+            ActivityType.SiteVisit => "location_on",
+            ActivityType.FollowUp => "update",
+            _ => "task_alt"
+        };
+    }
+
+    private static String GetDescriptionPreview(
+        String strDescription)
+    {
+        const Int32 intMaximumLength = 70;
+
+        return strDescription.Length <= intMaximumLength
+            ? strDescription
+            : strDescription[..intMaximumLength] + "…";
+    }
+
+    private static String FormatDate(
+        DateTime? dteDate)
+    {
+        return dteDate.HasValue
+            ? dteDate.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+            : "—";
+    }
+
+    private static String GetRowClass(
+        ActivityItem objActivity)
+    {
+        if (objActivity.IsCompleted)
+        {
+            return "activities-row-completed";
+        }
+
+        if (objActivity.IsArchived)
+        {
+            return "activities-row-archived";
+        }
+
+        return String.Empty;
+    }
+}

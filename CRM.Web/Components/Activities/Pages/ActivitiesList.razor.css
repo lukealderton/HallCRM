@@ -1,0 +1,268 @@
+﻿.activities-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activities-toolbar {
+    padding: 1rem 1.25rem;
+    display: grid;
+    grid-template-columns: minmax(300px, 1fr) auto auto;
+    gap: 1.25rem;
+    align-items: end;
+}
+
+.activities-search {
+    min-width: 0;
+}
+
+    .activities-search .input-group-text {
+        background: #ffffff;
+        color: #64748b;
+    }
+
+    .activities-search .material-symbols-outlined {
+        font-size: 20px;
+    }
+
+.activities-filters {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    white-space: nowrap;
+}
+
+.activities-type-filter,
+.activities-status-filter {
+    width: 10rem;
+}
+
+.activities-filter-divider {
+    width: 1px;
+    height: 2.25rem;
+    background: #e5eaf2;
+}
+
+.activities-toolbar-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.activities-summary-card {
+    min-height: 120px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    background: #ffffff;
+    border: 1px solid #e5eaf2;
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+}
+
+    .activities-summary-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 4px;
+        background: #0b5cff;
+    }
+
+    .activities-summary-card > .material-symbols-outlined {
+        width: 52px;
+        height: 52px;
+        flex: 0 0 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: .85rem;
+        background: #eaf2ff;
+        color: #0b5cff;
+        font-size: 28px;
+    }
+
+    .activities-summary-card small,
+    .activities-summary-card strong,
+    .activities-summary-card div > span {
+        display: block;
+    }
+
+    .activities-summary-card small {
+        color: #475569;
+        font-size: .9rem;
+    }
+
+    .activities-summary-card strong {
+        margin-top: .2rem;
+        color: #0f172a;
+        font-size: 1.85rem;
+        font-weight: 850;
+        line-height: 1;
+    }
+
+    .activities-summary-card div > span {
+        margin-top: .4rem;
+        color: #64748b;
+        font-size: .82rem;
+    }
+
+.activities-summary-danger::before {
+    background: #dc2626;
+}
+
+.activities-summary-danger > .material-symbols-outlined {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.activities-summary-warning::before {
+    background: #f59e0b;
+}
+
+.activities-summary-warning > .material-symbols-outlined {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.activities-summary-success::before {
+    background: #16a34a;
+}
+
+.activities-summary-success > .material-symbols-outlined {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.activities-header-actions {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.activities-name-cell {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+.activities-icon {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef4ff;
+    color: #0b5cff;
+    border-radius: .7rem;
+}
+
+    .activities-icon .material-symbols-outlined {
+        font-size: 20px;
+    }
+
+.activities-name-link {
+    color: #111827;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+    .activities-name-link:hover {
+        color: #0b5cff;
+        text-decoration: underline;
+    }
+
+.activity-type {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.75rem;
+    padding: .2rem .65rem;
+    background: #eef2ff;
+    color: #3730a3;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 800;
+}
+
+.activities-related {
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+}
+
+    .activities-related a {
+        color: #2563eb;
+        font-weight: 650;
+        text-decoration: none;
+    }
+
+        .activities-related a:hover {
+            text-decoration: underline;
+        }
+
+.activities-due-overdue {
+    color: #b91c1c;
+    font-weight: 800;
+}
+
+.activities-due-today {
+    color: #b45309;
+    font-weight: 800;
+}
+
+.activities-row-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .45rem;
+    white-space: nowrap;
+}
+
+.activities-row-completed {
+    opacity: .68;
+}
+
+.activities-row-archived {
+    opacity: .72;
+}
+
+@media (max-width: 1199.98px) {
+    .activities-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .activities-filters {
+        flex-wrap: wrap;
+    }
+
+    .activities-toolbar-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .activities-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .activities-type-filter,
+    .activities-status-filter {
+        width: 100%;
+    }
+
+    .activities-filter-divider {
+        display: none;
+    }
+
+    .activities-header-actions {
+        flex-wrap: wrap;
+    }
+
+    .activities-row-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

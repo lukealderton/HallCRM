@@ -1,0 +1,1334 @@
+﻿@page "/activities/add"
+@page "/activities/{ActivityId:guid}/edit"
+
+@using CRM.Core.Activities.Abstractions
+@using CRM.Core.Activities.Domain
+@using CRM.Core.Companies.Abstractions
+@using CRM.Core.Companies.Domain
+@using CRM.Core.Contacts.Abstractions
+@using CRM.Core.Contacts.Domain
+@using CRM.Core.Jobs.Abstractions
+@using CRM.Core.Jobs.Domain
+@using CRM.Core.Users.Abstraction.Services
+@using CRM.Core.Users.Domain
+@using CRM.Web.State
+@using CRM.Web.Users.Abstraction
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@inject IActivityService ActivityService
+@inject ICompanyService CompanyService
+@inject IContactService ContactService
+@inject IJobService JobService
+@inject IUserService UserService
+@inject ICurrentUserState CurrentUserState
+@inject NavigationManager objNavigationManager
+
+<PageTitle>@strPageTitle - 101CRM</PageTitle>
+
+<div class="activity-edit-page">
+    @if (blnLoading)
+    {
+        <div class="crm-card">
+            <div class="crm-loading">
+                <span class="spinner-border spinner-border-sm"></span>
+                Loading activity...
+            </div>
+        </div>
+    }
+    else
+    {
+        @if (colErrors.Any())
+        {
+            <div class="alert alert-danger">
+                <span class="material-symbols-outlined">error</span>
+
+                <div class="alert-content">
+                    <strong class="alert-title">
+                        Please check the form
+                    </strong>
+
+                    @foreach (String strError in colErrors)
+                    {
+                        <p>@strError</p>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (!String.IsNullOrWhiteSpace(strSuccessMessage))
+        {
+            <div class="alert alert-success">
+                <span class="material-symbols-outlined">
+                    check_circle
+                </span>
+
+                <div class="alert-content">
+                    <strong class="alert-title">
+                        @strSuccessMessage
+                    </strong>
+
+                    <p>
+                        The activity record has been saved successfully.
+                    </p>
+                </div>
+            </div>
+        }
+
+        <EditForm Model="objActivity"
+                  OnSubmit="SaveActivityAsync"
+                  FormName="ActivityEditForm">
+
+            <div class="activity-edit-layout">
+
+                <div class="activity-edit-main">
+
+                    <div class="crm-card">
+                        <div class="crm-card-header">
+                            <div>
+                                <h3>Activity details</h3>
+                                <p>
+                                    Describe the task, call, meeting or follow-up.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="activity-edit-card-body">
+                            <div class="row g-3">
+
+                                <div class="col-12 col-lg-8">
+                                    <label class="form-label"
+                                           for="activitySubject">
+                                        Subject
+                                    </label>
+
+                                    <InputText id="activitySubject"
+                                               class="form-control"
+                                               @bind-Value="objActivity.Subject"
+                                               placeholder="e.g. Call customer to confirm access" />
+                                </div>
+
+                                <div class="col-12 col-lg-4">
+                                    <label class="form-label"
+                                           for="activityType">
+                                        Type
+                                    </label>
+
+                                    <InputSelect id="activityType"
+                                                 class="form-select"
+                                                 @bind-Value="objActivity.Type">
+
+                                        @foreach (ActivityType enmType in Enum.GetValues<ActivityType>())
+                                        {
+                                            <option value="@enmType">
+                                                @enmType.GetDisplay().Name
+                                            </option>
+                                        }
+
+                                    </InputSelect>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label"
+                                           for="activityDescription">
+                                        Description
+                                    </label>
+
+                                    <InputTextArea id="activityDescription"
+                                                   class="form-control"
+                                                   rows="6"
+                                                   @bind-Value="objActivity.Description"
+                                                   placeholder="Add instructions, details or useful context..." />
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crm-card">
+                        <div class="crm-card-header">
+                            <div>
+                                <h3>Schedule</h3>
+                                <p>
+                                    Choose when this activity should be completed.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="activity-edit-card-body">
+                            <div class="row g-3">
+
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label"
+                                           for="activityDueDate">
+                                        Due date
+                                    </label>
+
+                                    <InputDate id="activityDueDate"
+                                               class="form-control"
+                                               TValue="DateTime?"
+                                               @bind-Value="dtmDueDate" />
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label"
+                                           for="activityDueTime">
+                                        Due time
+                                    </label>
+
+                                    <input id="activityDueTime"
+                                           type="time"
+                                           class="form-control"
+                                           @bind="strDueTime" />
+
+                                    <div class="form-text">
+                                        Defaults to 09:00 when a date is selected.
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crm-card">
+                        <div class="crm-card-header">
+                            <div>
+                                <h3>Related records</h3>
+                                <p>
+                                    Link this activity to a company, contact or job.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="activity-edit-card-body">
+                            <div class="row g-3">
+
+                                <div class="col-12">
+                                    <label class="form-label"
+                                           for="activityCompany">
+                                        Company
+                                    </label>
+
+                                    <InputSelect id="activityCompany"
+                                                 class="form-select"
+                                                 TValue="Guid?"
+                                                 @bind-Value="objActivity.CompanyId"
+                                                 @bind-Value:after="CompanyChangedAsync">
+
+                                        <option value="">
+                                            No company
+                                        </option>
+
+                                        @foreach (Company objCompany in colCompanies)
+                                        {
+                                            <option value="@objCompany.Id">
+                                                @objCompany.Name
+                                            </option>
+                                        }
+
+                                    </InputSelect>
+                                </div>
+
+                                <div class="col-12 col-lg-6">
+                                    <label class="form-label"
+                                           for="activityContact">
+                                        Contact
+                                    </label>
+
+                                    <InputSelect id="activityContact"
+                                                 class="form-select"
+                                                 TValue="Guid?"
+                                                 @bind-Value="objActivity.ContactId"
+                                                 @bind-Value:after="ContactChangedAsync">
+
+                                        <option value="">
+                                            No contact
+                                        </option>
+
+                                        @foreach (Contact objContact in FilteredContacts)
+                                        {
+                                            <option value="@objContact.Id">
+                                                @objContact.Entity.DisplayName
+                                            </option>
+                                        }
+
+                                    </InputSelect>
+
+                                    @if (objActivity.CompanyId.HasValue)
+                                    {
+                                        <div class="form-text">
+                                            Showing contacts linked to the selected company.
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="col-12 col-lg-6">
+                                    <label class="form-label"
+                                           for="activityJob">
+                                        Job
+                                    </label>
+
+                                    <InputSelect id="activityJob"
+                                                 class="form-select"
+                                                 TValue="Guid?"
+                                                 @bind-Value="objActivity.JobId"
+                                                 @bind-Value:after="JobChangedAsync">
+
+                                        <option value="">
+                                            No job
+                                        </option>
+
+                                        @foreach (Job objJob in FilteredJobs)
+                                        {
+                                            <option value="@objJob.Id">
+                                                @objJob.Name
+                                            </option>
+                                        }
+
+                                    </InputSelect>
+
+                                    @if (objActivity.CompanyId.HasValue)
+                                    {
+                                        <div class="form-text">
+                                            Showing jobs linked to the selected company.
+                                        </div>
+                                    }
+                                </div>
+
+                            </div>
+
+                            @if (objActivity.CompanyId.HasValue ||
+                                 objActivity.ContactId.HasValue ||
+                                 objActivity.JobId.HasValue)
+                            {
+                                <div class="activity-related-summary">
+                                    <span class="material-symbols-outlined">
+                                        link
+                                    </span>
+
+                                    <div>
+                                        <strong>Linked CRM records</strong>
+                                        <span>@GetRelatedSummary()</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+
+                <aside class="activity-edit-side">
+
+                    <div class="crm-card activity-save-panel">
+                        <div class="activity-save-icon">
+                            <span class="material-symbols-outlined">
+                                @GetActivityIcon(objActivity.Type)
+                            </span>
+                        </div>
+
+                        <h3>@strSidePanelTitle</h3>
+                        <p>@strSidePanelText</p>
+
+                        <div class="activity-save-actions">
+
+                            <button class="btn btn-primary w-100"
+                                    type="submit"
+                                    disabled="@blnSaving">
+
+                                @if (blnSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                    <span>Saving...</span>
+                                }
+                                else
+                                {
+                                    <span class="material-symbols-outlined">
+                                        save
+                                    </span>
+
+                                    <span>@strSaveButtonText</span>
+                                }
+                            </button>
+
+                            <a href="/activities"
+                               class="btn btn-soft-secondary w-100">
+
+                                <span class="material-symbols-outlined">
+                                    arrow_back
+                                </span>
+
+                                Back to activities
+                            </a>
+
+                        </div>
+                    </div>
+
+                    <div class="crm-card">
+                        <div class="activity-edit-card-body">
+                            <h4 class="activity-side-heading">
+                                Assignment
+                            </h4>
+
+                            <label class="form-label"
+                                   for="activityAssignee">
+                                Assigned to
+                            </label>
+
+                            <InputSelect id="activityAssignee"
+                                         class="form-select"
+                                         TValue="Guid?"
+                                         @bind-Value="objActivity.AssignedUserId">
+
+                                <option value="">
+                                    Unassigned
+                                </option>
+
+                                @foreach (User objUser in colUsers)
+                                {
+                                    <option value="@objUser.Id">
+                                        @(objUser.Id == CurrentUserState.CurrentUserId
+                                            ? $"{objUser.DisplayName} (You)"
+                                            : objUser.DisplayName)
+                                    </option>
+                                }
+
+                            </InputSelect>
+
+                            <div class="form-text">
+                                Choose who is responsible for completing this activity.
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (blnEditMode)
+                    {
+                        <div class="crm-card">
+                            <div class="activity-edit-card-body">
+                                <h4 class="activity-side-heading">
+                                    Activity status
+                                </h4>
+
+                                @if (objActivity.CompletedUtc.HasValue)
+                                {
+                                    <div class="activity-status activity-status-completed">
+                                        <span class="material-symbols-outlined">
+                                            task_alt
+                                        </span>
+
+                                        <div>
+                                            <strong>Completed</strong>
+
+                                            <span>
+                                                @FormatDateTime(objActivity.CompletedUtc.Value)
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <button type="button"
+                                            class="btn btn-soft-secondary w-100"
+                                            disabled="@blnStatusChanging"
+                                            @onclick="ReopenActivityAsync">
+
+                                        @if (blnStatusChanging)
+                                        {
+                                            <span class="spinner-border spinner-border-sm"></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="material-symbols-outlined">
+                                                refresh
+                                            </span>
+                                        }
+
+                                        Reopen activity
+                                    </button>
+                                }
+                                else
+                                {
+                                    <div class="@GetOpenStatusClass()">
+                                        <span class="material-symbols-outlined">
+                                            @GetOpenStatusIcon()
+                                        </span>
+
+                                        <div>
+                                            <strong>@GetOpenStatusTitle()</strong>
+                                            <span>@GetOpenStatusText()</span>
+                                        </div>
+                                    </div>
+
+                                    <button type="button"
+                                            class="btn btn-soft-success w-100"
+                                            disabled="@blnStatusChanging"
+                                            @onclick="CompleteActivityAsync">
+
+                                        @if (blnStatusChanging)
+                                        {
+                                            <span class="spinner-border spinner-border-sm"></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="material-symbols-outlined">
+                                                check
+                                            </span>
+                                        }
+
+                                        Mark complete
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (blnEditMode &&
+                         objActivity.Entity != null)
+                    {
+                        <div class="crm-card">
+                            <div class="activity-edit-card-body">
+                                <h4 class="activity-side-heading">
+                                    Record status
+                                </h4>
+
+                                <div class="activity-meta-list">
+
+                                    <div>
+                                        <span>Created</span>
+                                        <strong>
+                                            @FormatDate(objActivity.Entity.CreatedUtc)
+                                        </strong>
+                                    </div>
+
+                                    <div>
+                                        <span>Updated</span>
+                                        <strong>
+                                            @FormatNullableDate(objActivity.Entity.UpdatedUtc)
+                                        </strong>
+                                    </div>
+
+                                    <div>
+                                        <span>Status</span>
+
+                                        @if (objActivity.Entity.DeletedUtc.HasValue)
+                                        {
+                                            <strong class="text-danger">
+                                                Deleted
+                                            </strong>
+                                        }
+                                        else if (objActivity.Entity.ArchivedUtc.HasValue)
+                                        {
+                                            <strong class="text-warning">
+                                                Archived
+                                            </strong>
+                                        }
+                                        else
+                                        {
+                                            <strong class="text-success">
+                                                Active
+                                            </strong>
+                                        }
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </aside>
+
+            </div>
+
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid ActivityId { get; set; }
+
+    private ActivityItem objActivity = new();
+
+    private List<Company> colCompanies = [];
+    private List<Contact> colContacts = [];
+    private List<Job> colJobs = [];
+    private List<User> colUsers = [];
+
+    private DateTime? dtmDueDate;
+    private String? strDueTime;
+
+    private Boolean blnLoading = true;
+    private Boolean blnSaving;
+    private Boolean blnStatusChanging;
+    private Boolean blnEditMode;
+
+    private String strPageTitle = "Add activity";
+    private String strSaveButtonText = "Create activity";
+    private String strSidePanelTitle = "Create activity";
+    private String strSidePanelText =
+        "Add a task, call, meeting, site visit or follow-up.";
+
+    private String? strSuccessMessage;
+
+    private List<String> colErrors = [];
+
+    private IEnumerable<Contact> FilteredContacts
+    {
+        get
+        {
+            IEnumerable<Contact> colFiltered =
+                colContacts;
+
+            if (objActivity.CompanyId.HasValue)
+            {
+                colFiltered =
+                    colFiltered.Where(objContact =>
+                        objContact.CompanyId ==
+                        objActivity.CompanyId.Value);
+            }
+
+            return colFiltered
+                .OrderBy(objContact =>
+                    objContact.Entity.DisplayName);
+        }
+    }
+
+    private IEnumerable<Job> FilteredJobs
+    {
+        get
+        {
+            IEnumerable<Job> colFiltered =
+                colJobs;
+
+            if (objActivity.CompanyId.HasValue)
+            {
+                colFiltered =
+                    colFiltered.Where(objJob =>
+                        objJob.CompanyId ==
+                        objActivity.CompanyId.Value);
+            }
+
+            return colFiltered
+                .OrderBy(objJob =>
+                    objJob.Name);
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        blnLoading = true;
+        blnEditMode =
+            ActivityId != Guid.Empty;
+
+        colErrors = [];
+        strSuccessMessage = null;
+
+        try
+        {
+            await LoadLookupsAsync();
+
+            if (blnEditMode)
+            {
+                await LoadActivityAsync();
+                return;
+            }
+
+            await SetupAddModeAsync();
+        }
+        catch (Exception objError)
+        {
+            colErrors.Add(
+                "Unable to load the activity editor. " +
+                objError.Message);
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private async Task LoadLookupsAsync()
+    {
+        Task<List<Company>> objCompaniesTask =
+            CompanyService.GetCompaniesAsync(
+                null,
+                false,
+                false);
+
+        Task<List<Contact>> objContactsTask =
+            ContactService.GetContactsAsync(
+                null,
+                null,
+                false,
+                false);
+
+        Task<List<Job>> objJobsTask =
+            JobService.GetJobsAsync(
+                null,
+                null,
+                null,
+                false,
+                false);
+
+        Task<List<User>> objUsersTask =
+            UserService.GetUsersAsync(
+                false);
+
+        await Task.WhenAll(
+            objCompaniesTask,
+            objContactsTask,
+            objJobsTask,
+            objUsersTask);
+
+        colCompanies =
+            (await objCompaniesTask)
+                .OrderBy(objCompany =>
+                    objCompany.Name)
+                .ToList();
+
+        colContacts =
+            (await objContactsTask)
+                .OrderBy(objContact =>
+                    objContact.Entity.DisplayName)
+                .ToList();
+
+        colJobs =
+            (await objJobsTask)
+                .OrderBy(objJob =>
+                    objJob.Name)
+                .ToList();
+
+        colUsers =
+            (await objUsersTask)
+                .Where(objUser =>
+                    objUser.Enabled)
+                .OrderBy(objUser =>
+                    objUser.DisplayName)
+                .ToList();
+    }
+
+    private async Task LoadActivityAsync()
+    {
+        ActivityItem? objExistingActivity =
+            await ActivityService.GetActivityByIdAsync(
+                ActivityId);
+
+        if (objExistingActivity == null)
+        {
+            colErrors.Add(
+                "The activity could not be found.");
+
+            SetupEditMode(
+                "Edit activity");
+
+            return;
+        }
+
+        objActivity =
+            objExistingActivity;
+
+        SetDueFields();
+
+        SetupEditMode(
+            objActivity.Subject);
+    }
+
+    private async Task SetupAddModeAsync()
+    {
+        Guid? objCurrentUserId =
+            await CurrentUserState.GetCurrentUserIdAsync();
+
+        objActivity =
+            new ActivityItem
+            {
+                Type = ActivityType.Task,
+                AssignedUserId = objCurrentUserId
+            };
+
+        dtmDueDate = null;
+        strDueTime = "09:00";
+
+        strPageTitle =
+            "Add activity";
+
+        strSaveButtonText =
+            "Create activity";
+
+        strSidePanelTitle =
+            "Create activity";
+
+        strSidePanelText =
+            "Add a task, call, meeting, site visit or follow-up.";
+
+        HeaderState.SetHeader(
+            "Add activity",
+            "Create a new CRM activity");
+    }
+
+    private void SetupEditMode(
+        String strActivitySubject)
+    {
+        strPageTitle =
+            "Edit activity";
+
+        strSaveButtonText =
+            "Save changes";
+
+        strSidePanelTitle =
+            "Update activity";
+
+        strSidePanelText =
+            "Save changes to this activity record.";
+
+        HeaderState.SetHeader(
+            "Edit activity",
+            strActivitySubject);
+    }
+
+    private async Task SaveActivityAsync()
+    {
+        colErrors = [];
+        strSuccessMessage = null;
+
+        if (!ValidateActivity())
+        {
+            return;
+        }
+
+        blnSaving = true;
+
+        try
+        {
+            ApplyDueDate();
+
+            Guid? objCurrentUserId =
+                await CurrentUserState.GetCurrentUserIdAsync();
+
+            if (blnEditMode)
+            {
+                ActivityItem? objUpdatedActivity =
+                    await ActivityService.UpdateActivityAsync(
+                        objActivity,
+                        objCurrentUserId);
+
+                if (objUpdatedActivity == null)
+                {
+                    colErrors.Add(
+                        "The activity could not be updated. " +
+                        "It may have been deleted or no longer exists.");
+
+                    return;
+                }
+
+                objActivity =
+                    objUpdatedActivity;
+
+                SetDueFields();
+
+                strSuccessMessage =
+                    "Activity updated";
+
+                SetupEditMode(
+                    objActivity.Subject);
+            }
+            else
+            {
+                ActivityItem objCreatedActivity =
+                    await ActivityService.AddActivityAsync(
+                        objActivity,
+                        objCurrentUserId);
+
+                objNavigationManager.NavigateTo(
+                    $"/activities/{objCreatedActivity.Id}/edit");
+
+                return;
+            }
+        }
+        catch (Exception objError)
+        {
+            colErrors.Add(
+                "Unable to save activity. " +
+                objError.Message);
+        }
+        finally
+        {
+            blnSaving = false;
+        }
+    }
+
+    private Boolean ValidateActivity()
+    {
+        if (String.IsNullOrWhiteSpace(
+            objActivity.Subject))
+        {
+            colErrors.Add(
+                "Activity subject is required.");
+        }
+
+        if (dtmDueDate.HasValue &&
+            !String.IsNullOrWhiteSpace(strDueTime) &&
+            !TimeSpan.TryParse(
+                strDueTime,
+                out _))
+        {
+            colErrors.Add(
+                "Due time is not valid.");
+        }
+
+        if (objActivity.ContactId.HasValue)
+        {
+            Contact? objContact =
+                colContacts.FirstOrDefault(objContact =>
+                    objContact.Id ==
+                    objActivity.ContactId.Value);
+
+            if (objContact == null)
+            {
+                colErrors.Add(
+                    "The selected contact could not be found.");
+            }
+            else if (objActivity.CompanyId.HasValue &&
+                     objContact.CompanyId !=
+                     objActivity.CompanyId.Value)
+            {
+                colErrors.Add(
+                    "The selected contact does not belong to the selected company.");
+            }
+        }
+
+        if (objActivity.JobId.HasValue)
+        {
+            Job? objJob =
+                colJobs.FirstOrDefault(objJob =>
+                    objJob.Id ==
+                    objActivity.JobId.Value);
+
+            if (objJob == null)
+            {
+                colErrors.Add(
+                    "The selected job could not be found.");
+            }
+            else if (objActivity.CompanyId.HasValue &&
+                     objJob.CompanyId !=
+                     objActivity.CompanyId.Value)
+            {
+                colErrors.Add(
+                    "The selected job does not belong to the selected company.");
+            }
+        }
+
+        return !colErrors.Any();
+    }
+
+    private Task CompanyChangedAsync()
+    {
+        if (!objActivity.CompanyId.HasValue)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (objActivity.ContactId.HasValue)
+        {
+            Contact? objContact =
+                colContacts.FirstOrDefault(objContact =>
+                    objContact.Id ==
+                    objActivity.ContactId.Value);
+
+            if (objContact?.CompanyId !=
+                objActivity.CompanyId.Value)
+            {
+                objActivity.ContactId = null;
+            }
+        }
+
+        if (objActivity.JobId.HasValue)
+        {
+            Job? objJob =
+                colJobs.FirstOrDefault(objJob =>
+                    objJob.Id ==
+                    objActivity.JobId.Value);
+
+            if (objJob?.CompanyId !=
+                objActivity.CompanyId.Value)
+            {
+                objActivity.JobId = null;
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task ContactChangedAsync()
+    {
+        if (!objActivity.ContactId.HasValue)
+        {
+            return Task.CompletedTask;
+        }
+
+        Contact? objContact =
+            colContacts.FirstOrDefault(objContact =>
+                objContact.Id ==
+                objActivity.ContactId.Value);
+
+        if (objContact == null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (!objActivity.CompanyId.HasValue &&
+            objContact.CompanyId.HasValue)
+        {
+            objActivity.CompanyId =
+                objContact.CompanyId;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task JobChangedAsync()
+    {
+        if (!objActivity.JobId.HasValue)
+        {
+            return Task.CompletedTask;
+        }
+
+        Job? objJob =
+            colJobs.FirstOrDefault(objJob =>
+                objJob.Id ==
+                objActivity.JobId.Value);
+
+        if (objJob == null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (objJob.CompanyId.HasValue)
+        {
+            objActivity.CompanyId =
+                objJob.CompanyId;
+        }
+
+        if (objJob.ContactId.HasValue)
+        {
+            objActivity.ContactId =
+                objJob.ContactId;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void SetDueFields()
+    {
+        if (!objActivity.DueUtc.HasValue)
+        {
+            dtmDueDate = null;
+            strDueTime = "09:00";
+            return;
+        }
+
+        DateTime dtmLocal =
+            objActivity.DueUtc.Value.ToLocalTime();
+
+        dtmDueDate =
+            dtmLocal.Date;
+
+        strDueTime =
+            dtmLocal.ToString("HH:mm");
+    }
+
+    private void ApplyDueDate()
+    {
+        if (!dtmDueDate.HasValue)
+        {
+            objActivity.DueUtc = null;
+            return;
+        }
+
+        TimeSpan tmsDueTime =
+            new(9, 0, 0);
+
+        if (!String.IsNullOrWhiteSpace(strDueTime))
+        {
+            TimeSpan.TryParse(
+                strDueTime,
+                out tmsDueTime);
+        }
+
+        DateTime dtmLocal =
+            dtmDueDate.Value.Date
+                .Add(tmsDueTime);
+
+        objActivity.DueUtc =
+            dtmLocal.ToUniversalTime();
+    }
+
+    private async Task CompleteActivityAsync()
+    {
+        if (!blnEditMode ||
+            ActivityId == Guid.Empty)
+        {
+            return;
+        }
+
+        blnStatusChanging = true;
+        colErrors = [];
+        strSuccessMessage = null;
+
+        try
+        {
+            Guid? objCurrentUserId =
+                await CurrentUserState.GetCurrentUserIdAsync();
+
+            Boolean blnCompleted =
+                await ActivityService.CompleteActivityAsync(
+                    ActivityId,
+                    objCurrentUserId);
+
+            if (!blnCompleted)
+            {
+                colErrors.Add(
+                    "The activity could not be completed.");
+
+                return;
+            }
+
+            await LoadActivityAsync();
+
+            strSuccessMessage =
+                "Activity completed";
+        }
+        catch (Exception objError)
+        {
+            colErrors.Add(
+                "Unable to complete activity. " +
+                objError.Message);
+        }
+        finally
+        {
+            blnStatusChanging = false;
+        }
+    }
+
+    private async Task ReopenActivityAsync()
+    {
+        if (!blnEditMode ||
+            ActivityId == Guid.Empty)
+        {
+            return;
+        }
+
+        blnStatusChanging = true;
+        colErrors = [];
+        strSuccessMessage = null;
+
+        try
+        {
+            Guid? objCurrentUserId =
+                await CurrentUserState.GetCurrentUserIdAsync();
+
+            Boolean blnReopened =
+                await ActivityService.ReopenActivityAsync(
+                    ActivityId,
+                    objCurrentUserId);
+
+            if (!blnReopened)
+            {
+                colErrors.Add(
+                    "The activity could not be reopened.");
+
+                return;
+            }
+
+            await LoadActivityAsync();
+
+            strSuccessMessage =
+                "Activity reopened";
+        }
+        catch (Exception objError)
+        {
+            colErrors.Add(
+                "Unable to reopen activity. " +
+                objError.Message);
+        }
+        finally
+        {
+            blnStatusChanging = false;
+        }
+    }
+
+    private String GetRelatedSummary()
+    {
+        List<String> colRelated = [];
+
+        if (objActivity.CompanyId.HasValue)
+        {
+            Company? objCompany =
+                colCompanies.FirstOrDefault(objCompany =>
+                    objCompany.Id ==
+                    objActivity.CompanyId.Value);
+
+            if (objCompany != null)
+            {
+                colRelated.Add(
+                    objCompany.Name);
+            }
+        }
+
+        if (objActivity.ContactId.HasValue)
+        {
+            Contact? objContact =
+                colContacts.FirstOrDefault(objContact =>
+                    objContact.Id ==
+                    objActivity.ContactId.Value);
+
+            if (objContact != null)
+            {
+                colRelated.Add(
+                    objContact.Entity.DisplayName);
+            }
+        }
+
+        if (objActivity.JobId.HasValue)
+        {
+            Job? objJob =
+                colJobs.FirstOrDefault(objJob =>
+                    objJob.Id ==
+                    objActivity.JobId.Value);
+
+            if (objJob != null)
+            {
+                colRelated.Add(
+                    objJob.Name);
+            }
+        }
+
+        return colRelated.Count > 0
+            ? String.Join(" · ", colRelated)
+            : "No linked records";
+    }
+
+    private Boolean IsOverdue()
+    {
+        return !objActivity.CompletedUtc.HasValue &&
+               objActivity.DueUtc.HasValue &&
+               objActivity.DueUtc.Value < DateTime.UtcNow;
+    }
+
+    private Boolean IsDueToday()
+    {
+        if (objActivity.CompletedUtc.HasValue ||
+            !objActivity.DueUtc.HasValue)
+        {
+            return false;
+        }
+
+        DateTime dtmLocal =
+            objActivity.DueUtc.Value.ToLocalTime();
+
+        return dtmLocal.Date ==
+               DateTime.Now.Date;
+    }
+
+    private String GetOpenStatusClass()
+    {
+        if (IsOverdue())
+        {
+            return "activity-status activity-status-overdue";
+        }
+
+        if (IsDueToday())
+        {
+            return "activity-status activity-status-today";
+        }
+
+        return "activity-status activity-status-open";
+    }
+
+    private String GetOpenStatusTitle()
+    {
+        if (IsOverdue())
+        {
+            return "Overdue";
+        }
+
+        if (IsDueToday())
+        {
+            return "Due today";
+        }
+
+        return "Open";
+    }
+
+    private String GetOpenStatusText()
+    {
+        if (!objActivity.DueUtc.HasValue)
+        {
+            return "No due date has been set.";
+        }
+
+        return $"Due {FormatDateTime(objActivity.DueUtc.Value)}";
+    }
+
+    private String GetOpenStatusIcon()
+    {
+        if (IsOverdue())
+        {
+            return "assignment_late";
+        }
+
+        if (IsDueToday())
+        {
+            return "today";
+        }
+
+        return "pending_actions";
+    }
+
+    private static String GetActivityIcon(
+        ActivityType enmType)
+    {
+        return enmType switch
+        {
+            ActivityType.Call =>
+                "call",
+
+            ActivityType.Meeting =>
+                "groups",
+
+            ActivityType.SiteVisit =>
+                "location_on",
+
+            ActivityType.FollowUp =>
+                "update",
+
+            _ =>
+                "task_alt"
+        };
+    }
+
+    private static String FormatDate(
+        DateTime dtmDate)
+    {
+        return dtmDate
+            .ToLocalTime()
+            .ToString("dd MMM yyyy");
+    }
+
+    private static String FormatNullableDate(
+        DateTime? dtmDate)
+    {
+        if (!dtmDate.HasValue)
+        {
+            return "-";
+        }
+
+        return FormatDate(
+            dtmDate.Value);
+    }
+
+    private static String FormatDateTime(
+        DateTime dtmDate)
+    {
+        return dtmDate
+            .ToLocalTime()
+            .ToString("dd MMM yyyy 'at' HH:mm");
+    }
+}
