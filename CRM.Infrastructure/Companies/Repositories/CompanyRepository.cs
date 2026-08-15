@@ -82,5 +82,44 @@ namespace CRM.Infrastructure.Companies.Repositories
 
             await objDbContext.SaveChangesAsync(objToken);
         }
+
+        ///<inheritdoc/>
+        public async Task<Int32> CountCompaniesAsync(
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            return await objDbContext.Companies
+                .AsNoTracking()
+                .Where(objCompany =>
+                    !objCompany.Entity.ArchivedUtc.HasValue &&
+                    !objCompany.Entity.DeletedUtc.HasValue)
+                .CountAsync(objToken);
+        }
+
+        ///<inheritdoc/>
+        public async Task<List<Company>> GetRecentCompaniesAsync(
+            Int32 intTake,
+            CancellationToken objToken = default)
+        {
+            if (intTake <= 0)
+            {
+                return [];
+            }
+
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            return await objDbContext.Companies
+                .AsNoTracking()
+                .Include(objCompany => objCompany.Entity)
+                .Where(objCompany =>
+                    !objCompany.Entity.ArchivedUtc.HasValue &&
+                    !objCompany.Entity.DeletedUtc.HasValue)
+                .OrderByDescending(objCompany => objCompany.Entity.CreatedUtc)
+                .Take(intTake)
+                .ToListAsync(objToken);
+        }
     }
 }

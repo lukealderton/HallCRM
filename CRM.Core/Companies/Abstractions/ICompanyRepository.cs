@@ -36,11 +36,14 @@ namespace CRM.Core.Companies.Abstractions
         Task AddCompanyAsync(Company objCompany, CancellationToken objToken = default);
 
         /// <summary>
-        /// Saves changes made to the repository, persisting them to the underlying data store.
+        /// Updates an existing company in the repository.
         /// </summary>
+        /// <param name="objCompany"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
-        Task SaveChangesAsync(CancellationToken objToken = default);
+        Task UpdateCompanyAsync(
+            Company objCompany,
+            CancellationToken objToken = default);
 
         /// <summary>
         /// Counts the total number of companies in the repository.

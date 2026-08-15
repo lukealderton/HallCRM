@@ -92,5 +92,40 @@ namespace CRM.Infrastructure.Contacts.Repositories
             await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
             await objDbContext.SaveChangesAsync(objToken);
         }
+
+        ///<inheritdoc/>
+        public async Task<Int32> CountContactsAsync(
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            return await objDbContext.Contacts
+                .AsNoTracking()
+                .Where(objContact =>
+                    !objContact.Entity.ArchivedUtc.HasValue &&
+                    !objContact.Entity.DeletedUtc.HasValue)
+                .CountAsync(objToken);
+        }
+
+        ///<inheritdoc/>
+        public async Task<Int32> CountContactableContactsAsync(
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            return await objDbContext.Contacts
+                .AsNoTracking()
+                .Where(objContact =>
+                    !objContact.Entity.ArchivedUtc.HasValue &&
+                    !objContact.Entity.DeletedUtc.HasValue &&
+                    (
+                        objContact.PrimaryEmail != null ||
+                        objContact.PrimaryPhone != null ||
+                        objContact.MobilePhone != null
+                    ))
+                .CountAsync(objToken);
+        }
     }
 }

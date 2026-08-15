@@ -101,5 +101,85 @@ namespace CRM.Infrastructure.Jobs.Repositories
             await using CRMDbContext objDbContext = await _objDbContextFactory.CreateDbContextAsync(objToken);
             await objDbContext.SaveChangesAsync(objToken);
         }
+
+        ///<inheritdoc/>
+        public async Task<Int32> CountOpenJobsAsync(
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            return await objDbContext.Jobs
+                .AsNoTracking()
+                .Where(objJob =>
+                    !objJob.Entity.ArchivedUtc.HasValue &&
+                    !objJob.Entity.DeletedUtc.HasValue &&
+                    objJob.Stage != JobStage.Paid &&
+                    objJob.Stage != JobStage.Lost)
+                .CountAsync(objToken);
+        }
+
+        ///<inheritdoc/>
+        public async Task<Decimal> GetOpenJobValueAsync(
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            return await objDbContext.Jobs
+                .AsNoTracking()
+                .Where(objJob =>
+                    !objJob.Entity.ArchivedUtc.HasValue &&
+                    !objJob.Entity.DeletedUtc.HasValue &&
+                    objJob.Stage != JobStage.Paid &&
+                    objJob.Stage != JobStage.Lost)
+                .SumAsync(
+                    objJob => objJob.Value ?? 0m,
+                    objToken);
+        }
+
+        ///<inheritdoc/>
+        public async Task<List<JobStageSummary>> GetStageSummaryAsync(
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            return await objDbContext.Jobs
+                .AsNoTracking()
+                .Where(objJob =>
+                    !objJob.Entity.ArchivedUtc.HasValue &&
+                    !objJob.Entity.DeletedUtc.HasValue)
+                .GroupBy(objJob => objJob.Stage)
+                .Select(objGroup => new JobStageSummary
+                {
+                    Stage = objGroup.Key,
+                    Count = objGroup.Count(),
+                    Value = objGroup.Sum(objJob => objJob.Value ?? 0m)
+                })
+                .OrderBy(objSummary => objSummary.Stage)
+                .ToListAsync(objToken);
+        }
+
+        ///<inheritdoc/>
+        public async Task<Int32> CountOverdueJobsAsync(
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            DateTime dtmToday = DateTime.UtcNow.Date;
+
+            return await objDbContext.Jobs
+                .AsNoTracking()
+                .Where(objJob =>
+                    !objJob.Entity.ArchivedUtc.HasValue &&
+                    !objJob.Entity.DeletedUtc.HasValue &&
+                    objJob.Stage != JobStage.Paid &&
+                    objJob.Stage != JobStage.Lost &&
+                    objJob.ExpectedCloseDateUtc.HasValue &&
+                    objJob.ExpectedCloseDateUtc.Value < dtmToday)
+                .CountAsync(objToken);
+        }
     }
 }
