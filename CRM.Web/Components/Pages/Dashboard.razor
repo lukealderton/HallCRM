@@ -2,12 +2,14 @@
 @page "/dashboard"
 @attribute [Authorize]
 
+@using CRM.Core.Activities.Abstractions
 @using CRM.Core.Companies.Abstractions
 @using CRM.Core.Companies.Domain
 @using CRM.Core.Contacts.Abstractions
 @using CRM.Core.Jobs.Abstractions
 @using CRM.Core.Jobs.Domain
 
+@inject IActivityService ActivityService
 @inject ICompanyService CompanyService
 @inject IContactService ContactService
 @inject IJobService JobService
@@ -23,23 +25,36 @@
         </div>
 
         <div class="dashboard-hero-actions">
-            <a href="/companies/add" class="btn btn-primary">
-                <span class="material-symbols-outlined">add</span>
+            <a href="/companies/add"
+               class="btn btn-primary">
+                <span class="material-symbols-outlined">
+                    add
+                </span>
+
                 New company
             </a>
 
-            <a href="/contacts/add" class="btn btn-light">
-                <span class="material-symbols-outlined">person_add</span>
+            <a href="/contacts/add"
+               class="btn btn-light">
+                <span class="material-symbols-outlined">
+                    person_add
+                </span>
+
                 New contact
             </a>
         </div>
     </div>
 
     <div class="row g-3 dashboard-stats">
+
         <div class="col-12 col-md-6 col-xl-3">
-            <a href="/companies" class="dashboard-stat-card">
+            <a href="/companies"
+               class="dashboard-stat-card">
+
                 <div class="dashboard-stat-icon">
-                    <span class="material-symbols-outlined">business</span>
+                    <span class="material-symbols-outlined">
+                        business
+                    </span>
                 </div>
 
                 <div class="dashboard-stat-content">
@@ -59,9 +74,13 @@
         </div>
 
         <div class="col-12 col-md-6 col-xl-3">
-            <a href="/contacts" class="dashboard-stat-card">
+            <a href="/contacts"
+               class="dashboard-stat-card">
+
                 <div class="dashboard-stat-icon">
-                    <span class="material-symbols-outlined">contacts</span>
+                    <span class="material-symbols-outlined">
+                        contacts
+                    </span>
                 </div>
 
                 <div class="dashboard-stat-content">
@@ -81,7 +100,9 @@
         </div>
 
         <div class="col-12 col-md-6 col-xl-3">
-            <a href="/jobs" class="dashboard-stat-card">
+            <a href="/jobs"
+               class="dashboard-stat-card">
+
                 <div class="dashboard-stat-icon">
                     <span class="material-symbols-outlined">
                         home_repair_service
@@ -105,9 +126,13 @@
         </div>
 
         <div class="col-12 col-md-6 col-xl-3">
-            <a href="/activities" class="dashboard-stat-card">
+            <a href="/activities"
+               class="dashboard-stat-card">
+
                 <div class="dashboard-stat-icon">
-                    <span class="material-symbols-outlined">task_alt</span>
+                    <span class="material-symbols-outlined">
+                        task_alt
+                    </span>
                 </div>
 
                 <div class="dashboard-stat-content">
@@ -116,15 +141,16 @@
                     </div>
 
                     <div class="dashboard-stat-value">
-                        @intActivityCount
+                        @intOpenActivityCount
                     </div>
 
                     <div class="dashboard-stat-meta">
-                        Due soon
+                        @GetActivitySummaryText()
                     </div>
                 </div>
             </a>
         </div>
+
     </div>
 
     <div class="dashboard-content-grid">
@@ -135,7 +161,7 @@
                 <div class="crm-card-header">
                     <div>
                         <h3>Needs attention</h3>
-                        <p>Items that may need action.</p>
+                        <p>Tasks and work that may need action.</p>
                     </div>
                 </div>
 
@@ -157,8 +183,9 @@
 
                         <div>
                             <strong>Nothing needs attention</strong>
+
                             <span>
-                                There are no outstanding job items right now.
+                                There are no overdue activities or outstanding job items right now.
                             </span>
                         </div>
                     </div>
@@ -166,6 +193,66 @@
                 else
                 {
                     <div class="dashboard-attention-list">
+
+                        @if (intOverdueActivityCount > 0)
+                        {
+                            <a href="/activities?overdue=true"
+                               class="dashboard-attention-item dashboard-attention-item-danger">
+
+                                <div class="dashboard-attention-icon">
+                                    <span class="material-symbols-outlined">
+                                        assignment_late
+                                    </span>
+                                </div>
+
+                                <div class="dashboard-attention-content">
+                                    <strong>
+                                        @GetPluralText(
+                                            intOverdueActivityCount,
+                                            "overdue activity",
+                                            "overdue activities")
+                                    </strong>
+
+                                    <span>
+                                        Tasks or follow-ups are past their due date.
+                                    </span>
+                                </div>
+
+                                <span class="material-symbols-outlined dashboard-attention-arrow">
+                                    chevron_right
+                                </span>
+                            </a>
+                        }
+
+                        @if (intDueTodayActivityCount > 0)
+                        {
+                            <a href="/activities?due=today"
+                               class="dashboard-attention-item dashboard-attention-item-warning">
+
+                                <div class="dashboard-attention-icon">
+                                    <span class="material-symbols-outlined">
+                                        today
+                                    </span>
+                                </div>
+
+                                <div class="dashboard-attention-content">
+                                    <strong>
+                                        @GetPluralText(
+                                            intDueTodayActivityCount,
+                                            "activity due today",
+                                            "activities due today")
+                                    </strong>
+
+                                    <span>
+                                        Calls, tasks, meetings or visits scheduled for today.
+                                    </span>
+                                </div>
+
+                                <span class="material-symbols-outlined dashboard-attention-arrow">
+                                    chevron_right
+                                </span>
+                            </a>
+                        }
 
                         @if (intOverdueJobCount > 0)
                         {
@@ -339,7 +426,9 @@
                                     <th>Company</th>
                                     <th>Industry</th>
                                     <th>Contact</th>
-                                    <th class="text-end">Action</th>
+                                    <th class="text-end">
+                                        Action
+                                    </th>
                                 </tr>
                             </thead>
 
@@ -411,6 +500,7 @@
                 </div>
 
                 <div class="dashboard-actions-list">
+
                     <a href="/companies/add"
                        class="dashboard-action">
 
@@ -459,9 +549,10 @@
 
                         <div>
                             <strong>Add activity</strong>
-                            <small>Schedule a call, task, or meeting</small>
+                            <small>Schedule a call, task, meeting or visit</small>
                         </div>
                     </a>
+
                 </div>
             </div>
 
@@ -488,11 +579,14 @@
                 else
                 {
                     <div class="pipeline-list">
+
                         @foreach (JobStage enmStage in colPipelineStages)
                         {
-                            JobStageSummary? objSummary = GetStageSummary(enmStage);
+                            JobStageSummary? objSummary =
+                                GetStageSummary(enmStage);
 
-                            <a href="@GetJobsStageUrl(enmStage)" class="pipeline-row">
+                            <a href="@GetJobsStageUrl(enmStage)"
+                               class="pipeline-row">
 
                                 <div class="pipeline-stage">
                                     <div class="pipeline-stage-heading">
@@ -513,10 +607,13 @@
                                 </strong>
                             </a>
                         }
+
                     </div>
 
                     <div class="pipeline-total">
-                        <span>Open pipeline</span>
+                        <span>
+                            Open pipeline
+                        </span>
 
                         <div>
                             <strong>
@@ -550,7 +647,10 @@
     private Int32 intOpenJobCount;
     private Int32 intOverdueJobCount;
 
-    private Int32 intActivityCount;
+    private Int32 intOpenActivityCount;
+    private Int32 intOverdueActivityCount;
+    private Int32 intDueTodayActivityCount;
+    private Int32 intDueSoonActivityCount;
 
     private Decimal decOpenJobValue;
 
@@ -579,6 +679,8 @@
         GetStageValue(JobStage.Invoiced);
 
     private Boolean HasAttentionItems =>
+        intOverdueActivityCount > 0 ||
+        intDueTodayActivityCount > 0 ||
         intOverdueJobCount > 0 ||
         QuotedJobCount > 0 ||
         ToDoJobCount > 0 ||
@@ -616,6 +718,18 @@
             Task<Int32> objOverdueJobCountTask =
                 JobService.CountOverdueJobsAsync();
 
+            Task<Int32> objOpenActivityCountTask =
+                ActivityService.CountOpenActivitiesAsync();
+
+            Task<Int32> objOverdueActivityCountTask =
+                ActivityService.CountOverdueActivitiesAsync();
+
+            Task<Int32> objDueTodayActivityCountTask =
+                ActivityService.CountDueTodayActivitiesAsync();
+
+            Task<Int32> objDueSoonActivityCountTask =
+                ActivityService.CountDueSoonActivitiesAsync(7);
+
             await Task.WhenAll(
                 objCompanyCountTask,
                 objRecentCompaniesTask,
@@ -624,7 +738,11 @@
                 objOpenJobCountTask,
                 objOpenJobValueTask,
                 objPipelineTask,
-                objOverdueJobCountTask);
+                objOverdueJobCountTask,
+                objOpenActivityCountTask,
+                objOverdueActivityCountTask,
+                objDueTodayActivityCountTask,
+                objDueSoonActivityCountTask);
 
             intCompanyCount =
                 await objCompanyCountTask;
@@ -649,6 +767,18 @@
 
             intOverdueJobCount =
                 await objOverdueJobCountTask;
+
+            intOpenActivityCount =
+                await objOpenActivityCountTask;
+
+            intOverdueActivityCount =
+                await objOverdueActivityCountTask;
+
+            intDueTodayActivityCount =
+                await objDueTodayActivityCountTask;
+
+            intDueSoonActivityCount =
+                await objDueSoonActivityCountTask;
         }
         finally
         {
@@ -670,16 +800,47 @@
         return GetStageSummary(enmStage)?.Count ?? 0;
     }
 
-    private static String GetJobsStageUrl(
-    JobStage enmStage)
-    {
-        return $"/jobs?stage={enmStage}";
-    }
-
     private Decimal GetStageValue(
         JobStage enmStage)
     {
         return GetStageSummary(enmStage)?.Value ?? 0m;
+    }
+
+    private String GetActivitySummaryText()
+    {
+        if (intOverdueActivityCount > 0)
+        {
+            return GetPluralText(
+                intOverdueActivityCount,
+                "overdue",
+                "overdue");
+        }
+
+        if (intDueTodayActivityCount > 0)
+        {
+            return GetPluralText(
+                intDueTodayActivityCount,
+                "due today",
+                "due today");
+        }
+
+        if (intDueSoonActivityCount > 0)
+        {
+            return GetPluralText(
+                intDueSoonActivityCount,
+                "due soon",
+                "due soon");
+        }
+
+        return intOpenActivityCount > 0
+            ? "Nothing due soon"
+            : "No open activities";
+    }
+
+    private static String GetJobsStageUrl(
+        JobStage enmStage)
+    {
+        return $"/jobs?stage={enmStage}";
     }
 
     private static String FormatCurrency(

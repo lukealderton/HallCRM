@@ -194,6 +194,11 @@
 
 /* Needs attention */
 
+.dashboard-attention-item-warning .dashboard-attention-icon {
+    background: #fef3c7;
+    color: #d97706;
+}
+
 .dashboard-attention-list {
     display: flex;
     flex-direction: column;
