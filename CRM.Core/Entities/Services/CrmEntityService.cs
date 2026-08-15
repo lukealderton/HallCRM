@@ -7,15 +7,25 @@ namespace CRM.Core.Entities.Services
     {
         private readonly ICrmEntityRepository _entityRepository;
 
-        public CrmEntityService(ICrmEntityRepository objEntityRepository)
+        public CrmEntityService(
+            ICrmEntityRepository objEntityRepository)
         {
             _entityRepository = objEntityRepository;
         }
 
         ///<inheritdoc/>
-        public Task<CrmEntity?> GetEntityByIdAsync(Guid objEntityId, CancellationToken objToken = default)
+        public Task<CrmEntity?> GetEntityByIdAsync(
+            Guid objEntityId,
+            CancellationToken objToken = default)
         {
-            return _entityRepository.GetEntityByIdAsync(objEntityId, false, objToken);
+            if (objEntityId == Guid.Empty)
+            {
+                return Task.FromResult<CrmEntity?>(null);
+            }
+
+            return _entityRepository.GetEntityByIdAsync(
+                objEntityId,
+                objToken);
         }
 
         ///<inheritdoc/>
@@ -35,67 +45,143 @@ namespace CRM.Core.Entities.Services
         }
 
         ///<inheritdoc/>
-        public async Task<Boolean> ArchiveEntityAsync(Guid objEntityId, Guid? objUserId = null, CancellationToken objToken = default)
+        public async Task<Boolean> ArchiveEntityAsync(
+            Guid objEntityId,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
         {
-            CrmEntity? objEntity = await _entityRepository.GetEntityByIdAsync(objEntityId, true, objToken);
-
-            if (objEntity == null || objEntity.DeletedUtc.HasValue)
+            if (objEntityId == Guid.Empty)
             {
                 return false;
             }
 
-            DateTime dteNow = DateTime.UtcNow;
+            CrmEntity? objEntity =
+                await _entityRepository.GetEntityByIdAsync(
+                    objEntityId,
+                    objToken);
 
-            objEntity.ArchivedUtc = dteNow;
-            objEntity.ArchivedByUserId = objUserId;
-            objEntity.UpdatedUtc = dteNow;
-            objEntity.UpdatedByUserId = objUserId;
+            if (objEntity == null ||
+                objEntity.DeletedUtc.HasValue)
+            {
+                return false;
+            }
 
-            await _entityRepository.SaveChangesAsync(objToken);
+            if (objEntity.ArchivedUtc.HasValue)
+            {
+                return true;
+            }
+
+            DateTime dteNow =
+                DateTime.UtcNow;
+
+            objEntity.ArchivedUtc =
+                dteNow;
+
+            objEntity.ArchivedByUserId =
+                objUserId;
+
+            objEntity.UpdatedUtc =
+                dteNow;
+
+            objEntity.UpdatedByUserId =
+                objUserId;
+
+            await _entityRepository.UpdateEntityAsync(
+                objEntity,
+                objToken);
 
             return true;
         }
 
         ///<inheritdoc/>
-        public async Task<Boolean> RestoreEntityAsync(Guid objEntityId, Guid? objUserId = null, CancellationToken objToken = default)
+        public async Task<Boolean> RestoreEntityAsync(
+            Guid objEntityId,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
         {
-            CrmEntity? objEntity = await _entityRepository.GetEntityByIdAsync(objEntityId, true, objToken);
-
-            if (objEntity == null || objEntity.DeletedUtc.HasValue)
+            if (objEntityId == Guid.Empty)
             {
                 return false;
             }
 
-            DateTime dteNow = DateTime.UtcNow;
+            CrmEntity? objEntity =
+                await _entityRepository.GetEntityByIdAsync(
+                    objEntityId,
+                    objToken);
 
-            objEntity.ArchivedUtc = null;
-            objEntity.ArchivedByUserId = null;
-            objEntity.UpdatedUtc = dteNow;
-            objEntity.UpdatedByUserId = objUserId;
+            if (objEntity == null ||
+                objEntity.DeletedUtc.HasValue)
+            {
+                return false;
+            }
 
-            await _entityRepository.SaveChangesAsync(objToken);
+            if (!objEntity.ArchivedUtc.HasValue)
+            {
+                return true;
+            }
+
+            DateTime dteNow =
+                DateTime.UtcNow;
+
+            objEntity.ArchivedUtc =
+                null;
+
+            objEntity.ArchivedByUserId =
+                null;
+
+            objEntity.UpdatedUtc =
+                dteNow;
+
+            objEntity.UpdatedByUserId =
+                objUserId;
+
+            await _entityRepository.UpdateEntityAsync(
+                objEntity,
+                objToken);
 
             return true;
         }
 
         ///<inheritdoc/>
-        public async Task<Boolean> DeleteEntityAsync(Guid objEntityId, Guid? objUserId = null, CancellationToken objToken = default)
+        public async Task<Boolean> DeleteEntityAsync(
+            Guid objEntityId,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
         {
-            CrmEntity? objEntity = await _entityRepository.GetEntityByIdAsync(objEntityId, true, objToken);
-
-            if (objEntity == null || objEntity.DeletedUtc.HasValue)
+            if (objEntityId == Guid.Empty)
             {
                 return false;
             }
 
-            DateTime dteNow = DateTime.UtcNow;
+            CrmEntity? objEntity =
+                await _entityRepository.GetEntityByIdAsync(
+                    objEntityId,
+                    objToken);
 
-            objEntity.DeletedUtc = dteNow;
-            objEntity.DeletedByUserId = objUserId;
-            objEntity.UpdatedUtc = dteNow;
-            objEntity.UpdatedByUserId = objUserId;
+            if (objEntity == null ||
+                objEntity.DeletedUtc.HasValue)
+            {
+                return false;
+            }
 
-            await _entityRepository.SaveChangesAsync(objToken);
+            DateTime dteNow =
+                DateTime.UtcNow;
+
+            objEntity.DeletedUtc =
+                dteNow;
+
+            objEntity.DeletedByUserId =
+                objUserId;
+
+            objEntity.UpdatedUtc =
+                dteNow;
+
+            objEntity.UpdatedByUserId =
+                objUserId;
+
+            await _entityRepository.UpdateEntityAsync(
+                objEntity,
+                objToken);
 
             return true;
         }

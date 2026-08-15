@@ -8,10 +8,11 @@ namespace CRM.Core.Entities.Abstractions
         /// Gets a CRM entity by its unique identifier.
         /// </summary>
         /// <param name="objEntityId"></param>
-        /// <param name="blnAsTracking"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
-        Task<CrmEntity?> GetEntityByIdAsync(Guid objEntityId, Boolean blnAsTracking = false, CancellationToken objToken = default);
+        Task<CrmEntity?> GetEntityByIdAsync(
+            Guid objEntityId,
+            CancellationToken objToken = default);
 
         /// <summary>
         /// Gets a list of CRM entities based on the specified criteria.
@@ -30,26 +31,33 @@ namespace CRM.Core.Entities.Abstractions
             CancellationToken objToken = default);
 
         /// <summary>
-        /// Checks if a CRM entity exists by its unique identifier.
+        /// Checks whether a CRM entity exists and has not been deleted.
         /// </summary>
         /// <param name="objEntityId"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
-        Task<Boolean> EntityExistsAsync(Guid objEntityId, CancellationToken objToken = default);
+        Task<Boolean> EntityExistsAsync(
+            Guid objEntityId,
+            CancellationToken objToken = default);
 
         /// <summary>
-        /// Adds a new CRM entity to the repository.
+        /// Adds a new CRM entity.
         /// </summary>
         /// <param name="objEntity"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
-        Task AddEntityAsync(CrmEntity objEntity, CancellationToken objToken = default);
+        Task AddEntityAsync(
+            CrmEntity objEntity,
+            CancellationToken objToken = default);
 
         /// <summary>
-        /// Saves changes made to the repository, persisting them to the underlying data store.
+        /// Updates an existing CRM entity.
         /// </summary>
+        /// <param name="objEntity"></param>
         /// <param name="objToken"></param>
         /// <returns></returns>
-        Task SaveChangesAsync(CancellationToken objToken = default);
+        Task UpdateEntityAsync(
+            CrmEntity objEntity,
+            CancellationToken objToken = default);
     }
 }

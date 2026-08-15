@@ -7,26 +7,31 @@ namespace CRM.Infrastructure.Entities.Repositories
 {
     public sealed class CrmEntityRepository : ICrmEntityRepository
     {
-        private readonly CRMDbContext _context;
+        private readonly IDbContextFactory<CRMDbContext> _objDbContextFactory;
 
-        public CrmEntityRepository(CRMDbContext objContext)
+        public CrmEntityRepository(
+            IDbContextFactory<CRMDbContext> objDbContextFactory)
         {
-            _context = objContext;
+            _objDbContextFactory = objDbContextFactory;
         }
 
-        public async Task<CrmEntity?> GetEntityByIdAsync(Guid objEntityId, Boolean blnAsTracking = false, CancellationToken objToken = default)
+        ///<inheritdoc/>
+        public async Task<CrmEntity?> GetEntityByIdAsync(
+            Guid objEntityId,
+            CancellationToken objToken = default)
         {
-            IQueryable<CrmEntity> colQuery = _context.Entities
-                .Include(x => x.EntityType);
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
 
-            if (!blnAsTracking)
-            {
-                colQuery = colQuery.AsNoTracking();
-            }
-
-            return await colQuery.FirstOrDefaultAsync(x => x.Id == objEntityId, objToken);
+            return await objDbContext.Entities
+                .AsNoTracking()
+                .Include(objEntity => objEntity.EntityType)
+                .FirstOrDefaultAsync(
+                    objEntity => objEntity.Id == objEntityId,
+                    objToken);
         }
 
+        ///<inheritdoc/>
         public async Task<List<CrmEntity>> GetEntitiesAsync(
             Int32? intEntityTypeId = null,
             String? strSearch = null,
@@ -34,51 +39,107 @@ namespace CRM.Infrastructure.Entities.Repositories
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default)
         {
-            IQueryable<CrmEntity> colQuery = _context.Entities
-                .Include(x => x.EntityType)
-                .AsNoTracking();
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            IQueryable<CrmEntity> colQuery =
+                objDbContext.Entities
+                    .AsNoTracking()
+                    .Include(objEntity => objEntity.EntityType);
 
             if (intEntityTypeId.HasValue)
             {
-                colQuery = colQuery.Where(x => x.EntityTypeId == intEntityTypeId.Value);
+                colQuery = colQuery.Where(objEntity =>
+                    objEntity.EntityTypeId == intEntityTypeId.Value);
             }
 
             if (!String.IsNullOrWhiteSpace(strSearch))
             {
-                String strSearchTerm = strSearch.Trim();
+                String strSearchTerm =
+                    strSearch.Trim();
 
-                colQuery = colQuery.Where(x => x.DisplayName.Contains(strSearchTerm));
+                colQuery = colQuery.Where(objEntity =>
+                    objEntity.DisplayName.Contains(strSearchTerm));
             }
 
             if (!blnIncludeArchived)
             {
-                colQuery = colQuery.Where(x => !x.ArchivedUtc.HasValue);
+                colQuery = colQuery.Where(objEntity =>
+                    !objEntity.ArchivedUtc.HasValue);
             }
 
             if (!blnIncludeDeleted)
             {
-                colQuery = colQuery.Where(x => !x.DeletedUtc.HasValue);
+                colQuery = colQuery.Where(objEntity =>
+                    !objEntity.DeletedUtc.HasValue);
             }
 
             return await colQuery
-                .OrderBy(x => x.DisplayName)
+                .OrderBy(objEntity => objEntity.DisplayName)
                 .ToListAsync(objToken);
         }
 
-        public async Task<Boolean> EntityExistsAsync(Guid objEntityId, CancellationToken objToken = default)
+        ///<inheritdoc/>
+        public async Task<Boolean> EntityExistsAsync(
+            Guid objEntityId,
+            CancellationToken objToken = default)
         {
-            return await _context.Entities
-                .AnyAsync(x => x.Id == objEntityId && !x.DeletedUtc.HasValue, objToken);
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            return await objDbContext.Entities
+                .AsNoTracking()
+                .AnyAsync(
+                    objEntity =>
+                        objEntity.Id == objEntityId &&
+                        !objEntity.DeletedUtc.HasValue,
+                    objToken);
         }
 
-        public async Task AddEntityAsync(CrmEntity objEntity, CancellationToken objToken = default)
+        ///<inheritdoc/>
+        public async Task AddEntityAsync(
+            CrmEntity objEntity,
+            CancellationToken objToken = default)
         {
-            await _context.Entities.AddAsync(objEntity, objToken);
+            if (objEntity == null)
+            {
+                throw new ArgumentNullException(nameof(objEntity));
+            }
+
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            await objDbContext.Entities.AddAsync(
+                objEntity,
+                objToken);
+
+            await objDbContext.SaveChangesAsync(objToken);
         }
 
-        public async Task SaveChangesAsync(CancellationToken objToken = default)
+        ///<inheritdoc/>
+        public async Task UpdateEntityAsync(
+            CrmEntity objEntity,
+            CancellationToken objToken = default)
         {
-            await _context.SaveChangesAsync(objToken);
+            if (objEntity == null)
+            {
+                throw new ArgumentNullException(nameof(objEntity));
+            }
+
+            if (objEntity.Id == Guid.Empty)
+            {
+                throw new ArgumentException(
+                    "Entity id is required.",
+                    nameof(objEntity));
+            }
+
+            await using CRMDbContext objDbContext =
+                await _objDbContextFactory.CreateDbContextAsync(objToken);
+
+            objDbContext.Entry(objEntity).State =
+                EntityState.Modified;
+
+            await objDbContext.SaveChangesAsync(objToken);
         }
     }
 }
