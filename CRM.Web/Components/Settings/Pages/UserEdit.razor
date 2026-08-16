@@ -1,0 +1,511 @@
+﻿@page "/settings/users/add"
+@page "/settings/users/edit/{UserId:guid}"
+
+@using System.ComponentModel.DataAnnotations
+@using CRM.Contracts.Results
+@using CRM.Core.Users.Abstraction.Services
+@using CRM.Core.Users.Domain
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(blnIsEdit ? "Edit user" : "Add user") - HallCRM</PageTitle>
+
+<div class="user-edit-page">
+    @if (blnLoading)
+    {
+        <div class="crm-card user-edit-loading">
+            <span class="spinner-border spinner-border-sm"></span>
+            Loading user...
+        </div>
+    }
+    else
+    {
+        @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+        {
+            <div class="alert alert-danger mb-0">
+                <div class="d-flex align-items-start gap-2">
+                    <span class="material-symbols-outlined">
+                        error
+                    </span>
+
+                    <div>
+                        <strong>
+                            @(blnIsEdit
+                                ? "Unable to update user"
+                                : "Unable to create user")
+                        </strong>
+
+                        <div>@strErrorMessage</div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <EditForm Model="objModel"
+                  OnValidSubmit="SaveAsync">
+            <DataAnnotationsValidator />
+
+            <div class="user-edit-layout">
+                <div class="user-edit-main">
+                    <div class="crm-card user-edit-card">
+                        <div class="crm-card-header">
+                            <div>
+                                <h3>User details</h3>
+                                <p>
+                                    @(blnIsEdit
+                                        ? "Update the user's name and account information."
+                                        : "Create a new person who can access HallCRM.")
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="user-edit-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Forename
+                                    </label>
+
+                                    <InputText class="form-control"
+                                               @bind-Value="objModel.Forename" />
+
+                                    <ValidationMessage For="() => objModel.Forename" />
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Surname
+                                    </label>
+
+                                    <InputText class="form-control"
+                                               @bind-Value="objModel.Surname" />
+
+                                    <ValidationMessage For="() => objModel.Surname" />
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label">
+                                        Email
+                                    </label>
+
+                                    <InputText class="form-control"
+                                               type="email"
+                                               autocomplete="off"
+                                               @bind-Value="objModel.Email" />
+
+                                    <ValidationMessage For="() => objModel.Email" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crm-card user-edit-card">
+                        <div class="crm-card-header">
+                            <div>
+                                <h3>Account access</h3>
+                                <p>
+                                    Control whether this user can access HallCRM.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="user-edit-body">
+                            <div class="user-enabled-row">
+                                <div>
+                                    <strong>Account enabled</strong>
+
+                                    <p>
+                                        Disabled users cannot sign in to HallCRM.
+                                    </p>
+                                </div>
+
+                                <div class="form-check form-switch">
+                                    <InputCheckbox class="form-check-input"
+                                                   role="switch"
+                                                   @bind-Value="objModel.Enabled" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crm-card user-edit-card">
+                        <div class="crm-card-header">
+                            <div>
+                                <h3>
+                                    @(blnIsEdit
+                                        ? "Change password"
+                                        : "Initial password")
+                                </h3>
+
+                                <p>
+                                    @if (blnIsEdit)
+                                    {
+                                        <text>
+                                            Leave this blank to keep the user's current password.
+                                        </text>
+                                    }
+                                    else
+                                    {
+                                        <text>
+                                            You can set an initial password now.
+                                        </text>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="user-edit-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Password
+                                    </label>
+
+                                    <InputText class="form-control"
+                                               type="password"
+                                               autocomplete="new-password"
+                                               @bind-Value="objModel.Password" />
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Confirm password
+                                    </label>
+
+                                    <InputText class="form-control"
+                                               type="password"
+                                               autocomplete="new-password"
+                                               @bind-Value="objModel.ConfirmPassword" />
+                                </div>
+                            </div>
+
+                            @if (!String.IsNullOrWhiteSpace(objModel.Password) &&
+                                 objModel.Password != objModel.ConfirmPassword)
+                            {
+                                <div class="text-danger mt-2 small">
+                                    Passwords do not match.
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="user-edit-side">
+                    <div class="crm-card user-edit-side-card">
+                        <div class="user-edit-side-title">
+                            <span class="material-symbols-outlined">
+                                person
+                            </span>
+
+                            <div>
+                                <h3>
+                                    @(blnIsEdit
+                                        ? "Edit user"
+                                        : "New user")
+                                </h3>
+
+                                <p>
+                                    @(blnIsEdit
+                                        ? "Save changes to this account."
+                                        : "Create a HallCRM account.")
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="user-edit-actions">
+                            <button type="submit"
+                                    class="btn btn-primary"
+                                    disabled="@blnSaving">
+                                @if (blnSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                }
+                                else
+                                {
+                                    <span class="material-symbols-outlined">
+                                        save
+                                    </span>
+                                }
+
+                                @(blnIsEdit
+                                    ? "Save changes"
+                                    : "Create user")
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-outline-secondary"
+                                    disabled="@blnSaving"
+                                    @onclick="Cancel">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid? UserId { get; set; }
+
+    private UserEditModel objModel = new();
+
+    private Boolean blnLoading;
+    private Boolean blnSaving;
+
+    private String? strErrorMessage;
+
+    private Boolean blnIsEdit =>
+        UserId.HasValue &&
+        UserId.Value != Guid.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        strErrorMessage = null;
+
+        HeaderState.SetHeader(
+            blnIsEdit
+                ? "Edit user"
+                : "Add user",
+            blnIsEdit
+                ? "Update user details and account access"
+                : "Create a new HallCRM user");
+
+        if (blnIsEdit)
+        {
+            await LoadUserAsync();
+        }
+        else
+        {
+            objModel = new UserEditModel
+            {
+                Enabled = true
+            };
+        }
+    }
+
+    private async Task LoadUserAsync()
+    {
+        if (!UserId.HasValue)
+        {
+            return;
+        }
+
+        blnLoading = true;
+
+        try
+        {
+            User? objUser =
+                await UserService.GetUserAsync(
+                    UserId.Value);
+
+            if (objUser == null)
+            {
+                strErrorMessage =
+                    "The requested user could not be found.";
+
+                return;
+            }
+
+            objModel = new UserEditModel
+            {
+                Forename = objUser.Forename ?? String.Empty,
+                Surname = objUser.Surname ?? String.Empty,
+                Email = objUser.Email ?? String.Empty,
+                Enabled = objUser.Enabled
+            };
+
+            HeaderState.SetHeader(
+                $"Edit {objUser.DisplayName}",
+                "Update user details and account access");
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = objError.Message;
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (blnSaving)
+        {
+            return;
+        }
+
+        strErrorMessage = null;
+
+        if (!String.Equals(
+                objModel.Password,
+                objModel.ConfirmPassword,
+                StringComparison.Ordinal))
+        {
+            strErrorMessage =
+                "The passwords do not match.";
+
+            return;
+        }
+
+        blnSaving = true;
+
+        try
+        {
+            if (blnIsEdit)
+            {
+                await UpdateUserAsync();
+            }
+            else
+            {
+                await CreateUserAsync();
+            }
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = objError.Message;
+        }
+        finally
+        {
+            blnSaving = false;
+        }
+    }
+
+    private async Task CreateUserAsync()
+    {
+        CreateUserRequest objRequest = new()
+        {
+            Forename = objModel.Forename,
+            Surname = objModel.Surname,
+            Email = objModel.Email,
+            Enabled = objModel.Enabled,
+
+            Password =
+                String.IsNullOrWhiteSpace(objModel.Password)
+                    ? null
+                    : objModel.Password
+        };
+
+        BasicResult<Guid> objResult =
+            await UserService.CreateUserAsync(
+                objRequest);
+
+        if (!objResult.Success)
+        {
+            strErrorMessage =
+                GetResultMessage(objResult);
+
+            return;
+        }
+
+        NavigationManager.NavigateTo(
+            $"/settings/users/{objResult.Result}");
+    }
+
+    private async Task UpdateUserAsync()
+    {
+        if (!UserId.HasValue)
+        {
+            return;
+        }
+
+        UpdateUserRequest objRequest = new()
+        {
+            Id = UserId.Value,
+
+            Forename = objModel.Forename,
+            Surname = objModel.Surname,
+            Email = objModel.Email,
+            Enabled = objModel.Enabled,
+
+            NewPassword =
+                String.IsNullOrWhiteSpace(objModel.Password)
+                    ? null
+                    : objModel.Password
+        };
+
+        BasicResult objResult =
+            await UserService.UpdateUserAsync(
+                objRequest);
+
+        if (!objResult.Success)
+        {
+            strErrorMessage =
+                GetResultMessage(objResult);
+
+            return;
+        }
+
+        NavigationManager.NavigateTo(
+            $"/settings/users/{UserId.Value}");
+    }
+
+    private void Cancel()
+    {
+        if (blnIsEdit && UserId.HasValue)
+        {
+            NavigationManager.NavigateTo(
+                $"/settings/users/{UserId.Value}");
+
+            return;
+        }
+
+        NavigationManager.NavigateTo(
+            "/settings/users");
+    }
+
+    private static String GetResultMessage(
+        BasicResult objResult)
+    {
+        if (!String.IsNullOrWhiteSpace(
+                objResult.AltMessage))
+        {
+            return objResult.AltMessage;
+        }
+
+        return objResult.Message;
+    }
+
+    private static String GetResultMessage(
+    BasicResult<Guid> objResult)
+    {
+        if (!String.IsNullOrWhiteSpace(objResult.AltMessage))
+        {
+            return objResult.AltMessage;
+        }
+
+        return objResult.Message;
+    }
+
+    private sealed class UserEditModel
+    {
+        [Required]
+        [MaxLength(100)]
+        public String Forename { get; set; } =
+            String.Empty;
+
+        [Required]
+        [MaxLength(100)]
+        public String Surname { get; set; } =
+            String.Empty;
+
+        [Required]
+        [EmailAddress]
+        [MaxLength(256)]
+        public String Email { get; set; } =
+            String.Empty;
+
+        public Boolean Enabled { get; set; } = true;
+
+        public String? Password { get; set; }
+
+        public String? ConfirmPassword { get; set; }
+    }
+}

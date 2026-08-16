@@ -29,5 +29,9 @@ namespace CRM.Core.Users.Abstraction.Repositories
         Task<BasicResult> DisableUserAsync(Guid objUserId, CancellationToken objToken = default);
 
         Task<BasicResult> UnlockUserAsync(Guid objUserId, CancellationToken objToken = default);
+
+        Task<BasicResult<Guid>> CreateUserAsync(
+            CreateUserRequest objRequest,
+            CancellationToken objToken = default);
     }
 }

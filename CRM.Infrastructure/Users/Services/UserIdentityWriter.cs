@@ -449,5 +449,96 @@ namespace CRM.Infrastructure.Users.Services
                     ? "User unlocked successfully."
                     : "User was unlocked, but its updated date could not be saved.");
         }
+
+        public async Task<BasicResult<Guid>> CreateUserAsync(
+            CreateUserRequest objRequest,
+            CancellationToken objToken = default)
+        {
+            BasicResult<Guid> objResult = new();
+
+            if (objRequest == null)
+            {
+                objResult.Message = "User details are required.";
+                return objResult;
+            }
+
+            if (String.IsNullOrWhiteSpace(objRequest.Email))
+            {
+                objResult.Message = "An email address is required.";
+                return objResult;
+            }
+
+            String strEmail = objRequest.Email.Trim();
+
+            ApplicationUser? objExistingUser =
+                await _userManager.FindByEmailAsync(strEmail);
+
+            if (objExistingUser != null)
+            {
+                objResult.Message =
+                    "A user with this email address already exists.";
+
+                return objResult;
+            }
+
+            Guid objDomainUserId = Guid.NewGuid();
+
+            ApplicationUser objUser = new()
+            {
+                DomainUserId = objDomainUserId,
+
+                UserName = strEmail,
+                Email = strEmail,
+
+                Forename =
+                    CleanString(objRequest.Forename)
+                    ?? String.Empty,
+
+                Surname =
+                    CleanString(objRequest.Surname)
+                    ?? String.Empty,
+
+                Enabled = objRequest.Enabled,
+
+                CreatedUtc = DateTimeOffset.UtcNow
+            };
+
+            IdentityResult objIdentityResult;
+
+            if (!String.IsNullOrWhiteSpace(objRequest.Password))
+            {
+                objIdentityResult =
+                    await _userManager.CreateAsync(
+                        objUser,
+                        objRequest.Password);
+            }
+            else
+            {
+                objIdentityResult =
+                    await _userManager.CreateAsync(
+                        objUser);
+            }
+
+            if (!objIdentityResult.Succeeded)
+            {
+                BasicResult objFailure =
+                    FromIdentityResult(
+                        objIdentityResult,
+                        "Failed to create the user.");
+
+                objResult.Message = objFailure.Message;
+                objResult.AltMessage = objFailure.AltMessage;
+
+                return objResult;
+            }
+
+            objResult.Success = true;
+            objResult.Message =
+                "User created successfully.";
+
+            objResult.Result = objDomainUserId;
+
+            return objResult;
+        }
     }
 }

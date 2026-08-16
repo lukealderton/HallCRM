@@ -100,5 +100,14 @@ namespace CRM.Core.Users.Services
                 objUserId,
                 objToken);
         }
+
+        public Task<BasicResult<Guid>> CreateUserAsync(
+            CreateUserRequest objRequest,
+            CancellationToken objToken = default)
+        {
+            return _identityWriter.CreateUserAsync(
+                objRequest,
+                objToken);
+        }
     }
 }
