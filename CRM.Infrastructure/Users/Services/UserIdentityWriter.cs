@@ -3,6 +3,7 @@ using CRM.Core.Users.Abstraction.Repositories;
 using CRM.Core.Users.Domain;
 using CRM.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace CRM.Infrastructure.Users.Services
@@ -49,7 +50,7 @@ namespace CRM.Infrastructure.Users.Services
             objUser.Surname = CleanString(objRequest.Surname);
             //objUser.AccessLevel = objRequest.AccessLevel;
             objUser.Enabled = objRequest.Enabled;
-            objUser.UpdatedUtc = DateTime.UtcNow;
+            objUser.UpdatedUtc = DateTimeOffset.UtcNow;
 
             if (!String.IsNullOrWhiteSpace(objRequest.Email) &&
                 !String.Equals(
@@ -145,7 +146,7 @@ namespace CRM.Infrastructure.Users.Services
         //    }
 
         //    objUser.AccessLevel = enmAccessLevel;
-        //    objUser.UpdateDate = DateTime.UtcNow;
+        //    objUser.UpdatedUtc = DateTimeOffset.UtcNow;
 
         //    IdentityResult objUpdateResult =
         //        await _userManager.UpdateAsync(objUser);
@@ -178,8 +179,9 @@ namespace CRM.Infrastructure.Users.Services
             }
 
             ApplicationUser? objUser =
-                await _userManager.FindByIdAsync(
-                    objUserId.ToString());
+                await GetUserByDomainIdAsync(
+                    objUserId,
+                    objToken);
 
             if (objUser == null)
             {
@@ -241,8 +243,9 @@ namespace CRM.Infrastructure.Users.Services
             }
 
             ApplicationUser? objUser =
-                await _userManager.FindByIdAsync(
-                    objUserId.ToString());
+                await GetUserByDomainIdAsync(
+                    objUserId,
+                    objToken);
 
             if (objUser == null)
             {
@@ -285,12 +288,166 @@ namespace CRM.Infrastructure.Users.Services
             return objResult;
         }
 
+        private Task<ApplicationUser?> GetUserByDomainIdAsync(
+            Guid objUserId,
+            CancellationToken objToken = default)
+        {
+            return _userManager.Users
+                .FirstOrDefaultAsync(
+                    x => x.DomainUserId == objUserId,
+                    objToken);
+        }
+
         private static String? CleanString(
             String? strValue)
         {
             return String.IsNullOrWhiteSpace(strValue)
                 ? null
                 : strValue.Trim();
+        }
+
+        public async Task<BasicResult> EnableUserAsync(
+            Guid objUserId,
+            CancellationToken objToken = default)
+        {
+            BasicResult objResult = new();
+
+            if (objUserId == Guid.Empty)
+            {
+                objResult.Message = "A valid user id is required.";
+                return objResult;
+            }
+
+            ApplicationUser? objUser =
+                await GetUserByDomainIdAsync(
+                    objUserId,
+                    objToken);
+
+            if (objUser == null)
+            {
+                objResult.Message = "User not found.";
+                return objResult;
+            }
+
+            if (objUser.Enabled)
+            {
+                objResult.Success = true;
+                objResult.Message = "User is already enabled.";
+                return objResult;
+            }
+
+            objUser.Enabled = true;
+            objUser.UpdatedUtc = DateTimeOffset.UtcNow;
+
+            IdentityResult objIdentityResult =
+                await _userManager.UpdateAsync(objUser);
+
+            return FromIdentityResult(
+                objIdentityResult,
+                objIdentityResult.Succeeded
+                    ? "User enabled successfully."
+                    : "Failed to enable the user.");
+        }
+
+        public async Task<BasicResult> DisableUserAsync(
+            Guid objUserId,
+            CancellationToken objToken = default)
+        {
+            BasicResult objResult = new();
+
+            if (objUserId == Guid.Empty)
+            {
+                objResult.Message = "A valid user id is required.";
+                return objResult;
+            }
+
+            ApplicationUser? objUser =
+                await GetUserByDomainIdAsync(
+                    objUserId,
+                    objToken);
+
+            if (objUser == null)
+            {
+                objResult.Message = "User not found.";
+                return objResult;
+            }
+
+            if (!objUser.Enabled)
+            {
+                objResult.Success = true;
+                objResult.Message = "User is already disabled.";
+                return objResult;
+            }
+
+            objUser.Enabled = false;
+            objUser.UpdatedUtc = DateTimeOffset.UtcNow;
+
+            IdentityResult objIdentityResult =
+                await _userManager.UpdateAsync(objUser);
+
+            return FromIdentityResult(
+                objIdentityResult,
+                objIdentityResult.Succeeded
+                    ? "User disabled successfully."
+                    : "Failed to disable the user.");
+        }
+
+        public async Task<BasicResult> UnlockUserAsync(
+            Guid objUserId,
+            CancellationToken objToken = default)
+        {
+            BasicResult objResult = new();
+
+            if (objUserId == Guid.Empty)
+            {
+                objResult.Message = "A valid user id is required.";
+                return objResult;
+            }
+
+            ApplicationUser? objUser =
+                await GetUserByDomainIdAsync(
+                    objUserId,
+                    objToken);
+
+            if (objUser == null)
+            {
+                objResult.Message = "User not found.";
+                return objResult;
+            }
+
+            IdentityResult objLockoutResult =
+                await _userManager.SetLockoutEndDateAsync(
+                    objUser,
+                    null);
+
+            if (!objLockoutResult.Succeeded)
+            {
+                return FromIdentityResult(
+                    objLockoutResult,
+                    "Failed to unlock the user.");
+            }
+
+            IdentityResult objFailedCountResult =
+                await _userManager.ResetAccessFailedCountAsync(
+                    objUser);
+
+            if (!objFailedCountResult.Succeeded)
+            {
+                return FromIdentityResult(
+                    objFailedCountResult,
+                    "The lockout was cleared, but the failed login count could not be reset.");
+            }
+
+            objUser.UpdatedUtc = DateTimeOffset.UtcNow;
+
+            IdentityResult objUpdateResult =
+                await _userManager.UpdateAsync(objUser);
+
+            return FromIdentityResult(
+                objUpdateResult,
+                objUpdateResult.Succeeded
+                    ? "User unlocked successfully."
+                    : "User was unlocked, but its updated date could not be saved.");
         }
     }
 }

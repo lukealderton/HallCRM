@@ -1,0 +1,570 @@
+﻿@page "/settings/users/{UserId:guid}"
+
+@using CRM.Contracts.Results
+@using CRM.Core.Users.Abstraction.Services
+@using CRM.Core.Users.Domain
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(objUser?.DisplayName ?? "User") - HallCRM</PageTitle>
+
+<div class="user-item-page">
+    @if (blnLoading)
+    {
+        <div class="crm-card user-loading">
+            <span class="spinner-border spinner-border-sm"></span>
+            Loading user...
+        </div>
+    }
+    else if (!String.IsNullOrWhiteSpace(strErrorMessage))
+    {
+        <div class="alert alert-danger mb-0">
+            <div class="d-flex align-items-start gap-2">
+                <span class="material-symbols-outlined">error</span>
+
+                <div>
+                    <strong>Unable to load user</strong>
+                    <div>@strErrorMessage</div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (objUser == null)
+    {
+        <div class="crm-card user-empty-state">
+            <span class="material-symbols-outlined">person_off</span>
+            <h3>User not found</h3>
+            <p>The requested user could not be found.</p>
+
+            <a href="/settings/users"
+               class="btn btn-outline-secondary">
+                Back to users
+            </a>
+        </div>
+    }
+    else
+    {
+        @if (!String.IsNullOrWhiteSpace(strActionMessage))
+        {
+            <div class="alert @(blnActionSuccess ? "alert-success" : "alert-danger") mb-0">
+                @strActionMessage
+            </div>
+        }
+
+        <div class="crm-card user-profile-card">
+            <div class="user-profile-main">
+                <div class="user-avatar">
+                    @objUser.GetInitials()
+                </div>
+
+                <div class="user-profile-content">
+                    <div class="user-title-row">
+                        <h2>@objUser.DisplayName</h2>
+
+                        @if (!objUser.Enabled)
+                        {
+                            <span class="user-status user-status--disabled">
+                                <span class="user-status-dot"></span>
+                                Disabled
+                            </span>
+                        }
+                        else if (objUser.IsLockedOut)
+                        {
+                            <span class="user-status user-status--locked">
+                                <span class="user-status-dot"></span>
+                                Locked
+                            </span>
+                        }
+                        else if (!objUser.EmailConfirmed)
+                        {
+                            <span class="user-status user-status--pending">
+                                <span class="user-status-dot"></span>
+                                Pending
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="user-status user-status--active">
+                                <span class="user-status-dot"></span>
+                                Active
+                            </span>
+                        }
+                    </div>
+
+                    @if (!String.IsNullOrWhiteSpace(objUser.Email))
+                    {
+                        <a href="mailto:@objUser.Email"
+                           class="user-profile-email">
+                            @objUser.Email
+                        </a>
+                    }
+
+                    <div class="user-profile-meta">
+                        @if (!String.IsNullOrWhiteSpace(objUser.Username) &&
+                             !String.Equals(
+                                 objUser.Username,
+                                 objUser.Email,
+                                 StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span>
+                                <span class="material-symbols-outlined">
+                                    alternate_email
+                                </span>
+                                @objUser.Username
+                            </span>
+                        }
+
+                        <span>
+                            <span class="material-symbols-outlined">
+                                schedule
+                            </span>
+                            Last login @FormatLastLogin(objUser.LastLoginUtc)
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-profile-actions">
+                <a href="@($"/settings/users/edit/{objUser.Id}")"
+                   class="btn btn-primary">
+                    <span class="material-symbols-outlined">edit</span>
+                    Edit user
+                </a>
+            </div>
+        </div>
+
+        <div class="user-content-grid">
+            <div class="user-main-column">
+                <div class="crm-card user-section-card">
+                    <div class="crm-card-header">
+                        <div>
+                            <h3>Account details</h3>
+                            <p>Identity and contact information for this user.</p>
+                        </div>
+                    </div>
+
+                    <div class="user-detail-grid">
+                        <div class="user-detail-item">
+                            <span class="user-detail-label">Forename</span>
+                            <strong>@DisplayValue(objUser.Forename)</strong>
+                        </div>
+
+                        <div class="user-detail-item">
+                            <span class="user-detail-label">Surname</span>
+                            <strong>@DisplayValue(objUser.Surname)</strong>
+                        </div>
+
+                        <div class="user-detail-item">
+                            <span class="user-detail-label">Email</span>
+
+                            @if (!String.IsNullOrWhiteSpace(objUser.Email))
+                            {
+                                <a href="mailto:@objUser.Email">
+                                    @objUser.Email
+                                </a>
+                            }
+                            else
+                            {
+                                <strong>—</strong>
+                            }
+                        </div>
+
+                        <div class="user-detail-item">
+                            <span class="user-detail-label">Username</span>
+                            <strong>@DisplayValue(objUser.Username)</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card user-section-card">
+                    <div class="crm-card-header">
+                        <div>
+                            <h3>Account activity</h3>
+                            <p>Dates associated with this account.</p>
+                        </div>
+                    </div>
+
+                    <div class="user-detail-grid">
+                        <div class="user-detail-item">
+                            <span class="user-detail-label">Created</span>
+                            <strong>@FormatDate(objUser.CreatedUtc)</strong>
+                        </div>
+
+                        <div class="user-detail-item">
+                            <span class="user-detail-label">Last login</span>
+                            <strong>@FormatDateTime(objUser.LastLoginUtc)</strong>
+                        </div>
+
+                        <div class="user-detail-item">
+                            <span class="user-detail-label">Last updated</span>
+                            <strong>@FormatDateTime(objUser.UpdatedUtc)</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="user-side-column">
+                <div class="crm-card user-side-card">
+                    <div class="user-side-card-header">
+                        <span class="material-symbols-outlined">
+                            verified_user
+                        </span>
+
+                        <div>
+                            <h3>Account status</h3>
+                            <p>Current Identity state.</p>
+                        </div>
+                    </div>
+
+                    <div class="user-status-list">
+                        <div class="user-status-row">
+                            <span>Enabled</span>
+
+                            @if (objUser.Enabled)
+                            {
+                                <strong class="text-success">Yes</strong>
+                            }
+                            else
+                            {
+                                <strong class="text-danger">No</strong>
+                            }
+                        </div>
+
+                        <div class="user-status-row">
+                            <span>Email confirmed</span>
+
+                            @if (objUser.EmailConfirmed)
+                            {
+                                <strong class="text-success">Yes</strong>
+                            }
+                            else
+                            {
+                                <strong class="text-warning">No</strong>
+                            }
+                        </div>
+
+                        <div class="user-status-row">
+                            <span>Locked out</span>
+
+                            @if (objUser.IsLockedOut)
+                            {
+                                <strong class="text-danger">Yes</strong>
+                            }
+                            else
+                            {
+                                <strong>No</strong>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="crm-card user-side-card">
+                    <div class="user-side-card-header">
+                        <span class="material-symbols-outlined">
+                            settings_account_box
+                        </span>
+
+                        <div>
+                            <h3>Actions</h3>
+                            <p>Manage this user's account.</p>
+                        </div>
+                    </div>
+
+                    <div class="user-action-list">
+                        <a href="@($"/settings/users/edit/{objUser.Id}")"
+                           class="btn btn-outline-secondary">
+                            <span class="material-symbols-outlined">
+                                edit
+                            </span>
+                            Edit user
+                        </a>
+
+                        @if (objUser.IsLockedOut)
+                        {
+                            <button type="button"
+                                    class="btn btn-outline-warning"
+                                    disabled="@blnActionPending"
+                                    @onclick="UnlockUserAsync">
+                                <span class="material-symbols-outlined">
+                                    lock_open
+                                </span>
+                                Unlock account
+                            </button>
+                        }
+
+                        @if (objUser.Enabled)
+                        {
+                            <button type="button"
+                                    class="btn btn-outline-danger"
+                                    disabled="@blnActionPending"
+                                    @onclick="DisableUserAsync">
+                                <span class="material-symbols-outlined">
+                                    person_off
+                                </span>
+                                Disable account
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button"
+                                    class="btn btn-outline-success"
+                                    disabled="@blnActionPending"
+                                    @onclick="EnableUserAsync">
+                                <span class="material-symbols-outlined">
+                                    person_check
+                                </span>
+                                Enable account
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="crm-card user-side-card">
+                    <a href="/settings/users"
+                       class="user-back-link">
+                        <span class="material-symbols-outlined">
+                            arrow_back
+                        </span>
+                        Back to users
+                    </a>
+                </div>
+            </aside>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid UserId { get; set; }
+
+    private User? objUser;
+
+    private Boolean blnLoading = true;
+    private Boolean blnActionPending;
+    private Boolean blnActionSuccess;
+
+    private String? strErrorMessage;
+    private String? strActionMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        HeaderState.SetHeader(
+            "User",
+            "Manage user account and access");
+
+        await LoadUserAsync();
+    }
+
+    private async Task LoadUserAsync()
+    {
+        blnLoading = true;
+        strErrorMessage = null;
+
+        try
+        {
+            objUser = await UserService.GetUserAsync(UserId);
+
+            if (objUser != null)
+            {
+                HeaderState.SetHeader(
+                    objUser.DisplayName,
+                    "Manage user account and access");
+            }
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = objError.Message;
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private async Task EnableUserAsync()
+    {
+        if (objUser == null || blnActionPending)
+        {
+            return;
+        }
+
+        blnActionPending = true;
+        strActionMessage = null;
+
+        try
+        {
+            BasicResult objResult =
+                await UserService.EnableUserAsync(
+                    objUser.Id);
+
+            SetActionResult(objResult);
+
+            if (objResult.Success)
+            {
+                await ReloadUserAsync();
+            }
+        }
+        catch (Exception objError)
+        {
+            blnActionSuccess = false;
+            strActionMessage = objError.Message;
+        }
+        finally
+        {
+            blnActionPending = false;
+        }
+    }
+
+    private async Task DisableUserAsync()
+    {
+        if (objUser == null || blnActionPending)
+        {
+            return;
+        }
+
+        blnActionPending = true;
+        strActionMessage = null;
+
+        try
+        {
+            BasicResult objResult =
+                await UserService.DisableUserAsync(
+                    objUser.Id);
+
+            SetActionResult(objResult);
+
+            if (objResult.Success)
+            {
+                await ReloadUserAsync();
+            }
+        }
+        catch (Exception objError)
+        {
+            blnActionSuccess = false;
+            strActionMessage = objError.Message;
+        }
+        finally
+        {
+            blnActionPending = false;
+        }
+    }
+
+    private async Task UnlockUserAsync()
+    {
+        if (objUser == null || blnActionPending)
+        {
+            return;
+        }
+
+        blnActionPending = true;
+        strActionMessage = null;
+
+        try
+        {
+            BasicResult objResult =
+                await UserService.UnlockUserAsync(
+                    objUser.Id);
+
+            SetActionResult(objResult);
+
+            if (objResult.Success)
+            {
+                await ReloadUserAsync();
+            }
+        }
+        catch (Exception objError)
+        {
+            blnActionSuccess = false;
+            strActionMessage = objError.Message;
+        }
+        finally
+        {
+            blnActionPending = false;
+        }
+    }
+
+    private async Task ReloadUserAsync()
+    {
+        objUser = await UserService.GetUserAsync(UserId);
+
+        if (objUser != null)
+        {
+            HeaderState.SetHeader(
+                objUser.DisplayName,
+                "Manage user account and access");
+        }
+    }
+
+    private void SetActionResult(BasicResult objResult)
+    {
+        blnActionSuccess = objResult.Success;
+
+        strActionMessage =
+            !String.IsNullOrWhiteSpace(objResult.AltMessage)
+                ? objResult.AltMessage
+                : objResult.Message;
+    }
+
+    private static String DisplayValue(String? strValue)
+    {
+        return String.IsNullOrWhiteSpace(strValue)
+            ? "—"
+            : strValue;
+    }
+
+    private static String FormatDate(DateTimeOffset dtmValue)
+    {
+        if (dtmValue == default)
+        {
+            return "—";
+        }
+
+        return dtmValue
+            .ToLocalTime()
+            .ToString("dd MMM yyyy");
+    }
+
+    private static String FormatDateTime(
+        DateTimeOffset? dtmValue)
+    {
+        if (!dtmValue.HasValue)
+        {
+            return "Never";
+        }
+
+        return dtmValue.Value
+            .ToLocalTime()
+            .ToString("dd MMM yyyy, h:mm tt");
+    }
+
+    private static String FormatLastLogin(
+        DateTimeOffset? dtmLastLogin)
+    {
+        if (!dtmLastLogin.HasValue)
+        {
+            return "never";
+        }
+
+        DateTimeOffset dtmLocal =
+            dtmLastLogin.Value.ToLocalTime();
+
+        DateTimeOffset dtmNow =
+            DateTimeOffset.Now;
+
+        if (dtmLocal.Date == dtmNow.Date)
+        {
+            return $"today at {dtmLocal:h:mm tt}";
+        }
+
+        if (dtmLocal.Date == dtmNow.Date.AddDays(-1))
+        {
+            return $"yesterday at {dtmLocal:h:mm tt}";
+        }
+
+        return $"on {dtmLocal:dd MMM yyyy}";
+    }
+}

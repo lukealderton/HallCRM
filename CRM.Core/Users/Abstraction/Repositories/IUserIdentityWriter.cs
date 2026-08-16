@@ -23,5 +23,11 @@ namespace CRM.Core.Users.Abstraction.Repositories
         Task<BasicResult<String>> GenerateEmailConfirmationTokenAsync(
             Guid objUserId,
             CancellationToken objToken = default);
+
+        Task<BasicResult> EnableUserAsync(Guid objUserId, CancellationToken objToken = default);
+
+        Task<BasicResult> DisableUserAsync(Guid objUserId, CancellationToken objToken = default);
+
+        Task<BasicResult> UnlockUserAsync(Guid objUserId, CancellationToken objToken = default);
     }
 }

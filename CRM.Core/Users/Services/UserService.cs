@@ -73,5 +73,32 @@ namespace CRM.Core.Users.Services
                 objRequest,
                 objToken);
         }
+
+        public Task<BasicResult> EnableUserAsync(
+            Guid objUserId,
+            CancellationToken objToken = default)
+        {
+            return _identityWriter.EnableUserAsync(
+                objUserId,
+                objToken);
+        }
+
+        public Task<BasicResult> DisableUserAsync(
+            Guid objUserId,
+            CancellationToken objToken = default)
+        {
+            return _identityWriter.DisableUserAsync(
+                objUserId,
+                objToken);
+        }
+
+        public Task<BasicResult> UnlockUserAsync(
+            Guid objUserId,
+            CancellationToken objToken = default)
+        {
+            return _identityWriter.UnlockUserAsync(
+                objUserId,
+                objToken);
+        }
     }
 }
