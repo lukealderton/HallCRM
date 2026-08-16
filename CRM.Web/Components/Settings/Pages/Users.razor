@@ -1,0 +1,383 @@
+﻿@page "/settings/users"
+
+@using CRM.Core.Users.Abstraction.Services
+@using CRM.Core.Users.Domain
+@using CRM.Web.State
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+
+<SeoHead Title="Users" />
+
+<div class="users-page">
+    <div class="crm-card users-toolbar">
+        <div class="users-search">
+            <label class="form-label" for="userSearch">Search</label>
+
+            <div class="input-group">
+                <span class="input-group-text">
+                    <span class="material-symbols-outlined">search</span>
+                </span>
+
+                <input id="userSearch"
+                       class="form-control"
+                       type="search"
+                       placeholder="Search name, email or username..."
+                       @bind="strSearch"
+                       @bind:event="oninput" />
+            </div>
+        </div>
+
+        <div class="users-filter">
+            <label class="form-label" for="userStatus">Status</label>
+
+            <select id="userStatus"
+                    class="form-select"
+                    @bind="strStatus">
+                <option value="all">All users</option>
+                <option value="active">Active</option>
+                <option value="disabled">Disabled</option>
+                <option value="locked">Locked out</option>
+                <option value="pending">Pending confirmation</option>
+            </select>
+        </div>
+
+        <div class="users-toolbar-actions">
+            <a href="/settings/users/add"
+               class="btn btn-primary">
+                <span class="material-symbols-outlined">person_add</span>
+                Add user
+            </a>
+        </div>
+    </div>
+
+    <div class="users-summary">
+        <div class="crm-card users-summary-card">
+            <div class="users-summary-icon">
+                <span class="material-symbols-outlined">group</span>
+            </div>
+
+            <div>
+                <span>Total users</span>
+                <strong>@colUsers.Count</strong>
+            </div>
+        </div>
+
+        <div class="crm-card users-summary-card">
+            <div class="users-summary-icon users-summary-icon--success">
+                <span class="material-symbols-outlined">check_circle</span>
+            </div>
+
+            <div>
+                <span>Active</span>
+                <strong>@colUsers.Count(x => x.Enabled && !x.IsLockedOut)</strong>
+            </div>
+        </div>
+
+        <div class="crm-card users-summary-card">
+            <div class="users-summary-icon users-summary-icon--warning">
+                <span class="material-symbols-outlined">lock</span>
+            </div>
+
+            <div>
+                <span>Locked</span>
+                <strong>@colUsers.Count(x => x.IsLockedOut)</strong>
+            </div>
+        </div>
+
+        <div class="crm-card users-summary-card">
+            <div class="users-summary-icon users-summary-icon--muted">
+                <span class="material-symbols-outlined">person_off</span>
+            </div>
+
+            <div>
+                <span>Disabled</span>
+                <strong>@colUsers.Count(x => !x.Enabled)</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="crm-card users-results-card">
+        <div class="crm-card-header">
+            <div>
+                <h3>Users</h3>
+                <p>People who can sign in and access HallCRM.</p>
+            </div>
+
+            @if (!blnLoading)
+            {
+                <span class="users-result-count">
+                    @FilteredUsers.Count()
+                    @(FilteredUsers.Count() == 1 ? "user" : "users")
+                </span>
+            }
+        </div>
+
+        @if (blnLoading)
+        {
+            <div class="crm-loading">
+                <span class="spinner-border spinner-border-sm"></span>
+                Loading users...
+            </div>
+        }
+        else if (!String.IsNullOrWhiteSpace(strErrorMessage))
+        {
+            <div class="users-message">
+                <div class="alert alert-danger mb-0">
+                    <span class="material-symbols-outlined">error</span>
+
+                    <div>
+                        <strong>Unable to load users</strong>
+                        <div>@strErrorMessage</div>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (!FilteredUsers.Any())
+        {
+            <div class="crm-empty-state">
+                <span class="material-symbols-outlined">group_off</span>
+
+                <h4>No users found</h4>
+
+                @if (String.IsNullOrWhiteSpace(strSearch) && strStatus == "all")
+                {
+                    <p>There are currently no users in the system.</p>
+
+                    <a href="/settings/users/add"
+                       class="btn btn-primary">
+                        Add user
+                    </a>
+                }
+                else
+                {
+                    <p>Try changing your search or status filter.</p>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle crm-table users-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Status</th>
+                            <th>Email</th>
+                            <th>Last login</th>
+                            <th>Created</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (User objUser in FilteredUsers)
+                        {
+                            <tr @onclick="() => OpenUser(objUser.Id)"
+                                class="users-row">
+                                <td>
+                                    <div class="users-user-cell">
+                                        <div class="users-avatar">
+                                            @objUser.GetInitials()
+                                        </div>
+
+                                        <div class="users-user-details">
+                                            <a href="@($"/settings/users/{objUser.Id}")"
+                                               @onclick:stopPropagation="true">
+                                                @objUser.DisplayName
+                                            </a>
+
+                                            @if (!String.IsNullOrWhiteSpace(objUser.Username) &&
+                                                 !String.Equals(
+                                                     objUser.Username,
+                                                     objUser.Email,
+                                                     StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <small>@objUser.Username</small>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    @if (!objUser.Enabled)
+                                    {
+                                        <span class="users-status users-status--disabled">
+                                            <span class="users-status-dot"></span>
+                                            Disabled
+                                        </span>
+                                    }
+                                    else if (objUser.IsLockedOut)
+                                    {
+                                        <span class="users-status users-status--locked">
+                                            <span class="users-status-dot"></span>
+                                            Locked
+                                        </span>
+                                    }
+                                    else if (!objUser.EmailConfirmed)
+                                    {
+                                        <span class="users-status users-status--pending">
+                                            <span class="users-status-dot"></span>
+                                            Pending
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="users-status users-status--active">
+                                            <span class="users-status-dot"></span>
+                                            Active
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (!String.IsNullOrWhiteSpace(objUser.Email))
+                                    {
+                                        <a href="mailto:@objUser.Email"
+                                           @onclick:stopPropagation="true">
+                                            @objUser.Email
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @FormatLastLogin(objUser.LastLoginUtc)
+                                </td>
+
+                                <td>
+                                    @objUser.CreatedUtc.ToLocalTime().ToString("dd MMM yyyy")
+                                </td>
+
+                                <td class="text-end">
+                                    <a href="@($"/settings/users/{objUser.Id}")"
+                                       class="btn btn-sm btn-outline-primary"
+                                       @onclick:stopPropagation="true">
+                                        Open
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<User> colUsers = [];
+
+    private Boolean blnLoading = true;
+
+    private String strSearch = String.Empty;
+    private String strStatus = "all";
+    private String? strErrorMessage;
+
+    private IEnumerable<User> FilteredUsers
+    {
+        get
+        {
+            IEnumerable<User> colResult = colUsers;
+
+            if (!String.IsNullOrWhiteSpace(strSearch))
+            {
+                String strValue = strSearch.Trim();
+
+                colResult = colResult.Where(
+                    x =>
+                        x.DisplayName.Contains(strValue, StringComparison.OrdinalIgnoreCase) ||
+                        (x.Email?.Contains(strValue, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                        (x.Username?.Contains(strValue, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            colResult = strStatus switch
+            {
+                "active" => colResult.Where(
+                    x => x.Enabled &&
+                         !x.IsLockedOut &&
+                         x.EmailConfirmed),
+
+                "disabled" => colResult.Where(
+                    x => !x.Enabled),
+
+                "locked" => colResult.Where(
+                    x => x.IsLockedOut),
+
+                "pending" => colResult.Where(
+                    x => x.Enabled &&
+                         !x.EmailConfirmed),
+
+                _ => colResult
+            };
+
+            return colResult
+                .OrderBy(x => x.DisplayName)
+                .ThenBy(x => x.Email);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        HeaderState.SetHeader(
+            "Users",
+            "Manage people who can access HallCRM");
+
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        blnLoading = true;
+        strErrorMessage = null;
+
+        try
+        {
+            colUsers = await UserService.GetUsersAsync(
+                blnIncludeDisabled: true);
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage = objError.Message;
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private void OpenUser(Guid objUserId)
+    {
+        NavigationManager.NavigateTo(
+            $"/settings/users/{objUserId}");
+    }
+
+    private static String FormatLastLogin(DateTimeOffset? dtmLastLogin)
+    {
+        if (!dtmLastLogin.HasValue)
+        {
+            return "Never";
+        }
+
+        DateTimeOffset dtmLocal = dtmLastLogin.Value.ToLocalTime();
+        DateTimeOffset dtmNow = DateTimeOffset.Now;
+
+        if (dtmLocal.Date == dtmNow.Date)
+        {
+            return $"Today, {dtmLocal:h:mm tt}";
+        }
+
+        if (dtmLocal.Date == dtmNow.Date.AddDays(-1))
+        {
+            return $"Yesterday, {dtmLocal:h:mm tt}";
+        }
+
+        return dtmLocal.ToString("dd MMM yyyy");
+    }
+}
