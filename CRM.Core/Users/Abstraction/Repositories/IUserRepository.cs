@@ -1,5 +1,4 @@
-﻿using CRM.Contracts.Results;
-using CRM.Core.Users.Domain;
+﻿using CRM.Core.Users.Domain;
 
 namespace CRM.Core.Users.Abstraction.Repositories
 {
@@ -19,10 +18,6 @@ namespace CRM.Core.Users.Abstraction.Repositories
 
         Task<List<User>> GetUsersAsync(
             Boolean blnIncludeDisabled = false,
-            CancellationToken objToken = default);
-
-        Task<BasicResult> UpdateUserAsync(
-            UpdateUserRequest objRequest,
             CancellationToken objToken = default);
     }
 }

@@ -9,14 +9,11 @@ namespace CRM.Infrastructure.Users.Repositories
     public sealed class UserRepository : IUserRepository
     {
         private readonly IDbContextFactory<CRMDbContext> _dbContextFactory;
-        private readonly IUserIdentityWriter _identityWriter;
 
         public UserRepository(
-            IDbContextFactory<CRMDbContext> objDbContextFactory, 
-            IUserIdentityWriter identityWriter)
+            IDbContextFactory<CRMDbContext> objDbContextFactory)
         {
             _dbContextFactory = objDbContextFactory;
-            _identityWriter = identityWriter;
         }
 
         public async Task<Dictionary<Guid, String>> GetDisplayNamesByUserIdsAsync(
@@ -156,15 +153,6 @@ namespace CRM.Infrastructure.Users.Repositories
                 .ToListAsync(objToken);
         }
 
-        public Task<BasicResult> UpdateUserAsync(
-            UpdateUserRequest objRequest,
-            CancellationToken objToken = default)
-        {
-            return _identityWriter.UpdateUserAsync(
-                objRequest,
-                objToken);
-        }
-
         private static IQueryable<User> GetUserQuery(
             CRMDbContext objContext)
         {
@@ -180,8 +168,9 @@ namespace CRM.Infrastructure.Users.Repositories
                     //AccessLevel = x.AccessLevel,
                     EmailConfirmed = x.EmailConfirmed,
                     IsLockedOut =
+                        x.LockoutEnabled &&
                         x.LockoutEnd.HasValue &&
-                        x.LockoutEnd > DateTimeOffset.UtcNow,
+                        x.LockoutEnd.Value > DateTimeOffset.UtcNow,
                     Enabled = x.Enabled,
                     CreatedUtc = x.CreatedUtc,
                     LastLoginUtc = x.LastLoginUtc,

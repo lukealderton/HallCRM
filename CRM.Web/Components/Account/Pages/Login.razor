@@ -98,46 +98,82 @@
 
     public async Task LoginUser()
     {
-        if (!string.IsNullOrEmpty(Input.Passkey?.Error))
+        if (!String.IsNullOrEmpty(Input.Passkey?.Error))
         {
             errorMessage = $"Error: {Input.Passkey.Error}";
             return;
         }
 
-        SignInResult result;
-        if (!string.IsNullOrEmpty(Input.Passkey?.CredentialJson))
+        SignInResult objResult;
+        ApplicationUser? objUser = null;
+
+        if (!String.IsNullOrEmpty(Input.Passkey?.CredentialJson))
         {
-            // When performing passkey sign-in, don't perform form validation.
-            result = await SignInManager.PasskeySignInAsync(Input.Passkey.CredentialJson);
+            objResult =
+                await SignInManager.PasskeySignInAsync(
+                    Input.Passkey.CredentialJson);
         }
         else
         {
-            // If doing a password sign-in, validate the form.
             if (!editContext.Validate())
             {
                 return;
             }
 
-            // This doesn't count login failures towards account lockout
-            // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-            result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+            objUser =
+                await UserManager.FindByEmailAsync(Input.Email);
+
+            if (objUser == null || !objUser.Enabled)
+            {
+                errorMessage = "Error: Invalid login attempt.";
+                return;
+            }
+
+            objResult =
+                await SignInManager.PasswordSignInAsync(
+                    objUser,
+                    Input.Password,
+                    Input.RememberMe,
+                    lockoutOnFailure: false);
         }
 
-        if (result.Succeeded)
+        if (objResult.Succeeded)
         {
+            if (objUser != null)
+            {
+                objUser.LastLoginUtc = DateTimeOffset.UtcNow;
+
+                IdentityResult objUpdateResult =
+                    await UserManager.UpdateAsync(objUser);
+
+                if (!objUpdateResult.Succeeded)
+                {
+                    Logger.LogWarning(
+                        "Failed to update last login date for user {UserId}.",
+                        objUser.Id);
+                }
+            }
+
             Logger.LogInformation("User logged in.");
+
             RedirectManager.RedirectTo(ReturnUrl);
         }
-        else if (result.RequiresTwoFactor)
+        else if (objResult.RequiresTwoFactor)
         {
             RedirectManager.RedirectTo(
                 "Account/LoginWith2fa",
-                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+                new()
+                {
+                    ["returnUrl"] = ReturnUrl,
+                    ["rememberMe"] = Input.RememberMe
+                });
         }
-        else if (result.IsLockedOut)
+        else if (objResult.IsLockedOut)
         {
             Logger.LogWarning("User account locked out.");
-            RedirectManager.RedirectTo("Account/Lockout");
+
+            RedirectManager.RedirectTo(
+                "Account/Lockout");
         }
         else
         {
