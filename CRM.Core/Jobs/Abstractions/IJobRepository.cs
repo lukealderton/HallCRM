@@ -46,7 +46,7 @@ namespace CRM.Core.Jobs.Abstractions
         /// </summary>
         Task SetJobServicesAsync(
             Guid objJobId,
-            IReadOnlyCollection<Guid> colServiceIds,
+            IReadOnlyCollection<JobServiceLink> colServiceLinks,
             CancellationToken objToken = default);
 
         /// <summary>

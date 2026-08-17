@@ -33,6 +33,27 @@ namespace CRM.Infrastructure.Jobs.Configurations
                 .HasColumnName(
                     "jbsServiceId");
 
+            objBuilder.Property(
+                    objLink =>
+                        objLink.Quantity)
+                .HasColumnName(
+                    "jbsQuantity")
+                .HasPrecision(
+                    10,
+                    2)
+                .HasDefaultValue(
+                    1m)
+                .IsRequired();
+
+            objBuilder.Property(
+                    objLink =>
+                        objLink.UnitPrice)
+                .HasColumnName(
+                    "jbsUnitPrice")
+                .HasPrecision(
+                    18,
+                    2);
+
             objBuilder.HasOne(
                     objLink =>
                         objLink.Job)

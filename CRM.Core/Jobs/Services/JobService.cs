@@ -66,55 +66,111 @@ namespace CRM.Core.Jobs.Services
                     nameof(objJob));
             }
 
-            Guid[] colServiceIds =
-                [.. objJob.ServiceLinks
-                    .Select(objLink =>
-                        objLink.ServiceId)
-                    .Where(objServiceId =>
-                        objServiceId != Guid.Empty)
-                    .Distinct()];
-
             Guid objJobId =
                 objJob.Id == Guid.Empty
                     ? Guid.NewGuid()
                     : objJob.Id;
 
-            DateTime dteNow = DateTime.UtcNow;
+            DateTime dteNow =
+                DateTime.UtcNow;
 
-            String strJobName = objJob.Name.Trim();
+            String strJobName =
+                objJob.Name.Trim();
 
-            objJob.Id = objJobId;
-            objJob.Name = strJobName;
+            objJob.Id =
+                objJobId;
 
-            objJob.Description = CleanString(objJob.Description);
-            objJob.Source = CleanString(objJob.Source);
-            objJob.Notes = CleanString(objJob.Notes);
-            objJob.AddressLine1 = CleanString(objJob.AddressLine1);
-            objJob.AddressLine2 = CleanString(objJob.AddressLine2);
-            objJob.Town = CleanString(objJob.Town);
-            objJob.County = CleanString(objJob.County);
-            objJob.Postcode = CleanPostcode(objJob.Postcode);
-            objJob.SiteContactName = CleanString(objJob.SiteContactName);
-            objJob.SiteContactPhone = CleanString(objJob.SiteContactPhone);
-            objJob.AccessNotes = CleanString(objJob.AccessNotes);
-            objJob.ProbabilityPercent = CleanProbability(objJob.ProbabilityPercent);
+            List<JobServiceLink> colServiceLinks =
+                CleanServiceLinks(
+                    objJobId,
+                    objJob.ServiceLinks);
+
+            ApplyServiceTotal(
+                objJob,
+                colServiceLinks);
+
+            objJob.Name =
+                strJobName;
+
+            objJob.Description =
+                CleanString(
+                    objJob.Description);
+
+            objJob.Source =
+                CleanString(
+                    objJob.Source);
+
+            objJob.Notes =
+                CleanString(
+                    objJob.Notes);
+
+            objJob.ProbabilityPercent =
+                CleanProbability(
+                    objJob.ProbabilityPercent);
+
+            objJob.AddressLine1 =
+                CleanString(
+                    objJob.AddressLine1);
+
+            objJob.AddressLine2 =
+                CleanString(
+                    objJob.AddressLine2);
+
+            objJob.Town =
+                CleanString(
+                    objJob.Town);
+
+            objJob.County =
+                CleanString(
+                    objJob.County);
+
+            objJob.Postcode =
+                CleanPostcode(
+                    objJob.Postcode);
+
+            objJob.SiteContactName =
+                CleanString(
+                    objJob.SiteContactName);
+
+            objJob.SiteContactPhone =
+                CleanString(
+                    objJob.SiteContactPhone);
+
+            objJob.AccessNotes =
+                CleanString(
+                    objJob.AccessNotes);
 
             /*
-             * Links are persisted separately so that
-             * EF doesn't attempt to add Service records.
+             * Service links are persisted separately by
+             * SetJobServicesAsync().
+             *
+             * Do not pass the navigation graph into AddJobAsync()
+             * otherwise the repository may attempt to persist the
+             * join records itself.
              */
-            objJob.ServiceLinks = [];
+            objJob.ServiceLinks =
+                [];
 
             objJob.Entity =
                 new CrmEntity
                 {
-                    Id = objJobId,
+                    Id =
+                        objJobId,
 
-                    EntityTypeId = (Int32)PredefinedEntityType.Job,
-                    DisplayName = strJobName,
-                    OwnerUserId = objUserId,
-                    CreatedUtc = dteNow,
-                    CreatedByUserId = objUserId
+                    EntityTypeId =
+                        (Int32)PredefinedEntityType.Job,
+
+                    DisplayName =
+                        strJobName,
+
+                    OwnerUserId =
+                        objUserId,
+
+                    CreatedUtc =
+                        dteNow,
+
+                    CreatedByUserId =
+                        objUserId
                 };
 
             await _jobRepository.AddJobAsync(
@@ -123,21 +179,17 @@ namespace CRM.Core.Jobs.Services
 
             await _jobRepository.SetJobServicesAsync(
                 objJobId,
-                colServiceIds,
+                colServiceLinks,
                 objToken);
 
-            /*
-             * Return a fully populated record so callers
-             * immediately have the ServiceLinks.
-             */
-            Job? objCreatedJob =
+            Job? objSavedJob =
                 await _jobRepository.GetJobByIdAsync(
                     objJobId,
                     false,
                     objToken);
 
-            return objCreatedJob ??
-                   objJob;
+            return objSavedJob ??
+                objJob;
         }
 
         ///<inheritdoc/>
@@ -161,18 +213,23 @@ namespace CRM.Core.Jobs.Services
                     nameof(objJob));
             }
 
-            Guid[] colServiceIds =
-                [.. objJob.ServiceLinks
-                    .Select(objLink =>
-                        objLink.ServiceId)
-                    .Where(objServiceId =>
-                        objServiceId != Guid.Empty)
-                    .Distinct()];
+            /*
+             * Capture the incoming service lines before loading
+             * the existing Job. They are persisted separately.
+             */
+            List<JobServiceLink> colServiceLinks =
+                CleanServiceLinks(
+                    objJob.Id,
+                    objJob.ServiceLinks);
+
+            ApplyServiceTotal(
+                objJob,
+                colServiceLinks);
 
             Job? objExistingJob =
                 await _jobRepository.GetJobByIdAsync(
                     objJob.Id,
-                    false,
+                    true,
                     objToken);
 
             if (objExistingJob == null ||
@@ -184,51 +241,107 @@ namespace CRM.Core.Jobs.Services
             DateTime dteNow =
                 DateTime.UtcNow;
 
-            String strJobName = objJob.Name.Trim();
+            String strJobName =
+                objJob.Name.Trim();
 
-            objExistingJob.CompanyId = objJob.CompanyId;
-            objExistingJob.ContactId = objJob.ContactId;
-            objExistingJob.AssignedUserId = objJob.AssignedUserId;
-            objExistingJob.Name = strJobName;
-            objExistingJob.Description = CleanString(objJob.Description);
-            objExistingJob.Stage = objJob.Stage;
-            objExistingJob.Value = objJob.Value;
-            objExistingJob.ProbabilityPercent = CleanProbability(objJob.ProbabilityPercent);
-            objExistingJob.ExpectedCloseDateUtc = objJob.ExpectedCloseDateUtc;
-            objExistingJob.Source = CleanString(objJob.Source);
-            objExistingJob.Notes = CleanString(objJob.Notes);
+            objExistingJob.CompanyId =
+                objJob.CompanyId;
 
-            objExistingJob.AddressLine1 = CleanString(objJob.AddressLine1);
-            objExistingJob.AddressLine2 = CleanString(objJob.AddressLine2);
-            objExistingJob.Town = CleanString(objJob.Town);
-            objExistingJob.County = CleanString(objJob.County);
-            objExistingJob.Postcode = CleanPostcode(objJob.Postcode);
-            objExistingJob.SiteContactName = CleanString(objJob.SiteContactName);
-            objExistingJob.SiteContactPhone = CleanString(objJob.SiteContactPhone);
-            objExistingJob.AccessNotes = CleanString(objJob.AccessNotes);
+            objExistingJob.ContactId =
+                objJob.ContactId;
 
-            objExistingJob.Entity.DisplayName = strJobName;
-            objExistingJob.Entity.UpdatedUtc = dteNow;
-            objExistingJob.Entity.UpdatedByUserId = objUserId;
+            objExistingJob.AssignedUserId =
+                objJob.AssignedUserId;
+
+            objExistingJob.Name =
+                strJobName;
+
+            objExistingJob.Description =
+                CleanString(
+                    objJob.Description);
+
+            objExistingJob.Stage =
+                objJob.Stage;
+
+            objExistingJob.Value =
+                objJob.Value;
+
+            objExistingJob.ProbabilityPercent =
+                CleanProbability(
+                    objJob.ProbabilityPercent);
+
+            objExistingJob.ExpectedCloseDateUtc =
+                objJob.ExpectedCloseDateUtc;
+
+            objExistingJob.Source =
+                CleanString(
+                    objJob.Source);
+
+            objExistingJob.Notes =
+                CleanString(
+                    objJob.Notes);
+
+            objExistingJob.AddressLine1 =
+                CleanString(
+                    objJob.AddressLine1);
+
+            objExistingJob.AddressLine2 =
+                CleanString(
+                    objJob.AddressLine2);
+
+            objExistingJob.Town =
+                CleanString(
+                    objJob.Town);
+
+            objExistingJob.County =
+                CleanString(
+                    objJob.County);
+
+            objExistingJob.Postcode =
+                CleanPostcode(
+                    objJob.Postcode);
+
+            objExistingJob.SiteContactName =
+                CleanString(
+                    objJob.SiteContactName);
+
+            objExistingJob.SiteContactPhone =
+                CleanString(
+                    objJob.SiteContactPhone);
+
+            objExistingJob.AccessNotes =
+                CleanString(
+                    objJob.AccessNotes);
+
+            objExistingJob.Entity.DisplayName =
+                strJobName;
+
+            objExistingJob.Entity.UpdatedUtc =
+                dteNow;
+
+            objExistingJob.Entity.UpdatedByUserId =
+                objUserId;
 
             /*
-             * Existing links were loaded for reading,
-             * but relationship changes are persisted by
-             * SetJobServicesAsync().
+             * The join table is managed separately.
+             *
+             * Remove the loaded navigation objects before passing
+             * the detached Job graph into the repository's update.
              */
-            objExistingJob.ServiceLinks = [];
+            objExistingJob.ServiceLinks =
+                [];
 
             await _jobRepository.UpdateJobAsync(
                 objExistingJob,
                 objToken);
 
             await _jobRepository.SetJobServicesAsync(
-                objExistingJob.Id,
-                colServiceIds,
+                objJob.Id,
+                colServiceLinks,
                 objToken);
 
             return await _jobRepository.GetJobByIdAsync(
-                objExistingJob.Id,
+                objJob.Id,
                 false,
                 objToken);
         }
@@ -242,7 +355,7 @@ namespace CRM.Core.Jobs.Services
             Job? objJob =
                 await _jobRepository.GetJobByIdAsync(
                     objJobId,
-                    false,
+                    true,
                     objToken);
 
             if (objJob == null ||
@@ -265,6 +378,13 @@ namespace CRM.Core.Jobs.Services
 
             objJob.Entity.UpdatedByUserId =
                 objUserId;
+
+            /*
+             * Service links are not changing during an archive.
+             * Avoid attaching the loaded relationship graph.
+             */
+            objJob.ServiceLinks =
+                [];
 
             await _jobRepository.UpdateJobAsync(
                 objJob,
@@ -282,7 +402,7 @@ namespace CRM.Core.Jobs.Services
             Job? objJob =
                 await _jobRepository.GetJobByIdAsync(
                     objJobId,
-                    false,
+                    true,
                     objToken);
 
             if (objJob == null ||
@@ -306,6 +426,9 @@ namespace CRM.Core.Jobs.Services
             objJob.Entity.UpdatedByUserId =
                 objUserId;
 
+            objJob.ServiceLinks =
+                [];
+
             await _jobRepository.UpdateJobAsync(
                 objJob,
                 objToken);
@@ -322,7 +445,7 @@ namespace CRM.Core.Jobs.Services
             Job? objJob =
                 await _jobRepository.GetJobByIdAsync(
                     objJobId,
-                    false,
+                    true,
                     objToken);
 
             if (objJob == null ||
@@ -345,6 +468,9 @@ namespace CRM.Core.Jobs.Services
 
             objJob.Entity.UpdatedByUserId =
                 objUserId;
+
+            objJob.ServiceLinks =
+                [];
 
             await _jobRepository.UpdateJobAsync(
                 objJob,
@@ -385,6 +511,123 @@ namespace CRM.Core.Jobs.Services
                 objToken);
         }
 
+        /// <summary>
+        /// Creates a clean snapshot of the service lines supplied
+        /// for a job.
+        /// </summary>
+        private static List<JobServiceLink> CleanServiceLinks(
+            Guid objJobId,
+            IEnumerable<JobServiceLink>? colServiceLinks)
+        {
+            if (colServiceLinks == null)
+            {
+                return [];
+            }
+
+            return colServiceLinks
+                .Where(objLink =>
+                    objLink.ServiceId != Guid.Empty)
+                .GroupBy(objLink =>
+                    objLink.ServiceId)
+                .Select(objGroup =>
+                {
+                    JobServiceLink objLink =
+                        objGroup.First();
+
+                    return new JobServiceLink
+                    {
+                        JobId =
+                            objJobId,
+
+                        ServiceId =
+                            objLink.ServiceId,
+
+                        Quantity =
+                            CleanQuantity(
+                                objLink.Quantity),
+
+                        UnitPrice =
+                            CleanUnitPrice(
+                                objLink.UnitPrice)
+                    };
+                })
+                .ToList();
+        }
+
+        /// <summary>
+        /// Updates the headline job value when one or more service
+        /// lines have explicit pricing.
+        ///
+        /// If no service line has a price, the manually entered job
+        /// value is preserved.
+        /// </summary>
+        private static void ApplyServiceTotal(
+            Job objJob,
+            IReadOnlyCollection<JobServiceLink> colServiceLinks)
+        {
+            List<JobServiceLink> colPricedLinks =
+                colServiceLinks
+                    .Where(objLink =>
+                        objLink.UnitPrice.HasValue)
+                    .ToList();
+
+            if (colPricedLinks.Count == 0)
+            {
+                return;
+            }
+
+            objJob.Value =
+                colPricedLinks.Sum(
+                    objLink =>
+                        objLink.Quantity *
+                        objLink.UnitPrice!.Value);
+        }
+
+        /// <summary>
+        /// Ensures a service quantity is greater than zero and
+        /// stores no more than two decimal places.
+        /// </summary>
+        private static Decimal CleanQuantity(
+            Decimal dcmQuantity)
+        {
+            if (dcmQuantity <= 0m)
+            {
+                return 1m;
+            }
+
+            return Decimal.Round(
+                dcmQuantity,
+                2,
+                MidpointRounding.AwayFromZero);
+        }
+
+        /// <summary>
+        /// Cleans a service unit price while retaining null to mean
+        /// that no price has been entered.
+        /// </summary>
+        private static Decimal? CleanUnitPrice(
+            Decimal? dcmUnitPrice)
+        {
+            if (!dcmUnitPrice.HasValue)
+            {
+                return null;
+            }
+
+            Decimal dcmValue =
+                dcmUnitPrice.Value < 0m
+                    ? 0m
+                    : dcmUnitPrice.Value;
+
+            return Decimal.Round(
+                dcmValue,
+                2,
+                MidpointRounding.AwayFromZero);
+        }
+
+        /// <summary>
+        /// Cleans a string by trimming whitespace and returning
+        /// null when no meaningful value exists.
+        /// </summary>
         private static String? CleanString(
             String? strValue)
         {
@@ -397,6 +640,22 @@ namespace CRM.Core.Jobs.Services
             return strValue.Trim();
         }
 
+        /// <summary>
+        /// Cleans and normalises a UK postcode-style value.
+        /// </summary>
+        private static String? CleanPostcode(
+            String? strPostcode)
+        {
+            String? strValue =
+                CleanString(
+                    strPostcode);
+
+            return strValue?.ToUpperInvariant();
+        }
+
+        /// <summary>
+        /// Ensures probability remains between zero and one hundred.
+        /// </summary>
         private static Int32? CleanProbability(
             Int32? intProbabilityPercent)
         {
@@ -416,13 +675,6 @@ namespace CRM.Core.Jobs.Services
             }
 
             return intProbabilityPercent.Value;
-        }
-
-        private static String? CleanPostcode(String? strPostcode)
-        {
-            String? strValue = CleanString(strPostcode);
-
-            return strValue?.ToUpperInvariant();
         }
     }
 }

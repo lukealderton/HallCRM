@@ -288,76 +288,93 @@ namespace CRM.Infrastructure.Jobs.Repositories
         }
 
         public async Task SetJobServicesAsync(
-            Guid objJobId,
-            IReadOnlyCollection<Guid> colServiceIds,
-            CancellationToken objToken = default)
+    Guid objJobId,
+    IReadOnlyCollection<JobServiceLink> colServiceLinks,
+    CancellationToken objToken = default)
         {
-            await using CRMDbContext objDbContext =
+            await using CRMDbContext objContext =
                 await _objDbContextFactory.CreateDbContextAsync(
                     objToken);
 
-            HashSet<Guid> colRequestedServiceIds =
-                colServiceIds
-                    .Where(objServiceId =>
-                        objServiceId != Guid.Empty)
-                    .ToHashSet();
-
             List<JobServiceLink> colExistingLinks =
-                await objDbContext
+                await objContext
                     .Set<JobServiceLink>()
-                    .Where(objLink =>
-                        objLink.JobId ==
-                        objJobId)
+                    .Where(
+                        objLink =>
+                            objLink.JobId ==
+                            objJobId)
                     .ToListAsync(
                         objToken);
 
+            HashSet<Guid> colRequestedServiceIds =
+                colServiceLinks
+                    .Select(
+                        objLink =>
+                            objLink.ServiceId)
+                    .ToHashSet();
+
             List<JobServiceLink> colLinksToRemove =
                 colExistingLinks
-                    .Where(objLink =>
-                        !colRequestedServiceIds.Contains(
-                            objLink.ServiceId))
+                    .Where(
+                        objLink =>
+                            !colRequestedServiceIds.Contains(
+                                objLink.ServiceId))
                     .ToList();
 
             if (colLinksToRemove.Count > 0)
             {
-                objDbContext
+                objContext
                     .Set<JobServiceLink>()
                     .RemoveRange(
                         colLinksToRemove);
             }
 
-            HashSet<Guid> colExistingServiceIds =
-                colExistingLinks
-                    .Select(objLink =>
-                        objLink.ServiceId)
-                    .ToHashSet();
+            foreach (JobServiceLink objRequestedLink
+                in colServiceLinks)
+            {
+                JobServiceLink? objExistingLink =
+                    colExistingLinks
+                        .FirstOrDefault(
+                            objLink =>
+                                objLink.ServiceId ==
+                                objRequestedLink.ServiceId);
 
-            List<JobServiceLink> colLinksToAdd =
-                colRequestedServiceIds
-                    .Where(objServiceId =>
-                        !colExistingServiceIds.Contains(
-                            objServiceId))
-                    .Select(objServiceId =>
+                Decimal dcmQuantity =
+                    objRequestedLink.Quantity <= 0m
+                        ? 1m
+                        : objRequestedLink.Quantity;
+
+                if (objExistingLink != null)
+                {
+                    objExistingLink.Quantity =
+                        dcmQuantity;
+
+                    objExistingLink.UnitPrice =
+                        objRequestedLink.UnitPrice;
+
+                    continue;
+                }
+
+                objContext
+                    .Set<JobServiceLink>()
+                    .Add(
                         new JobServiceLink
                         {
                             JobId =
                                 objJobId,
 
                             ServiceId =
-                                objServiceId
-                        })
-                    .ToList();
+                                objRequestedLink.ServiceId,
 
-            if (colLinksToAdd.Count > 0)
-            {
-                await objDbContext
-                    .Set<JobServiceLink>()
-                    .AddRangeAsync(
-                        colLinksToAdd,
-                        objToken);
+                            Quantity =
+                                dcmQuantity,
+
+                            UnitPrice =
+                                objRequestedLink.UnitPrice
+                        });
             }
 
-            await objDbContext.SaveChangesAsync(
+            await objContext.SaveChangesAsync(
                 objToken);
         }
 
