@@ -18,20 +18,23 @@
 
 <div class="dashboard-page">
 
-    <div class="dashboard-hero">
-        <div>
+    <section class="dashboard-hero">
+        <div class="dashboard-hero-content">
             <h2>Welcome back</h2>
-            <p>Here’s what needs your attention across the CRM.</p>
+
+            <p>
+                Here’s what needs your attention across the CRM.
+            </p>
         </div>
 
         <div class="dashboard-hero-actions">
             <a href="/companies/add"
                class="btn btn-primary">
                 <span class="material-symbols-outlined">
-                    add
+                    add_business
                 </span>
 
-                New company
+                <span>New company</span>
             </a>
 
             <a href="/contacts/add"
@@ -40,124 +43,116 @@
                     person_add
                 </span>
 
-                New contact
+                <span>New contact</span>
             </a>
         </div>
-    </div>
+    </section>
 
-    <div class="row g-3 dashboard-stats">
+    <section class="dashboard-stats">
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <a href="/companies"
-               class="dashboard-stat-card">
+        <a href="/companies"
+           class="dashboard-stat-card">
 
-                <div class="dashboard-stat-icon">
-                    <span class="material-symbols-outlined">
-                        business
-                    </span>
+            <div class="dashboard-stat-icon">
+                <span class="material-symbols-outlined">
+                    business
+                </span>
+            </div>
+
+            <div class="dashboard-stat-content">
+                <div class="dashboard-stat-label">
+                    Companies
                 </div>
 
-                <div class="dashboard-stat-content">
-                    <div class="dashboard-stat-label">
-                        Companies
-                    </div>
-
-                    <div class="dashboard-stat-value">
-                        @intCompanyCount
-                    </div>
-
-                    <div class="dashboard-stat-meta">
-                        Active records
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-            <a href="/contacts"
-               class="dashboard-stat-card">
-
-                <div class="dashboard-stat-icon">
-                    <span class="material-symbols-outlined">
-                        contacts
-                    </span>
+                <div class="dashboard-stat-value">
+                    @intCompanyCount
                 </div>
 
-                <div class="dashboard-stat-content">
-                    <div class="dashboard-stat-label">
-                        Contacts
-                    </div>
-
-                    <div class="dashboard-stat-value">
-                        @intContactCount
-                    </div>
-
-                    <div class="dashboard-stat-meta">
-                        @intContactableCount contactable
-                    </div>
+                <div class="dashboard-stat-meta">
+                    Active records
                 </div>
-            </a>
-        </div>
+            </div>
+        </a>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <a href="/jobs"
-               class="dashboard-stat-card">
+        <a href="/contacts"
+           class="dashboard-stat-card">
 
-                <div class="dashboard-stat-icon">
-                    <span class="material-symbols-outlined">
-                        home_repair_service
-                    </span>
+            <div class="dashboard-stat-icon">
+                <span class="material-symbols-outlined">
+                    contacts
+                </span>
+            </div>
+
+            <div class="dashboard-stat-content">
+                <div class="dashboard-stat-label">
+                    Contacts
                 </div>
 
-                <div class="dashboard-stat-content">
-                    <div class="dashboard-stat-label">
-                        Open jobs
-                    </div>
-
-                    <div class="dashboard-stat-value">
-                        @intOpenJobCount
-                    </div>
-
-                    <div class="dashboard-stat-meta">
-                        @FormatCurrency(decOpenJobValue) pipeline value
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-            <a href="/activities"
-               class="dashboard-stat-card">
-
-                <div class="dashboard-stat-icon">
-                    <span class="material-symbols-outlined">
-                        task_alt
-                    </span>
+                <div class="dashboard-stat-value">
+                    @intContactCount
                 </div>
 
-                <div class="dashboard-stat-content">
-                    <div class="dashboard-stat-label">
-                        Activities
-                    </div>
-
-                    <div class="dashboard-stat-value">
-                        @intOpenActivityCount
-                    </div>
-
-                    <div class="dashboard-stat-meta">
-                        @GetActivitySummaryText()
-                    </div>
+                <div class="dashboard-stat-meta">
+                    @intContactableCount contactable
                 </div>
-            </a>
-        </div>
+            </div>
+        </a>
 
-    </div>
+        <a href="/jobs"
+           class="dashboard-stat-card">
 
-    <div class="dashboard-content-grid">
+            <div class="dashboard-stat-icon">
+                <span class="material-symbols-outlined">
+                    home_repair_service
+                </span>
+            </div>
+
+            <div class="dashboard-stat-content">
+                <div class="dashboard-stat-label">
+                    Open jobs
+                </div>
+
+                <div class="dashboard-stat-value">
+                    @intOpenJobCount
+                </div>
+
+                <div class="dashboard-stat-meta">
+                    @FormatCurrency(decOpenJobValue) pipeline
+                </div>
+            </div>
+        </a>
+
+        <a href="/activities"
+           class="dashboard-stat-card">
+
+            <div class="dashboard-stat-icon">
+                <span class="material-symbols-outlined">
+                    task_alt
+                </span>
+            </div>
+
+            <div class="dashboard-stat-content">
+                <div class="dashboard-stat-label">
+                    Activities
+                </div>
+
+                <div class="dashboard-stat-value">
+                    @intOpenActivityCount
+                </div>
+
+                <div class="dashboard-stat-meta">
+                    @GetActivitySummaryText()
+                </div>
+            </div>
+        </a>
+
+    </section>
+
+    <section class="dashboard-content-grid">
 
         <div class="dashboard-content-main">
 
-            <div class="crm-card">
+            <div class="crm-card dashboard-attention-card">
                 <div class="crm-card-header">
                     <div>
                         <h3>Needs attention</h3>
@@ -175,19 +170,23 @@
                 else if (!HasAttentionItems)
                 {
                     <div class="dashboard-attention-empty">
+
                         <div class="dashboard-attention-empty-icon">
                             <span class="material-symbols-outlined">
                                 check_circle
                             </span>
                         </div>
 
-                        <div>
-                            <strong>Nothing needs attention</strong>
+                        <div class="dashboard-attention-empty-content">
+                            <strong>
+                                Nothing needs attention
+                            </strong>
 
                             <span>
                                 There are no overdue activities or outstanding job items right now.
                             </span>
                         </div>
+
                     </div>
                 }
                 else
@@ -378,7 +377,7 @@
                 }
             </div>
 
-            <div class="crm-card">
+            <div class="crm-card dashboard-recent-card">
                 <div class="crm-card-header">
                     <div>
                         <h3>Recent companies</h3>
@@ -419,70 +418,128 @@
                 }
                 else
                 {
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle crm-table">
-                            <thead>
-                                <tr>
-                                    <th>Company</th>
-                                    <th>Industry</th>
-                                    <th>Contact</th>
-                                    <th class="text-end">
-                                        Action
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                @foreach (Company objCompany in colRecentCompanies)
-                                {
+                    <div class="dashboard-company-table">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle crm-table">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <a href="@($"/companies/{objCompany.Id}")"
-                                               class="fw-semibold d-block text-black">
-                                                @objCompany.Name
-                                            </a>
-
-                                            @if (!String.IsNullOrWhiteSpace(objCompany.TradingName))
-                                            {
-                                                <small class="text-muted">
-                                                    @objCompany.TradingName
-                                                </small>
-                                            }
-                                        </td>
-
-                                        <td>
-                                            @(objCompany.Industry ?? "-")
-                                        </td>
-
-                                        <td>
-                                            @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
-                                            {
-                                                <a href="mailto:@objCompany.PrimaryEmail">
-                                                    @objCompany.PrimaryEmail
-                                                </a>
-                                            }
-                                            else if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
-                                            {
-                                                <a href="tel:@objCompany.PrimaryPhone">
-                                                    @objCompany.PrimaryPhone
-                                                </a>
-                                            }
-                                            else
-                                            {
-                                                <span>-</span>
-                                            }
-                                        </td>
-
-                                        <td class="text-end">
-                                            <a href="@($"/companies/{objCompany.Id}")"
-                                               class="btn btn-sm btn-outline-primary">
-                                                Open
-                                            </a>
-                                        </td>
+                                        <th>Company</th>
+                                        <th>Industry</th>
+                                        <th>Contact</th>
+                                        <th class="text-end">
+                                            Action
+                                        </th>
                                     </tr>
-                                }
-                            </tbody>
-                        </table>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (Company objCompany in colRecentCompanies)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <a href="@($"/companies/{objCompany.Id}")"
+                                                   class="fw-semibold d-block text-black">
+                                                    @objCompany.Name
+                                                </a>
+
+                                                @if (!String.IsNullOrWhiteSpace(objCompany.TradingName))
+                                                {
+                                                    <small class="text-muted">
+                                                        @objCompany.TradingName
+                                                    </small>
+                                                }
+                                            </td>
+
+                                            <td>
+                                                @(objCompany.Industry ?? "-")
+                                            </td>
+
+                                            <td>
+                                                @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
+                                                {
+                                                    <a href="mailto:@objCompany.PrimaryEmail">
+                                                        @objCompany.PrimaryEmail
+                                                    </a>
+                                                }
+                                                else if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
+                                                {
+                                                    <a href="tel:@objCompany.PrimaryPhone">
+                                                        @objCompany.PrimaryPhone
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <span>-</span>
+                                                }
+                                            </td>
+
+                                            <td class="text-end">
+                                                <a href="@($"/companies/{objCompany.Id}")"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    Open
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-company-mobile-list">
+
+                        @foreach (Company objCompany in colRecentCompanies)
+                        {
+                            <a href="@($"/companies/{objCompany.Id}")"
+                               class="dashboard-company-mobile-item">
+
+                                <div class="dashboard-company-mobile-icon">
+                                    <span class="material-symbols-outlined">
+                                        business
+                                    </span>
+                                </div>
+
+                                <div class="dashboard-company-mobile-content">
+
+                                    <strong>
+                                        @objCompany.Name
+                                    </strong>
+
+                                    @if (!String.IsNullOrWhiteSpace(objCompany.TradingName))
+                                    {
+                                        <span>
+                                            @objCompany.TradingName
+                                        </span>
+                                    }
+                                    else if (!String.IsNullOrWhiteSpace(objCompany.Industry))
+                                    {
+                                        <span>
+                                            @objCompany.Industry
+                                        </span>
+                                    }
+
+                                    @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
+                                    {
+                                        <small>
+                                            @objCompany.PrimaryEmail
+                                        </small>
+                                    }
+                                    else if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
+                                    {
+                                        <small>
+                                            @objCompany.PrimaryPhone
+                                        </small>
+                                    }
+
+                                </div>
+
+                                <span class="material-symbols-outlined dashboard-company-mobile-arrow">
+                                    chevron_right
+                                </span>
+
+                            </a>
+                        }
+
                     </div>
                 }
             </div>
@@ -491,7 +548,7 @@
 
         <div class="dashboard-content-sidebar">
 
-            <div class="crm-card">
+            <div class="crm-card dashboard-actions-card">
                 <div class="crm-card-header">
                     <div>
                         <h3>Quick actions</h3>
@@ -504,59 +561,67 @@
                     <a href="/companies/add"
                        class="dashboard-action">
 
-                        <span class="material-symbols-outlined">
-                            add_business
+                        <span class="dashboard-action-icon">
+                            <span class="material-symbols-outlined">
+                                add_business
+                            </span>
                         </span>
 
-                        <div>
+                        <span class="dashboard-action-content">
                             <strong>Add company</strong>
                             <small>Create a new organisation record</small>
-                        </div>
+                        </span>
                     </a>
 
                     <a href="/contacts/add"
                        class="dashboard-action">
 
-                        <span class="material-symbols-outlined">
-                            person_add
+                        <span class="dashboard-action-icon">
+                            <span class="material-symbols-outlined">
+                                person_add
+                            </span>
                         </span>
 
-                        <div>
+                        <span class="dashboard-action-content">
                             <strong>Add contact</strong>
                             <small>Add a person to a company</small>
-                        </div>
+                        </span>
                     </a>
 
                     <a href="/jobs/add"
                        class="dashboard-action">
 
-                        <span class="material-symbols-outlined">
-                            add_chart
+                        <span class="dashboard-action-icon">
+                            <span class="material-symbols-outlined">
+                                add_chart
+                            </span>
                         </span>
 
-                        <div>
+                        <span class="dashboard-action-content">
                             <strong>Add job</strong>
                             <small>Track a new job</small>
-                        </div>
+                        </span>
                     </a>
 
                     <a href="/activities/add"
                        class="dashboard-action">
 
-                        <span class="material-symbols-outlined">
-                            event
+                        <span class="dashboard-action-icon">
+                            <span class="material-symbols-outlined">
+                                event
+                            </span>
                         </span>
 
-                        <div>
+                        <span class="dashboard-action-content">
                             <strong>Add activity</strong>
-                            <small>Schedule a call, task, meeting or visit</small>
-                        </div>
+                            <small>Schedule a CRM activity</small>
+                        </span>
                     </a>
 
                 </div>
             </div>
 
-            <div class="crm-card">
+            <div class="crm-card dashboard-pipeline-card">
                 <div class="crm-card-header">
                     <div>
                         <h3>Jobs pipeline</h3>
@@ -590,11 +655,14 @@
 
                                 <div class="pipeline-stage">
                                     <div class="pipeline-stage-heading">
-                                        <span class="pipeline-stage-dot"></span>
+
+                                        <span class="pipeline-stage-dot">
+                                        </span>
 
                                         <span class="pipeline-stage-name">
                                             @enmStage.GetDisplay().Name
                                         </span>
+
                                     </div>
 
                                     <small>
@@ -602,9 +670,16 @@
                                     </small>
                                 </div>
 
-                                <strong>
-                                    @(objSummary?.Count ?? 0)
-                                </strong>
+                                <div class="pipeline-count">
+                                    <strong>
+                                        @(objSummary?.Count ?? 0)
+                                    </strong>
+
+                                    <span class="material-symbols-outlined">
+                                        chevron_right
+                                    </span>
+                                </div>
+
                             </a>
                         }
 
@@ -633,7 +708,7 @@
 
         </div>
 
-    </div>
+    </section>
 
 </div>
 
