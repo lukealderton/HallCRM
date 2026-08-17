@@ -2,6 +2,7 @@
 @using CRM.Core.Notes.Abstractions
 @using CRM.Core.Notes.Domain
 @attribute [Authorize]
+@rendermode InteractiveServer
 
 @inject INoteService NoteService
 @inject NavigationManager objNavigationManager
@@ -9,11 +10,43 @@
 <SeoHead Title="Notes" />
 
 <div class="notes-page">
+
+    @if (CompanyId.HasValue)
+    {
+        <div class="notes-context-filter">
+            <div class="notes-context-filter-main">
+                <span class="material-symbols-outlined">
+                    apartment
+                </span>
+
+                <div>
+                    <strong>Company filter active</strong>
+                    <span>
+                        Showing notes linked to this company.
+                    </span>
+                </div>
+            </div>
+
+            <button type="button"
+                    class="btn btn-soft-secondary btn-sm"
+                    @onclick="ClearCompanyFilter">
+
+                <span class="material-symbols-outlined">
+                    close
+                </span>
+
+                Clear company filter
+            </button>
+        </div>
+    }
+
     <div class="notes-toolbar crm-card">
         <div class="notes-search">
             <div class="input-group">
                 <span class="input-group-text">
-                    <span class="material-symbols-outlined">search</span>
+                    <span class="material-symbols-outlined">
+                        search
+                    </span>
                 </span>
 
                 <input id="noteSearch"
@@ -25,8 +58,14 @@
         </div>
 
         <div class="notes-toolbar-actions">
-            <button class="btn btn-primary" type="button" @onclick="SearchNotesAsync">
-                <span class="material-symbols-outlined">search</span>
+            <button class="btn btn-primary"
+                    type="button"
+                    @onclick="SearchNotesAsync">
+
+                <span class="material-symbols-outlined">
+                    search
+                </span>
+
                 Search
             </button>
         </div>
@@ -35,13 +74,26 @@
     <div class="notes-summary row g-3">
         <div class="col-12 col-md-6 col-xl-3">
             <div class="notes-summary-card notes-summary-card-primary">
-                <span class="material-symbols-outlined">sticky_note_2</span>
+                <span class="material-symbols-outlined">
+                    sticky_note_2
+                </span>
 
                 <div>
                     <small>Notes shown</small>
-                    <strong>@intTotalNotes</strong>
+
+                    <strong>
+                        @intTotalNotes
+                    </strong>
+
                     <span class="notes-summary-note">
-                        Latest 100 matching notes
+                        @if (CompanyId.HasValue)
+                        {
+                            <text>Notes linked to this company</text>
+                        }
+                        else
+                        {
+                            <text>Latest 100 matching notes</text>
+                        }
                     </span>
                 </div>
             </div>
@@ -49,11 +101,17 @@
 
         <div class="col-12 col-md-6 col-xl-3">
             <div class="notes-summary-card notes-summary-card-success">
-                <span class="material-symbols-outlined">link</span>
+                <span class="material-symbols-outlined">
+                    link
+                </span>
 
                 <div>
                     <small>Linked to records</small>
-                    <strong>@intLinkedNotes</strong>
+
+                    <strong>
+                        @intLinkedNotes
+                    </strong>
+
                     <span class="notes-summary-note">
                         @intLinkedPercentage% attached to CRM records
                     </span>
@@ -63,13 +121,21 @@
 
         <div class="col-12 col-md-6 col-xl-3">
             <div class="notes-summary-card notes-summary-card-warning">
-                <span class="material-symbols-outlined">calendar_month</span>
+                <span class="material-symbols-outlined">
+                    calendar_month
+                </span>
 
                 <div>
                     <small>Added this week</small>
-                    <strong>@intRecentNotes</strong>
+
+                    <strong>
+                        @intRecentNotes
+                    </strong>
+
                     <span class="notes-summary-note">
-                        Since @dteRecentCutoffUtc.ToLocalTime().ToString("dd MMM")
+                        Since @dteRecentCutoffUtc
+                        .ToLocalTime()
+                        .ToString("dd MMM")
                     </span>
                 </div>
             </div>
@@ -77,11 +143,17 @@
 
         <div class="col-12 col-md-6 col-xl-3">
             <div class="notes-summary-card notes-summary-card-info">
-                <span class="material-symbols-outlined">category</span>
+                <span class="material-symbols-outlined">
+                    category
+                </span>
 
                 <div>
                     <small>Record types</small>
-                    <strong>@intRecordTypeCount</strong>
+
+                    <strong>
+                        @intRecordTypeCount
+                    </strong>
+
                     <span class="notes-summary-note">
                         Companies, contacts or jobs
                     </span>
@@ -90,24 +162,43 @@
         </div>
     </div>
 
-    @if (blnShowErrorAlert && !String.IsNullOrWhiteSpace(strErrorMessage))
+    @if (blnShowErrorAlert &&
+         !String.IsNullOrWhiteSpace(strErrorMessage))
     {
         <div class="alert alert-danger notes-alert">
-            <span class="material-symbols-outlined">error</span>
+            <span class="material-symbols-outlined">
+                error
+            </span>
 
             <div class="alert-content">
-                <strong class="alert-title">Unable to load notes</strong>
-                <p>@strErrorMessage</p>
+                <strong class="alert-title">
+                    Unable to load notes
+                </strong>
+
+                <p>
+                    @strErrorMessage
+                </p>
             </div>
 
             <div class="alert-actions">
-                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="LoadNotesAsync">
-                    <span class="material-symbols-outlined">refresh</span>
+                <button class="btn btn-soft-danger btn-sm"
+                        type="button"
+                        @onclick="LoadNotesAsync">
+
+                    <span class="material-symbols-outlined">
+                        refresh
+                    </span>
+
                     Try again
                 </button>
 
-                <button class="btn btn-soft-danger btn-sm notes-alert-close" type="button" @onclick="DismissErrorAlert">
-                    <span class="material-symbols-outlined">close</span>
+                <button class="btn btn-soft-danger btn-sm notes-alert-close"
+                        type="button"
+                        @onclick="DismissErrorAlert">
+
+                    <span class="material-symbols-outlined">
+                        close
+                    </span>
                 </button>
             </div>
         </div>
@@ -116,15 +207,28 @@
     <div class="crm-card">
         <div class="crm-card-header">
             <div>
-                <h3>Recent notes</h3>
-                <p>@strResultSummary</p>
+                <h3>
+                    @(CompanyId.HasValue
+                        ? "Company notes"
+                        : "Recent notes")
+                </h3>
+
+                <p>
+                    @strResultSummary
+                </p>
             </div>
 
-            @if (!String.IsNullOrWhiteSpace(strSearch))
+            @if (HasActiveFilters)
             {
-                <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="ClearSearchAsync">
-                    <span class="material-symbols-outlined">filter_alt_off</span>
-                    Clear search
+                <button class="btn btn-soft-secondary btn-sm"
+                        type="button"
+                        @onclick="ClearFiltersAsync">
+
+                    <span class="material-symbols-outlined">
+                        filter_alt_off
+                    </span>
+
+                    Clear filters
                 </button>
             }
         </div>
@@ -140,9 +244,27 @@
             else if (!colNotes.Any())
             {
                 <div class="crm-empty-state">
-                    <span class="material-symbols-outlined">notes</span>
+                    <span class="material-symbols-outlined">
+                        notes
+                    </span>
+
                     <h4>No notes found</h4>
-                    <p>Add notes to companies, contacts or jobs and they will appear here.</p>
+
+                    <p>
+                        @if (CompanyId.HasValue)
+                        {
+                            <text>
+                                No notes have been added to this company yet.
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                Add notes to companies, contacts or jobs and
+                                they will appear here.
+                            </text>
+                        }
+                    </p>
                 </div>
             }
             else
@@ -152,37 +274,58 @@
                     {
                         <article class="notes-list-item">
                             <div class="notes-list-icon @GetEntityIconClass(objNote)">
-                                <span class="material-symbols-outlined">@GetEntityIcon(objNote)</span>
+                                <span class="material-symbols-outlined">
+                                    @GetEntityIcon(objNote)
+                                </span>
                             </div>
 
                             <div class="notes-list-content">
                                 <div class="notes-list-header">
                                     <div>
-                                        <a class="notes-record-link" href="@GetEntityUrl(objNote)">
-                                            @GetEntityName(objNote)
-                                        </a>
+                                        @if (!String.IsNullOrWhiteSpace(GetEntityUrl(objNote)))
+                                        {
+                                            <a class="notes-record-link"
+                                               href="@GetEntityUrl(objNote)">
+                                                @GetEntityName(objNote)
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <strong class="notes-record-name">
+                                                @GetEntityName(objNote)
+                                            </strong>
+                                        }
 
                                         <div class="notes-record-meta">
                                             <span class="@GetEntityBadgeClass(objNote)">
                                                 @GetEntityType(objNote)
                                             </span>
 
-                                            <small>@FormatDate(objNote.CreatedUtc)</small>
+                                            <small>
+                                                @FormatDate(objNote.CreatedUtc)
+                                            </small>
                                         </div>
                                     </div>
 
-                                    @if (objNote.EntityId != Guid.Empty && !String.IsNullOrWhiteSpace(GetEntityUrl(objNote)))
+                                    @if (objNote.EntityId != Guid.Empty &&
+                                         !String.IsNullOrWhiteSpace(GetEntityUrl(objNote)))
                                     {
                                         <button class="btn btn-soft-secondary btn-sm"
                                                 type="button"
                                                 @onclick="() => OpenEntity(objNote)">
-                                            <span class="material-symbols-outlined">open_in_new</span>
+
+                                            <span class="material-symbols-outlined">
+                                                open_in_new
+                                            </span>
+
                                             Open record
                                         </button>
                                     }
                                 </div>
 
-                                <p>@objNote.Body</p>
+                                <p>
+                                    @objNote.Body
+                                </p>
                             </div>
                         </article>
                     }
@@ -193,6 +336,9 @@
 </div>
 
 @code {
+    [SupplyParameterFromQuery(Name = "companyId")]
+    public Guid? CompanyId { get; set; }
+
     private List<Note> colNotes = [];
 
     private Boolean blnLoading = true;
@@ -200,7 +346,9 @@
 
     private String? strSearch;
     private String? strErrorMessage;
-    private String strResultSummary = "Latest notes added across your CRM records.";
+
+    private String strResultSummary =
+        "Latest notes added across your CRM records.";
 
     private Int32 intTotalNotes;
     private Int32 intLinkedNotes;
@@ -208,13 +356,29 @@
     private Int32 intRecentNotes;
     private Int32 intRecordTypeCount;
 
-    private DateTime dteRecentCutoffUtc = DateTime.UtcNow.Date.AddDays(-7);
+    private DateTime dteRecentCutoffUtc =
+        DateTime.UtcNow.Date.AddDays(-7);
 
-    protected override async Task OnInitializedAsync()
+    private Boolean HasActiveFilters =>
+        CompanyId.HasValue ||
+        !String.IsNullOrWhiteSpace(strSearch);
+
+    protected override Task OnInitializedAsync()
     {
         HeaderState.SetHeader(
             "Notes",
             "Recent notes across your CRM");
+
+        return Task.CompletedTask;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        HeaderState.SetHeader(
+            "Notes",
+            CompanyId.HasValue
+                ? "Notes linked to the selected company."
+                : "Recent notes across your CRM");
 
         await LoadNotesAsync();
     }
@@ -232,14 +396,47 @@
 
         try
         {
-            colNotes = await NoteService.GetRecentNotesAsync(strSearch, 100);
+            if (CompanyId.HasValue)
+            {
+                List<Note> colCompanyNotes =
+                    await NoteService.GetNotesForEntityAsync(
+                        CompanyId.Value,
+                        100);
+
+                if (!String.IsNullOrWhiteSpace(strSearch))
+                {
+                    String strSearchValue =
+                        strSearch.Trim();
+
+                    colCompanyNotes =
+                        colCompanyNotes
+                            .Where(
+                                objNote =>
+                                    ContainsSearch(
+                                        objNote,
+                                        strSearchValue))
+                            .ToList();
+                }
+
+                colNotes =
+                    colCompanyNotes;
+            }
+            else
+            {
+                colNotes =
+                    await NoteService.GetRecentNotesAsync(
+                        strSearch,
+                        100);
+            }
 
             SetNoteStats();
             SetResultSummary();
         }
         catch (Exception objError)
         {
-            strErrorMessage = "We couldn’t retrieve the notes right now. " + objError.Message;
+            strErrorMessage =
+                "We couldn’t retrieve the notes right now. " +
+                objError.Message;
 
             colNotes = [];
 
@@ -257,10 +454,63 @@
         }
     }
 
+    private static Boolean ContainsSearch(
+        Note objNote,
+        String strSearch)
+    {
+        if (objNote.Body.Contains(
+            strSearch,
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (objNote.Entity?.DisplayName?.Contains(
+            strSearch,
+            StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return true;
+        }
+
+        if (objNote.Entity?.EntityType?.Name?.Contains(
+            strSearch,
+            StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     private async Task ClearSearchAsync()
     {
         strSearch = null;
+
         await LoadNotesAsync();
+    }
+
+    private async Task ClearFiltersAsync()
+    {
+        strSearch = null;
+        CompanyId = null;
+
+        objNavigationManager.NavigateTo(
+            "/notes",
+            replace: true);
+
+        await Task.CompletedTask;
+    }
+
+    private void ClearCompanyFilter()
+    {
+        String strUrl =
+            String.IsNullOrWhiteSpace(strSearch)
+                ? "/notes"
+                : $"/notes";
+
+        objNavigationManager.NavigateTo(
+            strUrl,
+            replace: true);
     }
 
     private void DismissErrorAlert()
@@ -270,133 +520,255 @@
 
     private void SetNoteStats()
     {
-        dteRecentCutoffUtc = DateTime.UtcNow.Date.AddDays(-7);
+        dteRecentCutoffUtc =
+            DateTime.UtcNow.Date.AddDays(-7);
 
-        intTotalNotes = colNotes.Count;
+        intTotalNotes =
+            colNotes.Count;
 
-        intLinkedNotes = colNotes.Count(objNote =>
-            objNote.EntityId != Guid.Empty &&
-            objNote.Entity != null);
+        intLinkedNotes =
+            colNotes.Count(
+                objNote =>
+                    objNote.EntityId != Guid.Empty &&
+                    objNote.Entity != null);
 
-        intLinkedPercentage = intTotalNotes == 0
-            ? 0
-            : (Int32)Math.Round((Decimal)intLinkedNotes / intTotalNotes * 100);
+        intLinkedPercentage =
+            intTotalNotes == 0
+                ? 0
+                : (Int32)Math.Round(
+                    (Decimal)intLinkedNotes /
+                    intTotalNotes *
+                    100);
 
-        intRecentNotes = colNotes.Count(objNote =>
-            objNote.CreatedUtc >= dteRecentCutoffUtc);
+        intRecentNotes =
+            colNotes.Count(
+                objNote =>
+                    objNote.CreatedUtc >=
+                    dteRecentCutoffUtc);
 
-        intRecordTypeCount = colNotes
-            .Where(objNote => !String.IsNullOrWhiteSpace(objNote.Entity?.EntityType?.Name))
-            .Select(objNote => objNote.Entity!.EntityType!.Name)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Count();
+        intRecordTypeCount =
+            colNotes
+                .Where(
+                    objNote =>
+                        !String.IsNullOrWhiteSpace(
+                            objNote.Entity?.EntityType?.Name))
+                .Select(
+                    objNote =>
+                        objNote.Entity!.EntityType!.Name)
+                .Distinct(
+                    StringComparer.OrdinalIgnoreCase)
+                .Count();
     }
 
     private void SetResultSummary()
     {
-        if (String.IsNullOrWhiteSpace(strSearch))
+        if (CompanyId.HasValue)
         {
-            strResultSummary = $"Showing the latest {intTotalNotes} note{GetPlural(intTotalNotes)}.";
+            if (String.IsNullOrWhiteSpace(strSearch))
+            {
+                strResultSummary =
+                    $"Showing {intTotalNotes} note{GetPlural(intTotalNotes)} " +
+                    "for the selected company.";
+
+                return;
+            }
+
+            strResultSummary =
+                $"Showing {intTotalNotes} result{GetPlural(intTotalNotes)} " +
+                $"for \"{strSearch}\" within the selected company.";
+
             return;
         }
 
-        strResultSummary = $"Showing {intTotalNotes} result{GetPlural(intTotalNotes)} for \"{strSearch}\".";
+        if (String.IsNullOrWhiteSpace(strSearch))
+        {
+            strResultSummary =
+                $"Showing the latest {intTotalNotes} " +
+                $"note{GetPlural(intTotalNotes)}.";
+
+            return;
+        }
+
+        strResultSummary =
+            $"Showing {intTotalNotes} result{GetPlural(intTotalNotes)} " +
+            $"for \"{strSearch}\".";
     }
 
-    private void OpenEntity(Note objNote)
+    private void OpenEntity(
+        Note objNote)
     {
-        String strUrl = GetEntityUrl(objNote);
+        String strUrl =
+            GetEntityUrl(objNote);
 
         if (!String.IsNullOrWhiteSpace(strUrl))
         {
-            objNavigationManager.NavigateTo(strUrl);
+            objNavigationManager.NavigateTo(
+                strUrl);
         }
     }
 
-    private static String GetPlural(Int32 intCount)
+    private static String GetPlural(
+        Int32 intCount)
     {
-        return intCount == 1 ? String.Empty : "s";
+        return intCount == 1
+            ? String.Empty
+            : "s";
     }
 
-    private static String GetEntityName(Note objNote)
+    private static String GetEntityName(
+        Note objNote)
     {
-        if (!String.IsNullOrWhiteSpace(objNote.Entity?.DisplayName))
+        if (!String.IsNullOrWhiteSpace(
+            objNote.Entity?.DisplayName))
         {
-            return objNote.Entity.DisplayName;
+            return
+                objNote.Entity.DisplayName;
         }
 
         return "CRM record";
     }
 
-    private static String GetEntityType(Note objNote)
+    private static String GetEntityType(
+        Note objNote)
     {
-        if (!String.IsNullOrWhiteSpace(objNote.Entity?.EntityType?.Name))
+        if (!String.IsNullOrWhiteSpace(
+            objNote.Entity?.EntityType?.Name))
         {
-            return objNote.Entity.EntityType.Name;
+            return
+                objNote.Entity.EntityType.Name;
         }
 
         return "Record";
     }
 
-    private static String GetEntityAlias(Note objNote)
+    private static String GetEntityAlias(
+        Note objNote)
     {
-        return objNote.Entity?.EntityType?.Alias?.ToLowerInvariant() ?? String.Empty;
+        return
+            objNote.Entity?
+                .EntityType?
+                .Alias?
+                .ToLowerInvariant() ??
+            String.Empty;
     }
 
-    private static String GetEntityUrl(Note objNote)
+    private static String GetEntityUrl(
+        Note objNote)
     {
-        String strAlias = GetEntityAlias(objNote);
+        String strAlias =
+            GetEntityAlias(objNote);
 
         return strAlias switch
         {
-            "company" => $"/companies/{objNote.EntityId}",
-            "contact" => $"/contacts/{objNote.EntityId}",
-            "job" => $"/jobs/{objNote.EntityId}",
-            _ => String.Empty
+            "company" =>
+                $"/companies/{objNote.EntityId}",
+
+            "contact" =>
+                $"/contacts/{objNote.EntityId}",
+
+            "job" =>
+                $"/jobs/{objNote.EntityId}",
+
+            "ticket" =>
+                $"/tickets/{objNote.EntityId}",
+
+            "activity" =>
+                $"/activities/{objNote.EntityId}",
+
+            _ =>
+                String.Empty
         };
     }
 
-    private static String GetEntityIcon(Note objNote)
+    private static String GetEntityIcon(
+        Note objNote)
     {
-        String strAlias = GetEntityAlias(objNote);
+        String strAlias =
+            GetEntityAlias(objNote);
 
         return strAlias switch
         {
-            "company" => "apartment",
-            "contact" => "person",
-            "job" => "track_changes",
-            _ => "sticky_note_2"
+            "company" =>
+                "apartment",
+
+            "contact" =>
+                "person",
+
+            "job" =>
+                "track_changes",
+
+            "ticket" =>
+                "confirmation_number",
+
+            "activity" =>
+                "event_note",
+
+            _ =>
+                "sticky_note_2"
         };
     }
 
-    private static String GetEntityIconClass(Note objNote)
+    private static String GetEntityIconClass(
+        Note objNote)
     {
-        String strAlias = GetEntityAlias(objNote);
+        String strAlias =
+            GetEntityAlias(objNote);
 
         return strAlias switch
         {
-            "company" => "notes-list-icon-company",
-            "contact" => "notes-list-icon-contact",
-            "job" => "notes-list-icon-job",
-            _ => String.Empty
+            "company" =>
+                "notes-list-icon-company",
+
+            "contact" =>
+                "notes-list-icon-contact",
+
+            "job" =>
+                "notes-list-icon-job",
+
+            "ticket" =>
+                "notes-list-icon-ticket",
+
+            "activity" =>
+                "notes-list-icon-activity",
+
+            _ =>
+                String.Empty
         };
     }
 
-    private static String GetEntityBadgeClass(Note objNote)
+    private static String GetEntityBadgeClass(
+        Note objNote)
     {
-        String strAlias = GetEntityAlias(objNote);
+        String strAlias =
+            GetEntityAlias(objNote);
 
         return strAlias switch
         {
-            "company" => "notes-record-badge notes-record-badge-company",
-            "contact" => "notes-record-badge notes-record-badge-contact",
-            "job" => "notes-record-badge notes-record-badge-job",
-            _ => "notes-record-badge"
+            "company" =>
+                "notes-record-badge notes-record-badge-company",
+
+            "contact" =>
+                "notes-record-badge notes-record-badge-contact",
+
+            "job" =>
+                "notes-record-badge notes-record-badge-job",
+
+            "ticket" =>
+                "notes-record-badge notes-record-badge-ticket",
+
+            "activity" =>
+                "notes-record-badge notes-record-badge-activity",
+
+            _ =>
+                "notes-record-badge"
         };
     }
 
-    private static String FormatDate(DateTime dtmDate)
+    private static String FormatDate(
+        DateTime dtmDate)
     {
-        return dtmDate.ToLocalTime().ToString("dd MMM yyyy HH:mm");
+        return dtmDate
+            .ToLocalTime()
+            .ToString("dd MMM yyyy HH:mm");
     }
 }

@@ -12,11 +12,43 @@
 
 <section class="activities-page">
 
+    @if (CompanyId.HasValue)
+    {
+        <div class="activities-context-filter">
+            <div class="activities-context-filter-main">
+                <span class="material-symbols-outlined">
+                    apartment
+                </span>
+
+                <div>
+                    <strong>Company filter active</strong>
+
+                    <span>
+                        Showing activities linked to this company.
+                    </span>
+                </div>
+            </div>
+
+            <button type="button"
+                    class="btn btn-soft-secondary btn-sm"
+                    @onclick="ClearCompanyFilterAsync">
+
+                <span class="material-symbols-outlined">
+                    close
+                </span>
+
+                Clear company filter
+            </button>
+        </div>
+    }
+
     <div class="crm-card activities-toolbar">
         <div class="activities-search">
             <div class="input-group">
                 <span class="input-group-text">
-                    <span class="material-symbols-outlined">search</span>
+                    <span class="material-symbols-outlined">
+                        search
+                    </span>
                 </span>
 
                 <input class="form-control"
@@ -31,7 +63,9 @@
                     @bind="strSelectedType"
                     @bind:after="FiltersChangedAsync">
 
-                <option value="">All types</option>
+                <option value="">
+                    All types
+                </option>
 
                 @foreach (ActivityType enmType in Enum.GetValues<ActivityType>())
                 {
@@ -45,9 +79,17 @@
                     @bind="strSelectedStatus"
                     @bind:after="FiltersChangedAsync">
 
-                <option value="">All statuses</option>
-                <option value="open">Open</option>
-                <option value="completed">Completed</option>
+                <option value="">
+                    All statuses
+                </option>
+
+                <option value="open">
+                    Open
+                </option>
+
+                <option value="completed">
+                    Completed
+                </option>
             </select>
 
             <div class="activities-filter-divider"></div>
@@ -71,7 +113,10 @@
                     type="button"
                     @onclick="LoadActivitiesAsync">
 
-                <span class="material-symbols-outlined">search</span>
+                <span class="material-symbols-outlined">
+                    search
+                </span>
+
                 Search
             </button>
         </div>
@@ -86,8 +131,14 @@
 
                 <div>
                     <small>Open shown</small>
-                    <strong>@intOpenCount</strong>
-                    <span>@intTotalCount total shown</span>
+
+                    <strong>
+                        @intOpenCount
+                    </strong>
+
+                    <span>
+                        @intTotalCount total shown
+                    </span>
                 </div>
             </div>
         </div>
@@ -100,8 +151,14 @@
 
                 <div>
                     <small>Overdue shown</small>
-                    <strong>@intOverdueCount</strong>
-                    <span>Past their due date</span>
+
+                    <strong>
+                        @intOverdueCount
+                    </strong>
+
+                    <span>
+                        Past their due date
+                    </span>
                 </div>
             </div>
         </div>
@@ -114,8 +171,14 @@
 
                 <div>
                     <small>Due today</small>
-                    <strong>@intDueTodayCount</strong>
-                    <span>Scheduled for today</span>
+
+                    <strong>
+                        @intDueTodayCount
+                    </strong>
+
+                    <span>
+                        Scheduled for today
+                    </span>
                 </div>
             </div>
         </div>
@@ -128,8 +191,14 @@
 
                 <div>
                     <small>Completed shown</small>
-                    <strong>@intCompletedCount</strong>
-                    <span>Finished activities</span>
+
+                    <strong>
+                        @intCompletedCount
+                    </strong>
+
+                    <span>
+                        Finished activities
+                    </span>
                 </div>
             </div>
         </div>
@@ -157,7 +226,7 @@
                     </button>
                 }
 
-                <a href="/activities/add"
+                <a href="@GetAddActivityUrl()"
                    class="btn btn-primary btn-sm">
 
                     <span class="material-symbols-outlined">
@@ -186,10 +255,21 @@
                 <h4>No activities found</h4>
 
                 <p>
-                    Add an activity or adjust the current filters.
+                    @if (CompanyId.HasValue)
+                    {
+                        <text>
+                            No activities are currently linked to this company.
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Add an activity or adjust the current filters.
+                        </text>
+                    }
                 </p>
 
-                <a href="/activities/add"
+                <a href="@GetAddActivityUrl()"
                    class="btn btn-primary">
 
                     <span class="material-symbols-outlined">
@@ -211,7 +291,9 @@
                             <th>Related to</th>
                             <th>Due</th>
                             <th>Status</th>
-                            <th class="text-end">Actions</th>
+                            <th class="text-end">
+                                Actions
+                            </th>
                         </tr>
                     </thead>
 
@@ -355,12 +437,21 @@
     [SupplyParameterFromQuery(Name = "due")]
     public String? Due { get; set; }
 
+    [SupplyParameterFromQuery(Name = "companyId")]
+    public Guid? CompanyId { get; set; }
+
     private List<Activity> colActivities = [];
 
     private String? strSearch;
-    private String strSelectedType = String.Empty;
-    private String strSelectedStatus = String.Empty;
-    private String strResultSummary = "Showing activity records.";
+
+    private String strSelectedType =
+        String.Empty;
+
+    private String strSelectedStatus =
+        String.Empty;
+
+    private String strResultSummary =
+        "Showing activity records.";
 
     private Boolean blnIncludeArchived;
     private Boolean blnLoading = true;
@@ -407,7 +498,8 @@
         !String.IsNullOrWhiteSpace(strSelectedStatus) ||
         blnIncludeArchived ||
         Overdue ||
-        DueToday;
+        DueToday ||
+        CompanyId.HasValue;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -430,7 +522,7 @@
                     strSearch,
                     SelectedType,
                     CompletedFilter,
-                    null,
+                    CompanyId,
                     null,
                     null,
                     Overdue,
@@ -467,11 +559,78 @@
         strSelectedStatus = String.Empty;
         blnIncludeArchived = false;
 
+        Overdue = false;
+        Due = null;
+        CompanyId = null;
+
         Navigation.NavigateTo(
             "/activities",
             replace: true);
 
         return Task.CompletedTask;
+    }
+
+    private Task ClearCompanyFilterAsync()
+    {
+        String strUrl =
+            BuildActivitiesUrl(
+                Overdue,
+                Due,
+                null);
+
+        Navigation.NavigateTo(
+            strUrl,
+            replace: true);
+
+        return Task.CompletedTask;
+    }
+
+    private String GetAddActivityUrl()
+    {
+        if (CompanyId.HasValue)
+        {
+            return
+                $"/activities/add?companyId={CompanyId.Value}";
+        }
+
+        return "/activities/add";
+    }
+
+    private static String BuildActivitiesUrl(
+        Boolean blnOverdue,
+        String? strDue,
+        Guid? objCompanyId)
+    {
+        List<String> colQuery = [];
+
+        if (blnOverdue)
+        {
+            colQuery.Add(
+                "overdue=true");
+        }
+
+        if (!String.IsNullOrWhiteSpace(strDue))
+        {
+            colQuery.Add(
+                $"due={Uri.EscapeDataString(strDue)}");
+        }
+
+        if (objCompanyId.HasValue)
+        {
+            colQuery.Add(
+                $"companyId={objCompanyId.Value}");
+        }
+
+        if (colQuery.Count == 0)
+        {
+            return "/activities";
+        }
+
+        return
+            "/activities?" +
+            String.Join(
+                "&",
+                colQuery);
     }
 
     private void SetStatistics()
@@ -486,22 +645,24 @@
             colActivities.Count;
 
         intOpenCount =
-            colActivities.Count(x =>
-                !x.IsCompleted);
+            colActivities.Count(
+                x => !x.IsCompleted);
 
         intCompletedCount =
-            colActivities.Count(x =>
-                x.IsCompleted);
+            colActivities.Count(
+                x => x.IsCompleted);
 
         intOverdueCount =
-            colActivities.Count(IsOverdue);
+            colActivities.Count(
+                IsOverdue);
 
         intDueTodayCount =
-            colActivities.Count(x =>
-                !x.IsCompleted &&
-                x.DueUtc.HasValue &&
-                x.DueUtc.Value >= dteTodayUtc &&
-                x.DueUtc.Value < dteTomorrowUtc);
+            colActivities.Count(
+                x =>
+                    !x.IsCompleted &&
+                    x.DueUtc.HasValue &&
+                    x.DueUtc.Value >= dteTodayUtc &&
+                    x.DueUtc.Value < dteTomorrowUtc);
     }
 
     private void SetResultSummary()
@@ -530,12 +691,26 @@
 
         if (Overdue)
         {
-            colFilters.Add("overdue");
+            colFilters.Add(
+                "overdue");
         }
 
         if (DueToday)
         {
-            colFilters.Add("due today");
+            colFilters.Add(
+                "due today");
+        }
+
+        if (CompanyId.HasValue)
+        {
+            colFilters.Add(
+                "for the selected company");
+        }
+
+        if (blnIncludeArchived)
+        {
+            colFilters.Add(
+                "including archived");
         }
 
         strResultSummary =
@@ -547,9 +722,11 @@
     private static Boolean IsOverdue(
         Activity objActivity)
     {
-        return !objActivity.IsCompleted &&
-               objActivity.DueUtc.HasValue &&
-               objActivity.DueUtc.Value < DateTime.UtcNow.Date;
+        return
+            !objActivity.IsCompleted &&
+            objActivity.DueUtc.HasValue &&
+            objActivity.DueUtc.Value <
+                DateTime.UtcNow.Date;
     }
 
     private static String GetDueClass(
@@ -569,12 +746,15 @@
 
         if (dteDueUtc < dteTodayUtc)
         {
-            return "activities-due-overdue";
+            return
+                "activities-due-overdue";
         }
 
-        if (dteDueUtc < dteTodayUtc.AddDays(1))
+        if (dteDueUtc <
+            dteTodayUtc.AddDays(1))
         {
-            return "activities-due-today";
+            return
+                "activities-due-today";
         }
 
         return String.Empty;
@@ -585,11 +765,20 @@
     {
         return enmType switch
         {
-            ActivityType.Call => "call",
-            ActivityType.Meeting => "groups",
-            ActivityType.SiteVisit => "location_on",
-            ActivityType.FollowUp => "update",
-            _ => "task_alt"
+            ActivityType.Call =>
+                "call",
+
+            ActivityType.Meeting =>
+                "groups",
+
+            ActivityType.SiteVisit =>
+                "location_on",
+
+            ActivityType.FollowUp =>
+                "update",
+
+            _ =>
+                "task_alt"
         };
     }
 
@@ -598,16 +787,19 @@
     {
         const Int32 intMaximumLength = 70;
 
-        return strDescription.Length <= intMaximumLength
-            ? strDescription
-            : strDescription[..intMaximumLength] + "…";
+        return
+            strDescription.Length <= intMaximumLength
+                ? strDescription
+                : strDescription[..intMaximumLength] + "…";
     }
 
     private static String FormatDate(
         DateTime? dteDate)
     {
         return dteDate.HasValue
-            ? dteDate.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+            ? dteDate.Value
+                .ToLocalTime()
+                .ToString("dd MMM yyyy HH:mm")
             : "—";
     }
 
@@ -616,12 +808,14 @@
     {
         if (objActivity.IsCompleted)
         {
-            return "activities-row-completed";
+            return
+                "activities-row-completed";
         }
 
         if (objActivity.IsArchived)
         {
-            return "activities-row-archived";
+            return
+                "activities-row-archived";
         }
 
         return String.Empty;

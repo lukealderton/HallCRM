@@ -4,6 +4,62 @@
     gap: 1rem;
 }
 
+
+/* Company context filter */
+
+.activities-context-filter {
+    min-height: 64px;
+    padding: .85rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid #cbdcfb;
+    border-radius: .9rem;
+    background: #f7faff;
+}
+
+.activities-context-filter-main {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    min-width: 0;
+}
+
+    .activities-context-filter-main > .material-symbols-outlined {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: .75rem;
+        background: #eaf2ff;
+        color: #0b5cff;
+        font-size: 20px;
+    }
+
+    .activities-context-filter-main > div {
+        min-width: 0;
+    }
+
+    .activities-context-filter-main strong {
+        display: block;
+        color: #0f172a;
+        font-size: .9rem;
+        font-weight: 800;
+    }
+
+    .activities-context-filter-main span {
+        display: block;
+        margin-top: .1rem;
+        color: #64748b;
+        font-size: .8rem;
+    }
+
+
+/* Toolbar */
+
 .activities-toolbar {
     padding: 1rem 1.25rem;
     display: grid;
@@ -47,6 +103,9 @@
     display: flex;
     justify-content: flex-end;
 }
+
+
+/* Summary cards */
 
 .activities-summary-card {
     min-height: 120px;
@@ -135,16 +194,23 @@
     color: #16a34a;
 }
 
+
+/* Card header actions */
+
 .activities-header-actions {
     display: flex;
     align-items: center;
     gap: .5rem;
 }
 
+
+/* Activity table */
+
 .activities-name-cell {
     display: flex;
     align-items: center;
     gap: .75rem;
+    min-width: 0;
 }
 
 .activities-icon {
@@ -174,6 +240,9 @@
         text-decoration: underline;
     }
 
+
+/* Type */
+
 .activity-type {
     display: inline-flex;
     align-items: center;
@@ -185,6 +254,9 @@
     font-size: .78rem;
     font-weight: 800;
 }
+
+
+/* Related records */
 
 .activities-related {
     display: flex;
@@ -202,6 +274,9 @@
             text-decoration: underline;
         }
 
+
+/* Due dates */
+
 .activities-due-overdue {
     color: #b91c1c;
     font-weight: 800;
@@ -211,6 +286,9 @@
     color: #b45309;
     font-weight: 800;
 }
+
+
+/* Row actions */
 
 .activities-row-actions {
     display: inline-flex;
@@ -228,6 +306,9 @@
     opacity: .72;
 }
 
+
+/* Responsive */
+
 @media (max-width: 1199.98px) {
     .activities-toolbar {
         grid-template-columns: 1fr;
@@ -243,6 +324,15 @@
 }
 
 @media (max-width: 767.98px) {
+    .activities-context-filter {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+        .activities-context-filter > .btn {
+            width: 100%;
+        }
+
     .activities-filters {
         flex-direction: column;
         align-items: stretch;
@@ -256,6 +346,14 @@
     .activities-filter-divider {
         display: none;
     }
+
+    .activities-toolbar-actions {
+        justify-content: flex-start;
+    }
+
+        .activities-toolbar-actions .btn {
+            width: 100%;
+        }
 
     .activities-header-actions {
         flex-wrap: wrap;

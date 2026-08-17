@@ -33,6 +33,67 @@
     white-space: nowrap;
 }
 
+.contacts-context-filter {
+    min-height: 64px;
+    padding: .85rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid #cbdcfb;
+    border-radius: .9rem;
+    background: #f7faff;
+}
+
+.contacts-context-filter-main {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    min-width: 0;
+}
+
+    .contacts-context-filter-main > .material-symbols-outlined {
+        width: 38px;
+        height: 38px;
+        border-radius: .75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        background: #eaf2ff;
+        color: #0b5cff;
+        font-size: 20px;
+    }
+
+    .contacts-context-filter-main div {
+        min-width: 0;
+    }
+
+    .contacts-context-filter-main strong {
+        display: block;
+        color: #0f172a;
+        font-size: .9rem;
+        font-weight: 800;
+    }
+
+    .contacts-context-filter-main span {
+        display: block;
+        margin-top: .1rem;
+        color: #64748b;
+        font-size: .8rem;
+    }
+
+@media (max-width: 767.98px) {
+    .contacts-context-filter {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+        .contacts-context-filter > .btn {
+            width: 100%;
+        }
+}
+
 .contacts-toolbar-actions {
     display: flex;
     align-items: center;

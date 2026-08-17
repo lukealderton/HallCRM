@@ -4,6 +4,62 @@
     gap: 1rem;
 }
 
+
+/* Company context */
+
+.notes-context-filter {
+    min-height: 64px;
+    padding: .85rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid #cbdcfb;
+    border-radius: .9rem;
+    background: #f7faff;
+}
+
+.notes-context-filter-main {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    min-width: 0;
+}
+
+    .notes-context-filter-main > .material-symbols-outlined {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: .75rem;
+        background: #eaf2ff;
+        color: #0b5cff;
+        font-size: 20px;
+    }
+
+    .notes-context-filter-main > div {
+        min-width: 0;
+    }
+
+    .notes-context-filter-main strong {
+        display: block;
+        color: #0f172a;
+        font-size: .9rem;
+        font-weight: 800;
+    }
+
+    .notes-context-filter-main span {
+        display: block;
+        margin-top: .1rem;
+        color: #64748b;
+        font-size: .8rem;
+    }
+
+
+/* Toolbar */
+
 .notes-toolbar {
     padding: 1rem 1.25rem;
     display: grid;
@@ -16,14 +72,14 @@
     min-width: 0;
 }
 
-.notes-search .input-group-text {
-    background: #ffffff;
-    color: #64748b;
-}
+    .notes-search .input-group-text {
+        background: #ffffff;
+        color: #64748b;
+    }
 
-.notes-search .input-group-text .material-symbols-outlined {
-    font-size: 20px;
-}
+        .notes-search .input-group-text .material-symbols-outlined {
+            font-size: 20px;
+        }
 
 .notes-toolbar-actions {
     display: flex;
@@ -31,6 +87,9 @@
     justify-content: flex-end;
     gap: .7rem;
 }
+
+
+/* Summary */
 
 .notes-summary-card {
     background: #ffffff;
@@ -46,42 +105,42 @@
     overflow: hidden;
 }
 
-.notes-summary-card::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 4px;
-    background: #0b5cff;
-}
+    .notes-summary-card::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 4px;
+        background: #0b5cff;
+    }
 
-.notes-summary-card > .material-symbols-outlined {
-    width: 54px;
-    height: 54px;
-    border-radius: .85rem;
-    background: #eaf2ff;
-    color: #0b5cff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 30px;
-    flex: 0 0 auto;
-}
+    .notes-summary-card > .material-symbols-outlined {
+        width: 54px;
+        height: 54px;
+        border-radius: .85rem;
+        background: #eaf2ff;
+        color: #0b5cff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        flex: 0 0 auto;
+    }
 
-.notes-summary-card small {
-    display: block;
-    color: #475569;
-    font-size: .92rem;
-    margin-bottom: .3rem;
-}
+    .notes-summary-card small {
+        display: block;
+        color: #475569;
+        font-size: .92rem;
+        margin-bottom: .3rem;
+    }
 
-.notes-summary-card strong {
-    display: block;
-    font-size: 2rem;
-    font-weight: 850;
-    line-height: 1;
-    letter-spacing: -.04em;
-    color: #0f172a;
-}
+    .notes-summary-card strong {
+        display: block;
+        font-size: 2rem;
+        font-weight: 850;
+        line-height: 1;
+        letter-spacing: -.04em;
+        color: #0f172a;
+    }
 
 .notes-summary-note {
     display: block;
@@ -122,23 +181,29 @@
     color: #0891b2;
 }
 
+
+/* Error */
+
 .notes-alert {
     align-items: center;
 }
 
-.notes-alert > .material-symbols-outlined {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    color: #ffffff !important;
-    background: #dc2626;
-}
+    .notes-alert > .material-symbols-outlined {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        color: #ffffff !important;
+        background: #dc2626;
+    }
 
 .notes-alert-close {
     width: 2.2rem;
     height: 2.2rem;
     padding: 0;
 }
+
+
+/* Notes */
 
 .notes-list-body {
     padding: 1.25rem;
@@ -171,9 +236,9 @@
     background: #eaf2ff;
 }
 
-.notes-list-icon .material-symbols-outlined {
-    font-size: 23px;
-}
+    .notes-list-icon .material-symbols-outlined {
+        font-size: 23px;
+    }
 
 .notes-list-icon-company {
     background: #eaf2ff;
@@ -190,6 +255,16 @@
     color: #d97706;
 }
 
+.notes-list-icon-ticket {
+    background: #f5f3ff;
+    color: #7c3aed;
+}
+
+.notes-list-icon-activity {
+    background: #cffafe;
+    color: #0891b2;
+}
+
 .notes-list-content {
     min-width: 0;
     flex: 1;
@@ -202,16 +277,17 @@
     gap: 1rem;
 }
 
-.notes-record-link {
+.notes-record-link,
+.notes-record-name {
     color: #111827;
     font-weight: 850;
     text-decoration: none;
 }
 
-.notes-record-link:hover {
-    color: #0b5cff;
-    text-decoration: underline;
-}
+    .notes-record-link:hover {
+        color: #0b5cff;
+        text-decoration: underline;
+    }
 
 .notes-record-meta {
     display: flex;
@@ -221,10 +297,10 @@
     margin-top: .35rem;
 }
 
-.notes-record-meta small {
-    color: #64748b;
-    font-size: .84rem;
-}
+    .notes-record-meta small {
+        color: #64748b;
+        font-size: .84rem;
+    }
 
 .notes-record-badge {
     display: inline-flex;
@@ -253,6 +329,16 @@
     color: #92400e;
 }
 
+.notes-record-badge-ticket {
+    background: #f5f3ff;
+    color: #6d28d9;
+}
+
+.notes-record-badge-activity {
+    background: #cffafe;
+    color: #0e7490;
+}
+
 .notes-list-content p {
     margin: .8rem 0 0;
     color: #334155;
@@ -263,6 +349,9 @@
 .notes-list-content .btn {
     margin-top: .9rem;
 }
+
+
+/* Responsive */
 
 @media (max-width: 1199.98px) {
     .notes-toolbar {
@@ -275,6 +364,15 @@
 }
 
 @media (max-width: 767.98px) {
+    .notes-context-filter {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+        .notes-context-filter > .btn {
+            width: 100%;
+        }
+
     .notes-summary-card {
         min-height: auto;
     }
@@ -288,7 +386,7 @@
         gap: .75rem;
     }
 
-    .notes-list-header .btn {
-        width: 100%;
-    }
+        .notes-list-header .btn {
+            width: 100%;
+        }
 }
