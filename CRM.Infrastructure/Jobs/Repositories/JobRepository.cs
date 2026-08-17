@@ -59,6 +59,7 @@ namespace CRM.Infrastructure.Jobs.Repositories
             String? strSearch = null,
             JobStage? enmStage = null,
             Guid? objCompanyId = null,
+            Guid? objServiceId = null,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
             Boolean blnOverdueOnly = false,
@@ -122,10 +123,20 @@ namespace CRM.Infrastructure.Jobs.Repositories
                             objCompanyId.Value);
             }
 
+            if (objServiceId.HasValue)
+            {
+                objQuery =
+                    objQuery.Where(
+                        objJob =>
+                            objJob.ServiceLinks.Any(
+                                objLink =>
+                                    objLink.ServiceId ==
+                                    objServiceId.Value));
+            }
+
             if (blnOverdueOnly)
             {
-                DateTime dteTodayUtc =
-                    DateTime.UtcNow.Date;
+                DateTime dteTodayUtc = DateTime.UtcNow.Date;
 
                 objQuery =
                     objQuery.Where(

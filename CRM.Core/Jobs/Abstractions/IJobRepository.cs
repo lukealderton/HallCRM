@@ -19,6 +19,7 @@ namespace CRM.Core.Jobs.Abstractions
             String? strSearch = null,
             JobStage? enmStage = null,
             Guid? objCompanyId = null,
+            Guid? objServiceId = null,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
             Boolean blnOverdueOnly = false,
