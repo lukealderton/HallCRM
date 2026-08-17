@@ -32,6 +32,70 @@ namespace CRM.Infrastructure.Jobs.Configurations
             objEntity.Property(objJob => objJob.Notes)
                 .HasMaxLength(4000);
 
+            objEntity.Property(
+                objJob =>
+                    objJob.AddressLine1)
+            .HasColumnName(
+                "jobAddressLine1")
+            .HasMaxLength(
+                250);
+
+            objEntity.Property(
+                    objJob =>
+                        objJob.AddressLine2)
+                .HasColumnName(
+                    "jobAddressLine2")
+                .HasMaxLength(
+                    250);
+
+            objEntity.Property(
+                    objJob =>
+                        objJob.Town)
+                .HasColumnName(
+                    "jobTown")
+                .HasMaxLength(
+                    150);
+
+            objEntity.Property(
+                    objJob =>
+                        objJob.County)
+                .HasColumnName(
+                    "jobCounty")
+                .HasMaxLength(
+                    150);
+
+            objEntity.Property(
+                    objJob =>
+                        objJob.Postcode)
+                .HasColumnName(
+                    "jobPostcode")
+                .HasMaxLength(
+                    20);
+
+            objEntity.Property(
+                    objJob =>
+                        objJob.SiteContactName)
+                .HasColumnName(
+                    "jobSiteContactName")
+                .HasMaxLength(
+                    200);
+
+            objEntity.Property(
+                    objJob =>
+                        objJob.SiteContactPhone)
+                .HasColumnName(
+                    "jobSiteContactPhone")
+                .HasMaxLength(
+                    50);
+
+            objEntity.Property(
+                    objJob =>
+                        objJob.AccessNotes)
+                .HasColumnName(
+                    "jobAccessNotes")
+                .HasMaxLength(
+                    2000);
+
             objEntity.HasOne(objJob => objJob.Entity)
                 .WithOne()
                 .HasForeignKey<Job>(objJob => objJob.Id)

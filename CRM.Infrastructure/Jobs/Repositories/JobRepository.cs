@@ -180,6 +180,29 @@ namespace CRM.Infrastructure.Jobs.Repositories
                                     objLink.Service.Name
                                         .Contains(
                                             strKeyword))
+                            || (objJob.AddressLine1 != null &&
+                                objJob.AddressLine1.Contains(
+                                    strKeyword))
+
+                            || (objJob.AddressLine2 != null &&
+                                objJob.AddressLine2.Contains(
+                                    strKeyword))
+
+                            || (objJob.Town != null &&
+                                objJob.Town.Contains(
+                                    strKeyword))
+
+                            || (objJob.County != null &&
+                                objJob.County.Contains(
+                                    strKeyword))
+
+                            || (objJob.Postcode != null &&
+                                objJob.Postcode.Contains(
+                                    strKeyword))
+
+                            || (objJob.SiteContactName != null &&
+                                objJob.SiteContactName.Contains(
+                                    strKeyword))
                     );
             }
 

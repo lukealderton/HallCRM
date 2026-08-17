@@ -61,13 +61,12 @@ namespace CRM.Core.Jobs.Services
             }
 
             Guid[] colServiceIds =
-                objJob.ServiceLinks
+                [.. objJob.ServiceLinks
                     .Select(objLink =>
                         objLink.ServiceId)
                     .Where(objServiceId =>
                         objServiceId != Guid.Empty)
-                    .Distinct()
-                    .ToArray();
+                    .Distinct()];
 
             Guid objJobId =
                 objJob.Id == Guid.Empty
@@ -87,48 +86,58 @@ namespace CRM.Core.Jobs.Services
                 strJobName;
 
             objJob.Description =
-                CleanString(
-                    objJob.Description);
+                CleanString(objJob.Description);
 
             objJob.Source =
-                CleanString(
-                    objJob.Source);
+                CleanString(objJob.Source);
 
             objJob.Notes =
+                CleanString(objJob.Notes);
+
+            objJob.AddressLine1 =
+                CleanString(objJob.AddressLine1);
+
+            objJob.AddressLine2 =
                 CleanString(
-                    objJob.Notes);
+                    objJob.AddressLine2);
+
+            objJob.Town =
+                CleanString(objJob.Town);
+
+            objJob.County =
+                CleanString(objJob.County);
+
+            objJob.Postcode =
+                CleanPostcode(objJob.Postcode);
+
+            objJob.SiteContactName =
+                CleanString(objJob.SiteContactName);
+
+            objJob.SiteContactPhone =
+                CleanString(objJob.SiteContactPhone);
+
+            objJob.AccessNotes =
+                CleanString(objJob.AccessNotes);
 
             objJob.ProbabilityPercent =
-                CleanProbability(
-                    objJob.ProbabilityPercent);
+                CleanProbability(objJob.ProbabilityPercent);
 
             /*
              * Links are persisted separately so that
              * EF doesn't attempt to add Service records.
              */
-            objJob.ServiceLinks =
-                new List<JobServiceLink>();
+            objJob.ServiceLinks = [];
 
             objJob.Entity =
                 new CrmEntity
                 {
-                    Id =
-                        objJobId,
+                    Id = objJobId,
 
-                    EntityTypeId =
-                        (Int32)PredefinedEntityType.Job,
-
-                    DisplayName =
-                        strJobName,
-
-                    OwnerUserId =
-                        objUserId,
-
-                    CreatedUtc =
-                        dteNow,
-
-                    CreatedByUserId =
-                        objUserId
+                    EntityTypeId = (Int32)PredefinedEntityType.Job,
+                    DisplayName = strJobName,
+                    OwnerUserId = objUserId,
+                    CreatedUtc = dteNow,
+                    CreatedByUserId = objUserId
                 };
 
             await _jobRepository.AddJobAsync(
@@ -176,13 +185,12 @@ namespace CRM.Core.Jobs.Services
             }
 
             Guid[] colServiceIds =
-                objJob.ServiceLinks
+                [.. objJob.ServiceLinks
                     .Select(objLink =>
                         objLink.ServiceId)
                     .Where(objServiceId =>
                         objServiceId != Guid.Empty)
-                    .Distinct()
-                    .ToArray();
+                    .Distinct()];
 
             Job? objExistingJob =
                 await _jobRepository.GetJobByIdAsync(
@@ -199,59 +207,38 @@ namespace CRM.Core.Jobs.Services
             DateTime dteNow =
                 DateTime.UtcNow;
 
-            String strJobName =
-                objJob.Name.Trim();
+            String strJobName = objJob.Name.Trim();
 
-            objExistingJob.CompanyId =
-                objJob.CompanyId;
+            objExistingJob.CompanyId = objJob.CompanyId;
+            objExistingJob.ContactId = objJob.ContactId;
+            objExistingJob.Name = strJobName;
+            objExistingJob.Description = CleanString(objJob.Description);
+            objExistingJob.Stage = objJob.Stage;
+            objExistingJob.Value = objJob.Value;
+            objExistingJob.ProbabilityPercent = CleanProbability(objJob.ProbabilityPercent);
+            objExistingJob.ExpectedCloseDateUtc = objJob.ExpectedCloseDateUtc;
+            objExistingJob.Source = CleanString(objJob.Source);
+            objExistingJob.Notes = CleanString(objJob.Notes);
 
-            objExistingJob.ContactId =
-                objJob.ContactId;
+            objExistingJob.AddressLine1 = CleanString(objJob.AddressLine1);
+            objExistingJob.AddressLine2 = CleanString(objJob.AddressLine2);
+            objExistingJob.Town = CleanString(objJob.Town);
+            objExistingJob.County = CleanString(objJob.County);
+            objExistingJob.Postcode = CleanPostcode(objJob.Postcode);
+            objExistingJob.SiteContactName = CleanString(objJob.SiteContactName);
+            objExistingJob.SiteContactPhone = CleanString(objJob.SiteContactPhone);
+            objExistingJob.AccessNotes = CleanString(objJob.AccessNotes);
 
-            objExistingJob.Name =
-                strJobName;
-
-            objExistingJob.Description =
-                CleanString(
-                    objJob.Description);
-
-            objExistingJob.Stage =
-                objJob.Stage;
-
-            objExistingJob.Value =
-                objJob.Value;
-
-            objExistingJob.ProbabilityPercent =
-                CleanProbability(
-                    objJob.ProbabilityPercent);
-
-            objExistingJob.ExpectedCloseDateUtc =
-                objJob.ExpectedCloseDateUtc;
-
-            objExistingJob.Source =
-                CleanString(
-                    objJob.Source);
-
-            objExistingJob.Notes =
-                CleanString(
-                    objJob.Notes);
-
-            objExistingJob.Entity.DisplayName =
-                strJobName;
-
-            objExistingJob.Entity.UpdatedUtc =
-                dteNow;
-
-            objExistingJob.Entity.UpdatedByUserId =
-                objUserId;
+            objExistingJob.Entity.DisplayName = strJobName;
+            objExistingJob.Entity.UpdatedUtc = dteNow;
+            objExistingJob.Entity.UpdatedByUserId = objUserId;
 
             /*
              * Existing links were loaded for reading,
              * but relationship changes are persisted by
              * SetJobServicesAsync().
              */
-            objExistingJob.ServiceLinks =
-                new List<JobServiceLink>();
+            objExistingJob.ServiceLinks = [];
 
             await _jobRepository.UpdateJobAsync(
                 objExistingJob,
@@ -451,6 +438,13 @@ namespace CRM.Core.Jobs.Services
             }
 
             return intProbabilityPercent.Value;
+        }
+
+        private static String? CleanPostcode(String? strPostcode)
+        {
+            String? strValue = CleanString(strPostcode);
+
+            return strValue?.ToUpperInvariant();
         }
     }
 }
