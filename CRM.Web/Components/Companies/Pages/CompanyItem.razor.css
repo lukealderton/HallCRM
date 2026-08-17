@@ -1,43 +1,50 @@
 ﻿.company-page {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-
-/* Profile */
+/* ---------------------------------
+   Profile
+---------------------------------- */
 
 .company-profile-card {
     padding: 1.25rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
 }
 
 .company-profile-main {
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 1rem;
-    min-width: 0;
 }
+
+    .company-profile-main > div:last-child {
+        min-width: 0;
+    }
 
 .company-avatar {
     width: 64px;
     height: 64px;
-    border-radius: 1rem;
-    background: linear-gradient(135deg, #0b5cff, #0946bd);
-    color: #ffffff;
+    flex: 0 0 64px;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #ffffff;
+    background: linear-gradient(135deg, #0b5cff, #0946bd);
+    border-radius: 1rem;
+    box-shadow: 0 10px 24px rgba(13, 110, 253, .22);
     font-size: 1.55rem;
     font-weight: 850;
-    flex: 0 0 auto;
-    box-shadow: 0 10px 24px rgba(13, 110, 253, .22);
 }
 
 .company-title-row {
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: .7rem;
@@ -45,38 +52,47 @@
 }
 
     .company-title-row h2 {
+        min-width: 0;
         margin: 0;
+        color: #0f172a;
         font-size: 1.6rem;
         font-weight: 850;
+        line-height: 1.2;
         letter-spacing: -.035em;
+        overflow-wrap: anywhere;
     }
 
 .company-trading-name {
     margin: .25rem 0 0;
     color: #64748b;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
 }
 
 .company-meta-row {
+    margin-top: .65rem;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: .85rem;
-    margin-top: .65rem;
+    gap: .55rem .85rem;
     color: #475569;
 }
 
     .company-meta-row > span {
+        min-width: 0;
         display: inline-flex;
         align-items: center;
         gap: .3rem;
     }
 
     .company-meta-row .material-symbols-outlined {
+        flex: 0 0 auto;
         color: #64748b;
         font-size: 18px;
     }
 
 .company-profile-actions {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -84,8 +100,20 @@
     flex-wrap: wrap;
 }
 
+    .company-profile-actions .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .4rem;
+    }
 
-/* Main layout */
+    .company-profile-actions .material-symbols-outlined {
+        font-size: 19px;
+    }
+
+/* ---------------------------------
+   Main layout
+---------------------------------- */
 
 .company-layout {
     display: grid;
@@ -96,6 +124,7 @@
 
 .company-main,
 .company-side {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -107,11 +136,13 @@
 }
 
 .company-card-body {
+    min-width: 0;
     padding: 1.25rem;
 }
 
-
-/* Company details */
+/* ---------------------------------
+   Company details
+---------------------------------- */
 
 .company-info-grid {
     display: grid;
@@ -125,38 +156,43 @@
     display: flex;
     align-items: flex-start;
     gap: .8rem;
+    background: #fbfdff;
     border: 1px solid #eef2f7;
     border-radius: .85rem;
-    background: #fbfdff;
 }
 
     .company-info-item > .material-symbols-outlined {
         width: 38px;
         height: 38px;
-        border-radius: .75rem;
-        background: #eaf2ff;
-        color: #0b5cff;
+        flex: 0 0 38px;
         display: flex;
         align-items: center;
         justify-content: center;
-        flex: 0 0 auto;
+        color: #0b5cff;
+        background: #eaf2ff;
+        border-radius: .75rem;
+        font-size: 20px;
     }
 
     .company-info-item > div {
         min-width: 0;
+        flex: 1 1 auto;
     }
 
     .company-info-item small {
         display: block;
         margin-bottom: .15rem;
         color: #64748b;
-        font-size: .84rem;
+        font-size: .8rem;
     }
 
     .company-info-item strong,
     .company-info-item a {
+        display: block;
         color: #0f172a;
         font-weight: 750;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
         word-break: break-word;
     }
 
@@ -169,31 +205,33 @@
             text-decoration: underline;
         }
 
-
-/* Address inside company details */
+/* ---------------------------------
+   Address
+---------------------------------- */
 
 .company-details-address {
     margin-top: 1rem;
     padding: 1rem;
+    min-width: 0;
     display: flex;
     align-items: flex-start;
     gap: .85rem;
+    color: #334155;
+    background: #fbfdff;
     border: 1px solid #eef2f7;
     border-radius: .85rem;
-    background: #fbfdff;
-    color: #334155;
 }
 
 .company-details-address-icon {
     width: 42px;
     height: 42px;
-    border-radius: .8rem;
-    background: #eaf2ff;
-    color: #0b5cff;
+    flex: 0 0 42px;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 auto;
+    color: #0b5cff;
+    background: #eaf2ff;
+    border-radius: .8rem;
 }
 
     .company-details-address-icon .material-symbols-outlined {
@@ -208,7 +246,7 @@
     display: block;
     margin-bottom: .2rem;
     color: #64748b;
-    font-size: .84rem;
+    font-size: .8rem;
 }
 
 .company-details-address strong {
@@ -219,15 +257,18 @@
 .company-address-lines {
     color: #334155;
     line-height: 1.55;
+    overflow-wrap: anywhere;
 }
 
-
-/* Legacy/general panels */
+/* ---------------------------------
+   General panels
+---------------------------------- */
 
 .company-notes {
-    white-space: pre-wrap;
     color: #334155;
     line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 .company-muted-panel {
@@ -235,13 +276,15 @@
     display: flex;
     align-items: center;
     gap: .6rem;
+    color: #64748b;
+    background: #fbfdff;
     border: 1px dashed #cbd5e1;
     border-radius: .85rem;
-    background: #fbfdff;
-    color: #64748b;
 }
 
-/* Related record sections */
+/* ---------------------------------
+   Related records
+---------------------------------- */
 
 .company-related-grid {
     display: grid;
@@ -252,9 +295,9 @@
 .company-related-section {
     min-width: 0;
     overflow: hidden;
+    background: #ffffff;
     border: 1px solid #e8edf4;
     border-radius: .9rem;
-    background: #ffffff;
 }
 
 .company-related-section-wide {
@@ -268,8 +311,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    border-bottom: 1px solid #eef2f7;
     background: #fbfdff;
+    border-bottom: 1px solid #eef2f7;
 }
 
     .company-related-heading > div {
@@ -294,13 +337,13 @@
     min-width: 1.55rem;
     height: 1.55rem;
     padding: 0 .45rem;
-    border-radius: 999px;
-    background: #eaf2ff;
-    color: #0b5cff;
+    margin: 0 !important;
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    margin: 0 !important;
+    color: #0b5cff;
+    background: #eaf2ff;
+    border-radius: 999px;
     font-size: .72rem !important;
     line-height: 1;
     font-weight: 850;
@@ -311,6 +354,7 @@
     margin-top: .2rem;
     color: #64748b;
     font-size: .78rem;
+    line-height: 1.4;
 }
 
 .company-related-heading > a {
@@ -332,12 +376,13 @@
 
 .company-related-list-item {
     min-width: 0;
+    min-height: 62px;
     padding: .8rem 1rem;
     display: flex;
     align-items: center;
     gap: .75rem;
-    border-bottom: 1px solid #eef2f7;
     color: inherit;
+    border-bottom: 1px solid #eef2f7;
     text-decoration: none;
     transition: background-color .15s ease;
 }
@@ -347,15 +392,15 @@
     }
 
     .company-related-list-item:hover {
-        background: #f8fbff;
         color: inherit;
+        background: #f8fbff;
     }
 
     .company-related-list-item > .material-symbols-outlined {
         margin-left: auto;
+        flex: 0 0 auto;
         color: #94a3b8;
         font-size: 20px;
-        flex: 0 0 auto;
         transition: color .15s ease, transform .15s ease;
     }
 
@@ -368,13 +413,13 @@
 .company-related-record-icon {
     width: 38px;
     height: 38px;
-    border-radius: .75rem;
-    flex: 0 0 auto;
+    flex: 0 0 38px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #eaf2ff;
     color: #0b5cff;
+    background: #eaf2ff;
+    border-radius: .75rem;
 }
 
 .company-related-avatar {
@@ -389,6 +434,7 @@
 
 .company-related-list-content {
     min-width: 0;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
 }
@@ -422,16 +468,19 @@
     gap: .5rem;
     color: #64748b;
     font-size: .83rem;
+    line-height: 1.4;
     text-align: center;
 }
 
     .company-related-empty .material-symbols-outlined {
+        flex: 0 0 auto;
         color: #94a3b8;
         font-size: 20px;
     }
 
-
-/* Sidebar */
+/* ---------------------------------
+   Sidebar
+---------------------------------- */
 
 .company-side-heading {
     margin: 0 0 1rem;
@@ -447,12 +496,14 @@
 }
 
     .company-action-list .btn {
+        min-height: 42px;
         justify-content: flex-start;
         text-align: left;
     }
 
     .company-action-list .material-symbols-outlined {
         flex: 0 0 auto;
+        font-size: 19px;
     }
 
 .company-meta-list {
@@ -479,38 +530,47 @@
         display: block;
         margin-bottom: .15rem;
         color: #64748b;
-        font-size: .84rem;
+        font-size: .8rem;
     }
 
     .company-meta-list strong {
+        min-width: 0;
         color: #0f172a;
+        font-size: .84rem;
         font-weight: 750;
         text-align: right;
-        word-break: break-word;
+        overflow-wrap: anywhere;
     }
 
+/* ---------------------------------
+   Alerts
+---------------------------------- */
 
-/* Large tablet / smaller desktop */
-
-@media (max-width: 1399.98px) {
-    .company-related-summary {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+.company-page .alert {
+    min-width: 0;
 }
 
+.company-page .alert-content {
+    min-width: 0;
+    flex: 1 1 auto;
+}
 
-/* Tablet */
+    .company-page .alert-content p {
+        overflow-wrap: anywhere;
+    }
+
+/* ---------------------------------
+   Smaller desktop / tablet
+---------------------------------- */
 
 @media (max-width: 1199.98px) {
+
     .company-layout {
         grid-template-columns: 1fr;
     }
 
     .company-side {
         position: static;
-    }
-
-    .company-side {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         align-items: start;
@@ -522,9 +582,6 @@
 }
 
 @media (max-width: 991.98px) {
-    .company-related-summary {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
 
     .company-related-grid {
         grid-template-columns: 1fr;
@@ -535,79 +592,343 @@
     }
 }
 
-
-/* Mobile */
+/* ---------------------------------
+   Mobile
+---------------------------------- */
 
 @media (max-width: 767.98px) {
+
+    .company-page {
+        gap: .8rem;
+    }
+
+    /* Profile */
+
     .company-profile-card {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .company-profile-actions {
         width: 100%;
-        justify-content: flex-start;
+        padding: 1rem;
+        align-items: stretch;
+        flex-direction: column;
+        gap: 1rem;
     }
 
-        .company-profile-actions .btn {
-            flex: 1 1 auto;
-        }
-
-    .company-info-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .company-side {
-        display: flex;
-    }
-}
-
-@media (max-width: 575.98px) {
     .company-profile-main {
+        width: 100%;
         align-items: flex-start;
     }
 
     .company-avatar {
-        width: 54px;
-        height: 54px;
+        width: 52px;
+        height: 52px;
+        flex-basis: 52px;
         border-radius: .85rem;
-        font-size: 1.3rem;
+        font-size: 1.25rem;
     }
 
-    .company-title-row h2 {
-        font-size: 1.35rem;
+    .company-title-row {
+        align-items: flex-start;
+        gap: .45rem;
+    }
+
+        .company-title-row h2 {
+            font-size: 1.3rem;
+        }
+
+        .company-title-row .badge {
+            margin-top: .12rem;
+            font-size: .65rem;
+        }
+
+    .company-trading-name {
+        margin-top: .2rem;
+        font-size: .8rem;
     }
 
     .company-meta-row {
-        gap: .55rem .8rem;
+        margin-top: .5rem;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: .3rem;
+        font-size: .76rem;
     }
 
+        .company-meta-row > span {
+            width: 100%;
+        }
+
+        .company-meta-row .material-symbols-outlined {
+            font-size: 17px;
+        }
+
+    /* Profile actions */
+
     .company-profile-actions {
+        width: 100%;
         display: grid;
         grid-template-columns: 1fr;
+        gap: .5rem;
     }
 
         .company-profile-actions .btn {
             width: 100%;
+            min-height: 44px;
         }
 
-    .company-related-summary {
-        grid-template-columns: 1fr;
+    /* Main sections */
+
+    .company-layout {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: .8rem;
     }
 
-    .company-related-stat {
+    .company-main,
+    .company-side {
+        width: 100%;
+        gap: .8rem;
+    }
+
+    .company-side {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .company-card-body {
         padding: .85rem;
     }
 
+    /* Information */
+
+    .company-info-grid {
+        grid-template-columns: 1fr;
+        gap: .6rem;
+    }
+
+    .company-info-item {
+        width: 100%;
+        min-height: 66px;
+        padding: .75rem;
+        align-items: center;
+        gap: .7rem;
+    }
+
+        .company-info-item > .material-symbols-outlined {
+            width: 38px;
+            height: 38px;
+            flex-basis: 38px;
+        }
+
+        .company-info-item small {
+            margin-bottom: .08rem;
+            font-size: .7rem;
+        }
+
+        .company-info-item strong,
+        .company-info-item a {
+            font-size: .8rem;
+        }
+
+    /* Address */
+
+    .company-details-address {
+        margin-top: .6rem;
+        padding: .75rem;
+        gap: .7rem;
+    }
+
+    .company-details-address-icon {
+        width: 38px;
+        height: 38px;
+        flex-basis: 38px;
+    }
+
+    .company-details-address small {
+        font-size: .7rem;
+    }
+
+    .company-address-lines,
+    .company-details-address strong {
+        font-size: .8rem;
+    }
+
+    /* Related records */
+
+    .company-related-grid {
+        gap: .7rem;
+    }
+
     .company-related-heading {
+        min-height: auto;
+        padding: .8rem;
         align-items: flex-start;
+        gap: .7rem;
+    }
+
+    .company-related-title-row h4 {
+        font-size: .88rem;
+    }
+
+    .company-related-count {
+        min-width: 1.4rem;
+        height: 1.4rem;
+        padding-inline: .38rem;
+        font-size: .67rem !important;
+    }
+
+    .company-related-heading > div > span:not(.company-related-count) {
+        margin-top: .12rem;
+        font-size: .7rem;
+    }
+
+    .company-related-heading > a {
+        padding-top: .1rem;
+        font-size: .74rem;
     }
 
     .company-related-list-item {
-        padding: .75rem .85rem;
+        min-height: 62px;
+        padding: .7rem .8rem;
     }
 
-    .company-details-address {
+    .company-related-avatar,
+    .company-related-record-icon {
+        width: 36px;
+        height: 36px;
+        flex-basis: 36px;
+    }
+
+    .company-related-list-content strong {
+        font-size: .82rem;
+    }
+
+    .company-related-list-content small {
+        font-size: .7rem;
+    }
+
+    .company-related-empty {
+        min-height: 80px;
         padding: .9rem;
+        font-size: .75rem;
+    }
+
+    /* Sidebar */
+
+    .company-side-heading {
+        margin-bottom: .75rem;
+        font-size: .9rem;
+    }
+
+    .company-action-list {
+        gap: .5rem;
+    }
+
+        .company-action-list .btn {
+            width: 100%;
+            min-height: 44px;
+        }
+
+    .company-meta-list {
+        gap: .65rem;
+    }
+
+        .company-meta-list > div {
+            padding-bottom: .65rem;
+        }
+
+        .company-meta-list span {
+            font-size: .72rem;
+        }
+
+        .company-meta-list strong {
+            font-size: .78rem;
+        }
+
+    /* Alerts */
+
+    .company-page .alert {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .company-page .alert-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .5rem;
+    }
+
+        .company-page .alert-actions .btn {
+            width: 100%;
+            min-height: 42px;
+            justify-content: center;
+        }
+}
+
+/* ---------------------------------
+   Small phones
+---------------------------------- */
+
+@media (max-width: 575.98px) {
+
+    .company-profile-card {
+        padding: .85rem;
+    }
+
+    .company-profile-main {
+        gap: .75rem;
+    }
+
+    .company-avatar {
+        width: 48px;
+        height: 48px;
+        flex-basis: 48px;
+        font-size: 1.15rem;
+    }
+
+    .company-title-row {
+        flex-direction: column;
+        gap: .3rem;
+    }
+
+        .company-title-row h2 {
+            font-size: 1.2rem;
+        }
+
+        .company-title-row .badge {
+            margin-top: 0;
+        }
+
+    .company-card-body {
+        padding: .75rem;
+    }
+
+    .company-related-heading {
+        padding: .75rem;
+    }
+
+    .company-related-list-item {
+        padding: .7rem .75rem;
+    }
+
+    .company-related-list-content strong,
+    .company-related-list-content small {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        overflow-wrap: anywhere;
+    }
+
+    .company-meta-list > div {
+        flex-direction: column;
+        gap: .15rem;
+    }
+
+    .company-meta-list strong {
+        text-align: left;
+    }
+
+    .company-page .alert-actions {
+        grid-template-columns: 1fr;
     }
 }

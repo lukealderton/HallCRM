@@ -1,8 +1,13 @@
 ﻿.companies-page {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
+
+/* ---------------------------------
+   Toolbar
+---------------------------------- */
 
 .companies-toolbar {
     padding: 1rem 1.25rem;
@@ -16,14 +21,18 @@
     min-width: 0;
 }
 
-.companies-search .input-group-text {
-    background: #ffffff;
-    color: #64748b;
-}
+    .companies-search .input-group {
+        min-width: 0;
+    }
 
-.companies-search .input-group-text .material-symbols-outlined {
-    font-size: 20px;
-}
+    .companies-search .input-group-text {
+        background: #ffffff;
+        color: #64748b;
+    }
+
+        .companies-search .input-group-text .material-symbols-outlined {
+            font-size: 20px;
+        }
 
 .companies-filters {
     display: flex;
@@ -36,6 +45,7 @@
 .companies-filter-divider {
     width: 1px;
     height: 2.25rem;
+    flex: 0 0 auto;
     background: #e5eaf2;
 }
 
@@ -46,55 +56,82 @@
     gap: .7rem;
 }
 
+    .companies-toolbar-actions .btn {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .4rem;
+    }
+
+    .companies-toolbar-actions .material-symbols-outlined {
+        font-size: 19px;
+    }
+
+/* ---------------------------------
+   Summary
+---------------------------------- */
+
+.companies-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+
 .companies-summary-card {
-    background: #ffffff;
-    border: 1px solid #e5eaf2;
-    border-radius: 1rem;
+    min-width: 0;
+    min-height: 128px;
     padding: 1.15rem 1.25rem;
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: center;
     gap: 1rem;
+    background: #ffffff;
+    border: 1px solid #e5eaf2;
+    border-radius: 1rem;
     box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
-    min-height: 128px;
-    position: relative;
-    overflow: hidden;
 }
 
-.companies-summary-card::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 4px;
-    background: #0b5cff;
-}
+    .companies-summary-card::before {
+        content: "";
+        width: 4px;
+        position: absolute;
+        inset: 0 auto 0 0;
+        background: #0b5cff;
+    }
 
-.companies-summary-card > .material-symbols-outlined {
-    width: 54px;
-    height: 54px;
-    border-radius: .85rem;
-    background: #eaf2ff;
-    color: #0b5cff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 30px;
-    flex: 0 0 auto;
+    .companies-summary-card > .material-symbols-outlined {
+        width: 54px;
+        height: 54px;
+        flex: 0 0 54px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0b5cff;
+        background: #eaf2ff;
+        border-radius: .85rem;
+        font-size: 30px;
+    }
+
+.companies-summary-content {
+    min-width: 0;
 }
 
 .companies-summary-card small {
     display: block;
+    margin-bottom: .3rem;
     color: #475569;
     font-size: .92rem;
-    margin-bottom: .3rem;
 }
 
 .companies-summary-card strong {
     display: block;
+    color: #0f172a;
     font-size: 2rem;
     font-weight: 850;
     line-height: 1;
     letter-spacing: -.04em;
-    color: #0f172a;
 }
 
 .companies-summary-note {
@@ -114,8 +151,8 @@
 }
 
 .companies-summary-card-success > .material-symbols-outlined {
-    background: #dcfce7;
     color: #16a34a;
+    background: #dcfce7;
 }
 
 .companies-summary-card-warning::before {
@@ -123,8 +160,8 @@
 }
 
 .companies-summary-card-warning > .material-symbols-outlined {
-    background: #fef3c7;
     color: #d97706;
+    background: #fef3c7;
 }
 
 .companies-summary-card-info::before {
@@ -132,21 +169,29 @@
 }
 
 .companies-summary-card-info > .material-symbols-outlined {
-    background: #cffafe;
     color: #0891b2;
+    background: #cffafe;
 }
+
+/* ---------------------------------
+   Error
+---------------------------------- */
 
 .companies-alert {
     align-items: center;
 }
 
-.companies-alert > .material-symbols-outlined {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    color: #ffffff !important;
-    background: #dc2626;
-}
+    .companies-alert > .material-symbols-outlined {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff !important;
+        background: #dc2626;
+        border-radius: 50%;
+    }
 
 .companies-alert-close {
     width: 2.2rem;
@@ -154,27 +199,40 @@
     padding: 0;
 }
 
+/* ---------------------------------
+   Desktop table
+---------------------------------- */
+
+.companies-table-view {
+    display: block;
+}
+
 .companies-table .material-symbols-outlined {
     font-size: 17px;
 }
 
 .companies-company-cell {
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: .8rem;
 }
 
+.companies-company-name {
+    min-width: 0;
+}
+
 .companies-avatar {
     width: 34px;
     height: 34px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #0b5cff, #0946bd);
-    color: #ffffff;
+    flex: 0 0 34px;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #ffffff;
+    background: linear-gradient(135deg, #0b5cff, #0946bd);
+    border-radius: 50%;
     font-weight: 800;
-    flex: 0 0 auto;
 }
 
 .companies-name-link {
@@ -183,10 +241,10 @@
     text-decoration: none;
 }
 
-.companies-name-link:hover {
-    color: #0b5cff;
-    text-decoration: underline;
-}
+    .companies-name-link:hover {
+        color: #0b5cff;
+        text-decoration: underline;
+    }
 
 .companies-location {
     display: inline-flex;
@@ -195,10 +253,10 @@
     color: #334155;
 }
 
-.companies-location .material-symbols-outlined {
-    color: #64748b;
-    font-size: 18px;
-}
+    .companies-location .material-symbols-outlined {
+        color: #64748b;
+        font-size: 18px;
+    }
 
 .companies-row-actions {
     display: inline-flex;
@@ -216,9 +274,23 @@
     opacity: .62;
 }
 
+/* ---------------------------------
+   Mobile company list
+---------------------------------- */
+
+.companies-mobile-list {
+    display: none;
+}
+
+/* ---------------------------------
+   Tablet
+---------------------------------- */
+
 @media (max-width: 1199.98px) {
+
     .companies-toolbar {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
 
     .companies-filters {
@@ -228,24 +300,363 @@
     .companies-toolbar-actions {
         justify-content: flex-start;
     }
+
+    .companies-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
+/* ---------------------------------
+   Mobile
+---------------------------------- */
+
 @media (max-width: 767.98px) {
+
+    .companies-page {
+        gap: .8rem;
+    }
+
+    /* Toolbar */
+
+    .companies-toolbar {
+        width: 100%;
+        padding: .85rem;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: .85rem;
+    }
+
+    .companies-search {
+        width: 100%;
+    }
+
+        .companies-search .input-group {
+            width: 100%;
+        }
+
+        .companies-search .form-control {
+            min-width: 0;
+            min-height: 44px;
+        }
+
+        .companies-search .input-group-text {
+            min-width: 44px;
+            justify-content: center;
+        }
+
+    .companies-filters {
+        width: 100%;
+        padding: .15rem 0;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        white-space: normal;
+    }
+
+        .companies-filters .form-check {
+            min-width: 0;
+            margin: 0;
+        }
+
+        .companies-filters .form-check-label {
+            color: #475569;
+            font-size: .78rem;
+        }
+
     .companies-filter-divider {
         display: none;
     }
 
-    .companies-filters {
-        flex-direction: column;
-        align-items: flex-start;
+    .companies-toolbar-actions {
+        width: 100%;
+    }
+
+        .companies-toolbar-actions .btn {
+            width: 100%;
+            min-height: 44px;
+        }
+
+    /* Summary */
+
+    .companies-summary {
+        width: 100%;
+        grid-template-columns: 1fr;
+        gap: .65rem;
     }
 
     .companies-summary-card {
-        min-height: auto;
+        width: 100%;
+        min-height: 76px;
+        padding: .8rem .9rem;
+        gap: .8rem;
+        border-radius: .9rem;
     }
 
-    .companies-row-actions {
+        .companies-summary-card::before {
+            width: 3px;
+        }
+
+        .companies-summary-card > .material-symbols-outlined {
+            width: 40px;
+            height: 40px;
+            flex-basis: 40px;
+            border-radius: .7rem;
+            font-size: 21px;
+        }
+
+    .companies-summary-content {
+        flex: 1 1 auto;
+    }
+
+    .companies-summary-card small {
+        margin: 0;
+        font-size: .72rem;
+    }
+
+    .companies-summary-card strong {
+        margin-top: .08rem;
+        font-size: 1.35rem;
+    }
+
+    .companies-summary-note {
+        margin-top: .12rem;
+        font-size: .68rem;
+    }
+
+    /* Alert */
+
+    .companies-alert {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+        .companies-alert .alert-content {
+            min-width: 0;
+            flex: 1 1 calc(100% - 52px);
+        }
+
+        .companies-alert .alert-actions {
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            gap: .45rem;
+        }
+
+    /* Results header */
+
+    .companies-results .crm-card-header {
+        align-items: flex-start;
+        gap: .75rem;
+    }
+
+        .companies-results .crm-card-header .btn {
+            flex: 0 0 auto;
+        }
+
+    /* Desktop table off */
+
+    .companies-table-view {
+        display: none;
+    }
+
+    /* Mobile records */
+
+    .companies-mobile-list {
+        width: 100%;
+        padding: .55rem;
+        display: flex;
+        flex-direction: column;
+        gap: .65rem;
+    }
+
+    .companies-mobile-card {
+        width: 100%;
+        overflow: hidden;
+        background: #ffffff;
+        border: 1px solid #e7ebf1;
+        border-radius: .9rem;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+    }
+
+    .companies-mobile-main {
+        min-width: 0;
+        min-height: 72px;
+        padding: .8rem;
+        display: flex;
+        align-items: flex-start;
+        gap: .75rem;
+        color: inherit;
+        text-decoration: none;
+    }
+
+        .companies-mobile-main:active {
+            background: #f8fafc;
+        }
+
+    .companies-mobile-avatar {
+        width: 42px;
+        height: 42px;
+        flex-basis: 42px;
+        font-size: .84rem;
+    }
+
+    .companies-mobile-heading {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .companies-mobile-title-row {
+        min-width: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: .65rem;
+    }
+
+    .companies-mobile-title {
+        min-width: 0;
+        color: #111827;
+        font-size: .9rem;
+        font-weight: 750;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+    }
+
+    .companies-mobile-title-row .badge {
+        flex: 0 0 auto;
+        font-size: .64rem;
+    }
+
+    .companies-mobile-trading-name {
+        margin-top: .1rem;
+        color: #64748b;
+        font-size: .73rem;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+    .companies-mobile-industry {
+        margin-top: .2rem;
+        color: #94a3b8;
+        font-size: .69rem;
+        line-height: 1.3;
+    }
+
+    .companies-mobile-chevron {
+        flex: 0 0 auto;
+        align-self: center;
+        color: #a6afbc;
+        font-size: 20px;
+    }
+
+    .companies-mobile-details {
+        padding: .7rem .8rem;
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+        background: #f8fafc;
+        border-top: 1px solid #edf0f4;
+    }
+
+    .companies-mobile-detail {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        color: #475569;
+        font-size: .74rem;
+        line-height: 1.35;
+        text-decoration: none;
+    }
+
+    a.companies-mobile-detail {
+        color: #315f9f;
+    }
+
+    .companies-mobile-detail .material-symbols-outlined {
+        width: 18px;
+        flex: 0 0 18px;
+        color: #64748b;
+        font-size: 17px;
+    }
+
+    .companies-mobile-detail > span:last-child {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .companies-mobile-actions {
+        padding: .55rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .5rem;
+        border-top: 1px solid #edf0f4;
+    }
+
+        .companies-mobile-actions .btn {
+            width: 100%;
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .35rem;
+        }
+
+        .companies-mobile-actions .material-symbols-outlined {
+            font-size: 18px;
+        }
+}
+
+/* ---------------------------------
+   Small mobile
+---------------------------------- */
+
+@media (max-width: 575.98px) {
+
+    .companies-toolbar {
+        padding: .75rem;
+    }
+
+    .companies-filters {
         flex-direction: column;
         align-items: stretch;
+        gap: .6rem;
+    }
+
+        .companies-filters .form-check {
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            gap: .45rem;
+        }
+
+        .companies-filters .form-check-input {
+            flex: 0 0 auto;
+            margin-top: 0;
+        }
+
+    .companies-summary-card {
+        min-height: 72px;
+        padding: .75rem .85rem;
+    }
+
+    .companies-mobile-list {
+        padding: .45rem;
+        gap: .55rem;
+    }
+
+    .companies-mobile-main {
+        padding: .75rem;
+    }
+
+    .companies-mobile-details {
+        padding: .65rem .75rem;
+    }
+
+    .companies-mobile-actions {
+        padding: .5rem;
     }
 }

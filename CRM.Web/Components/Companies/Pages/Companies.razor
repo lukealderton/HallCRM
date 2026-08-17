@@ -7,32 +7,42 @@
 <SeoHead Title="Companies" />
 
 <div class="companies-page">
+
     <div class="crm-card companies-toolbar">
+
         <div class="companies-search">
             <div class="input-group">
                 <span class="input-group-text">
-                    <span class="material-symbols-outlined">search</span>
+                    <span class="material-symbols-outlined">
+                        search
+                    </span>
                 </span>
 
                 <input id="companySearch"
                        class="form-control"
-                       placeholder="Search by company name, email, phone, industry..."
+                       placeholder="Search companies..."
                        @bind="strSearch"
                        @bind:event="oninput" />
             </div>
         </div>
 
         <div class="companies-filters">
+
             <div class="form-check form-switch">
                 <input id="includeArchived"
                        class="form-check-input"
                        type="checkbox"
                        @bind="blnIncludeArchived"
                        @bind:after="LoadCompaniesAsync" />
-                <label class="form-check-label" for="includeArchived">Include archived</label>
+
+                <label class="form-check-label"
+                       for="includeArchived">
+                    Include archived
+                </label>
             </div>
 
-            <div class="companies-filter-divider"></div>
+            <div class="companies-filter-divider">
+            </div>
 
             <div class="form-check form-switch">
                 <input id="includeDeleted"
@@ -40,235 +50,536 @@
                        type="checkbox"
                        @bind="blnIncludeDeleted"
                        @bind:after="LoadCompaniesAsync" />
-                <label class="form-check-label" for="includeDeleted">Include deleted</label>
+
+                <label class="form-check-label"
+                       for="includeDeleted">
+                    Include deleted
+                </label>
             </div>
+
         </div>
 
         <div class="companies-toolbar-actions">
-            <button class="btn btn-primary" type="button" @onclick="SearchCompaniesAsync">
-                <span class="material-symbols-outlined">search</span>
+            <button class="btn btn-primary"
+                    type="button"
+                    @onclick="SearchCompaniesAsync">
+
+                <span class="material-symbols-outlined">
+                    search
+                </span>
+
                 Search
             </button>
         </div>
+
     </div>
 
-    <div class="companies-summary row g-3">
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="companies-summary-card companies-summary-card-primary">
-                <span class="material-symbols-outlined">check_circle</span>
+    <div class="companies-summary">
 
-                <div>
-                    <small>Active shown</small>
-                    <strong>@intActiveCompanies</strong>
-                    <span class="companies-summary-note">
-                        @intTotalCompanies total result@(GetPlural(intTotalCompanies))
-                    </span>
-                </div>
+        <div class="companies-summary-card companies-summary-card-primary">
+
+            <span class="material-symbols-outlined">
+                check_circle
+            </span>
+
+            <div class="companies-summary-content">
+                <small>
+                    Active shown
+                </small>
+
+                <strong>
+                    @intActiveCompanies
+                </strong>
+
+                <span class="companies-summary-note">
+                    @intTotalCompanies total result@(GetPlural(intTotalCompanies))
+                </span>
             </div>
+
         </div>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="companies-summary-card companies-summary-card-success">
-                <span class="material-symbols-outlined">alternate_email</span>
+        <div class="companies-summary-card companies-summary-card-success">
 
-                <div>
-                    <small>Contactable</small>
-                    <strong>@intContactableCompanies</strong>
-                    <span class="companies-summary-note">
-                        @intContactablePercentage% have email or phone
-                    </span>
-                </div>
+            <span class="material-symbols-outlined">
+                alternate_email
+            </span>
+
+            <div class="companies-summary-content">
+                <small>
+                    Contactable
+                </small>
+
+                <strong>
+                    @intContactableCompanies
+                </strong>
+
+                <span class="companies-summary-note">
+                    @intContactablePercentage% have email or phone
+                </span>
             </div>
+
         </div>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="companies-summary-card companies-summary-card-warning">
-                <span class="material-symbols-outlined">priority_high</span>
+        <div class="companies-summary-card companies-summary-card-warning">
 
-                <div>
-                    <small>Needs contact details</small>
-                    <strong>@intNeedsContactDetailsCompanies</strong>
-                    <span class="companies-summary-note">
-                        Active records without email or phone
-                    </span>
-                </div>
+            <span class="material-symbols-outlined">
+                priority_high
+            </span>
+
+            <div class="companies-summary-content">
+                <small>
+                    Needs contact details
+                </small>
+
+                <strong>
+                    @intNeedsContactDetailsCompanies
+                </strong>
+
+                <span class="companies-summary-note">
+                    Active records without email or phone
+                </span>
             </div>
+
         </div>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="companies-summary-card companies-summary-card-info">
-                <span class="material-symbols-outlined">calendar_month</span>
+        <div class="companies-summary-card companies-summary-card-info">
 
-                <div>
-                    <small>Added this month</small>
-                    <strong>@intNewThisMonthCompanies</strong>
-                    <span class="companies-summary-note">
-                        Since @dteCurrentMonthStart.ToString("dd MMM")
-                    </span>
-                </div>
+            <span class="material-symbols-outlined">
+                calendar_month
+            </span>
+
+            <div class="companies-summary-content">
+                <small>
+                    Added this month
+                </small>
+
+                <strong>
+                    @intNewThisMonthCompanies
+                </strong>
+
+                <span class="companies-summary-note">
+                    Since @dteCurrentMonthStart.ToString("dd MMM")
+                </span>
             </div>
+
         </div>
+
     </div>
 
-    @if (blnShowErrorAlert && !String.IsNullOrWhiteSpace(strErrorMessage))
+    @if (blnShowErrorAlert &&
+         !String.IsNullOrWhiteSpace(strErrorMessage))
     {
         <div class="alert alert-danger companies-alert">
-            <span class="material-symbols-outlined">error</span>
+
+            <span class="material-symbols-outlined">
+                error
+            </span>
 
             <div class="alert-content">
-                <strong class="alert-title">Unable to load companies</strong>
-                <p>@strErrorMessage</p>
+                <strong class="alert-title">
+                    Unable to load companies
+                </strong>
+
+                <p>
+                    @strErrorMessage
+                </p>
             </div>
 
             <div class="alert-actions">
-                <button class="btn btn-soft-danger btn-sm" type="button" @onclick="LoadCompaniesAsync">
-                    <span class="material-symbols-outlined">refresh</span>
+
+                <button class="btn btn-soft-danger btn-sm"
+                        type="button"
+                        @onclick="LoadCompaniesAsync">
+
+                    <span class="material-symbols-outlined">
+                        refresh
+                    </span>
+
                     Try again
                 </button>
 
-                <button class="btn btn-soft-danger btn-sm companies-alert-close" type="button" @onclick="DismissErrorAlert">
-                    <span class="material-symbols-outlined">close</span>
+                <button class="btn btn-soft-danger btn-sm companies-alert-close"
+                        type="button"
+                        aria-label="Dismiss"
+                        @onclick="DismissErrorAlert">
+
+                    <span class="material-symbols-outlined">
+                        close
+                    </span>
+
                 </button>
+
             </div>
+
         </div>
     }
 
-    <div class="crm-card">
+    <div class="crm-card companies-results">
+
         <div class="crm-card-header">
+
             <div>
-                <h3>Company records</h3>
-                <p>@strResultSummary</p>
+                <h3>
+                    Company records
+                </h3>
+
+                <p>
+                    @strResultSummary
+                </p>
             </div>
 
             @if (!String.IsNullOrWhiteSpace(strSearch))
             {
-                <button class="btn btn-soft-secondary btn-sm" type="button" @onclick="ClearSearchAsync">
-                    <span class="material-symbols-outlined">filter_alt_off</span>
+                <button class="btn btn-soft-secondary btn-sm"
+                        type="button"
+                        @onclick="ClearSearchAsync">
+
+                    <span class="material-symbols-outlined">
+                        filter_alt_off
+                    </span>
+
                     Clear search
                 </button>
             }
+
         </div>
 
         @if (blnLoading)
         {
             <div class="crm-loading">
-                <span class="spinner-border spinner-border-sm"></span>
+                <span class="spinner-border spinner-border-sm">
+                </span>
+
                 Loading companies...
             </div>
         }
         else if (!colCompanies.Any())
         {
             <div class="crm-empty-state">
-                <span class="material-symbols-outlined">apartment</span>
-                <h4>No companies found</h4>
-                <p>Add your first company or change the search filters.</p>
 
-                <a href="/companies/add" class="btn btn-primary">
-                    <span class="material-symbols-outlined">add</span>
+                <span class="material-symbols-outlined">
+                    apartment
+                </span>
+
+                <h4>
+                    No companies found
+                </h4>
+
+                <p>
+                    Add your first company or change the search filters.
+                </p>
+
+                <a href="/companies/add"
+                   class="btn btn-primary">
+
+                    <span class="material-symbols-outlined">
+                        add
+                    </span>
+
                     Add company
                 </a>
+
             </div>
         }
         else
         {
-            <div class="table-responsive">
-                <table class="table table-hover align-middle crm-table companies-table">
-                    <thead>
-                        <tr>
-                            <th>Company</th>
-                            <th>Industry</th>
-                            <th>Contact</th>
-                            <th>Location</th>
-                            <th>Status</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
+            <div class="companies-table-view">
 
-                    <tbody>
-                        @foreach (Company objCompany in colCompanies)
-                        {
-                            <tr class="@GetCompanyRowClass(objCompany)">
-                                <td>
-                                    <div class="companies-company-cell">
-                                        <div class="companies-avatar">
-                                            @GetCompanyInitial(objCompany)
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle crm-table companies-table">
+
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Industry</th>
+                                <th>Contact</th>
+                                <th>Location</th>
+                                <th>Status</th>
+                                <th class="text-end">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (Company objCompany in colCompanies)
+                            {
+                                <tr class="@GetCompanyRowClass(objCompany)">
+
+                                    <td>
+                                        <div class="companies-company-cell">
+
+                                            <div class="companies-avatar">
+                                                @GetCompanyInitial(objCompany)
+                                            </div>
+
+                                            <div class="companies-company-name">
+
+                                                <a href="@($"/companies/{objCompany.Id}")"
+                                                   class="companies-name-link">
+                                                    @objCompany.Name
+                                                </a>
+
+                                                @if (!String.IsNullOrWhiteSpace(objCompany.TradingName))
+                                                {
+                                                    <small class="d-block text-muted">
+                                                        Trading as @objCompany.TradingName
+                                                    </small>
+                                                }
+
+                                            </div>
+
                                         </div>
+                                    </td>
 
-                                        <div>
-                                            <a href="@($"/companies/{objCompany.Id}")" class="companies-name-link">
-                                                @objCompany.Name
+                                    <td>
+                                        @(objCompany.Industry ?? "-")
+                                    </td>
+
+                                    <td>
+                                        @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
+                                        {
+                                            <a href="mailto:@objCompany.PrimaryEmail">
+                                                @objCompany.PrimaryEmail
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+
+                                        @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
+                                        {
+                                            <small class="d-block text-muted">
+                                                @objCompany.PrimaryPhone
+                                            </small>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <span class="companies-location">
+
+                                            <span class="material-symbols-outlined">
+                                                location_on
+                                            </span>
+
+                                            @GetLocation(objCompany)
+
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        @if (objCompany.Entity.DeletedUtc.HasValue)
+                                        {
+                                            <span class="badge text-bg-danger">
+                                                Deleted
+                                            </span>
+                                        }
+                                        else if (objCompany.Entity.ArchivedUtc.HasValue)
+                                        {
+                                            <span class="badge text-bg-secondary">
+                                                Archived
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-success">
+                                                Active
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        <div class="companies-row-actions">
+
+                                            <a href="@($"/companies/{objCompany.Id}")"
+                                               class="btn btn-soft-primary btn-sm">
+
+                                                <span class="material-symbols-outlined">
+                                                    visibility
+                                                </span>
+
+                                                View
                                             </a>
 
-                                            @if (!String.IsNullOrWhiteSpace(objCompany.TradingName))
-                                            {
-                                                <small class="d-block text-muted">
-                                                    Trading as @objCompany.TradingName
-                                                </small>
-                                            }
+                                            <a href="@($"/companies/{objCompany.Id}/edit")"
+                                               class="btn btn-soft-secondary btn-sm">
+
+                                                <span class="material-symbols-outlined">
+                                                    edit
+                                                </span>
+
+                                                Edit
+                                            </a>
+
                                         </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+
+            <div class="companies-mobile-list">
+
+                @foreach (Company objCompany in colCompanies)
+                {
+                    <article class="companies-mobile-card @GetCompanyRowClass(objCompany)">
+
+                        <a href="@($"/companies/{objCompany.Id}")"
+                           class="companies-mobile-main">
+
+                            <div class="companies-avatar companies-mobile-avatar">
+                                @GetCompanyInitial(objCompany)
+                            </div>
+
+                            <div class="companies-mobile-heading">
+
+                                <div class="companies-mobile-title-row">
+
+                                    <div class="companies-mobile-title">
+                                        @objCompany.Name
                                     </div>
-                                </td>
 
-                                <td>@(objCompany.Industry ?? "-")</td>
-
-                                <td>
-                                    @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
-                                    {
-                                        <a href="mailto:@objCompany.PrimaryEmail">@objCompany.PrimaryEmail</a>
-                                    }
-                                    else
-                                    {
-                                        <span>-</span>
-                                    }
-
-                                    @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
-                                    {
-                                        <small class="d-block text-muted">@objCompany.PrimaryPhone</small>
-                                    }
-                                </td>
-
-                                <td>
-                                    <span class="companies-location">
-                                        <span class="material-symbols-outlined">location_on</span>
-                                        @GetLocation(objCompany)
-                                    </span>
-                                </td>
-
-                                <td>
                                     @if (objCompany.Entity.DeletedUtc.HasValue)
                                     {
-                                        <span class="badge text-bg-danger">Deleted</span>
+                                        <span class="badge text-bg-danger">
+                                            Deleted
+                                        </span>
                                     }
                                     else if (objCompany.Entity.ArchivedUtc.HasValue)
                                     {
-                                        <span class="badge text-bg-secondary">Archived</span>
+                                        <span class="badge text-bg-secondary">
+                                            Archived
+                                        </span>
                                     }
                                     else
                                     {
-                                        <span class="badge text-bg-success">Active</span>
+                                        <span class="badge text-bg-success">
+                                            Active
+                                        </span>
                                     }
-                                </td>
 
-                                <td class="text-end">
-                                    <div class="companies-row-actions">
-                                        <a href="@($"/companies/{objCompany.Id}")" class="btn btn-soft-primary btn-sm">
-                                            <span class="material-symbols-outlined">visibility</span>
-                                            View
-                                        </a>
+                                </div>
 
-                                        <a href="@($"/companies/{objCompany.Id}/edit")" class="btn btn-soft-secondary btn-sm">
-                                            <span class="material-symbols-outlined">edit</span>
-                                            Edit
-                                        </a>
+                                @if (!String.IsNullOrWhiteSpace(objCompany.TradingName))
+                                {
+                                    <div class="companies-mobile-trading-name">
+                                        Trading as @objCompany.TradingName
                                     </div>
-                                </td>
-                            </tr>
+                                }
+
+                                @if (!String.IsNullOrWhiteSpace(objCompany.Industry))
+                                {
+                                    <div class="companies-mobile-industry">
+                                        @objCompany.Industry
+                                    </div>
+                                }
+
+                            </div>
+
+                            <span class="material-symbols-outlined companies-mobile-chevron">
+                                chevron_right
+                            </span>
+
+                        </a>
+
+                        @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail) ||
+                             !String.IsNullOrWhiteSpace(objCompany.PrimaryPhone) ||
+                             GetLocation(objCompany) != "-")
+                        {
+                            <div class="companies-mobile-details">
+
+                                @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
+                                {
+                                    <a href="mailto:@objCompany.PrimaryEmail"
+                                       class="companies-mobile-detail">
+
+                                        <span class="material-symbols-outlined">
+                                            mail
+                                        </span>
+
+                                        <span>
+                                            @objCompany.PrimaryEmail
+                                        </span>
+
+                                    </a>
+                                }
+
+                                @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
+                                {
+                                    <a href="tel:@objCompany.PrimaryPhone"
+                                       class="companies-mobile-detail">
+
+                                        <span class="material-symbols-outlined">
+                                            call
+                                        </span>
+
+                                        <span>
+                                            @objCompany.PrimaryPhone
+                                        </span>
+
+                                    </a>
+                                }
+
+                                @if (GetLocation(objCompany) != "-")
+                                {
+                                    <div class="companies-mobile-detail">
+
+                                        <span class="material-symbols-outlined">
+                                            location_on
+                                        </span>
+
+                                        <span>
+                                            @GetLocation(objCompany)
+                                        </span>
+
+                                    </div>
+                                }
+
+                            </div>
                         }
-                    </tbody>
-                </table>
+
+                        <div class="companies-mobile-actions">
+
+                            <a href="@($"/companies/{objCompany.Id}")"
+                               class="btn btn-soft-primary">
+
+                                <span class="material-symbols-outlined">
+                                    visibility
+                                </span>
+
+                                View
+                            </a>
+
+                            <a href="@($"/companies/{objCompany.Id}/edit")"
+                               class="btn btn-soft-secondary">
+
+                                <span class="material-symbols-outlined">
+                                    edit
+                                </span>
+
+                                Edit
+                            </a>
+
+                        </div>
+
+                    </article>
+                }
+
             </div>
         }
+
     </div>
+
 </div>
 
 @code {
@@ -279,7 +590,8 @@
 
     private String? strSearch;
     private String? strErrorMessage;
-    private String strResultSummary = "Showing active company records.";
+    private String strResultSummary =
+        "Showing active company records.";
 
     private Int32 intTotalCompanies;
     private Int32 intActiveCompanies;
@@ -290,7 +602,11 @@
     private Int32 intNeedsContactDetailsCompanies;
     private Int32 intNewThisMonthCompanies;
 
-    private DateTime dteCurrentMonthStart = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+    private DateTime dteCurrentMonthStart =
+        new(
+            DateTime.UtcNow.Year,
+            DateTime.UtcNow.Month,
+            1);
 
     private List<Company> colCompanies = [];
 
@@ -299,8 +615,11 @@
         HeaderState.SetHeader(
             "Companies",
             "Manage your customers and prospects.",
-            @<a class="btn btn-primary" href="/companies/add">
-                <span class="material-symbols-outlined">add</span>
+            @<a class="btn btn-primary"
+                href="/companies/add">
+                <span class="material-symbols-outlined">
+                    add
+                </span>
                 Add company
             </a>);
 
@@ -315,17 +634,21 @@
 
         try
         {
-            colCompanies = await CompanyService.GetCompaniesAsync(
-                strSearch,
-                blnIncludeArchived,
-                blnIncludeDeleted);
+            colCompanies =
+                await CompanyService.GetCompaniesAsync(
+                    strSearch,
+                    blnIncludeArchived,
+                    blnIncludeDeleted);
 
             SetCompanyStats();
             SetResultSummary();
         }
         catch (Exception objError)
         {
-            strErrorMessage = "We couldn’t retrieve the company records right now. " + objError.Message;
+            strErrorMessage =
+                "We couldn’t retrieve the company records right now. " +
+                objError.Message;
+
             colCompanies = [];
 
             intTotalCompanies = 0;
@@ -353,6 +676,7 @@
     private async Task ClearSearchAsync()
     {
         strSearch = null;
+
         await LoadCompaniesAsync();
     }
 
@@ -365,45 +689,59 @@
     {
         if (String.IsNullOrWhiteSpace(strSearch))
         {
-            strResultSummary = $"Showing {intTotalCompanies} company record{GetPlural(intTotalCompanies)}.";
+            strResultSummary =
+                $"Showing {intTotalCompanies} company record{GetPlural(intTotalCompanies)}.";
+
             return;
         }
 
-        strResultSummary = $"Showing {intTotalCompanies} result{GetPlural(intTotalCompanies)} for \"{strSearch}\".";
+        strResultSummary =
+            $"Showing {intTotalCompanies} result{GetPlural(intTotalCompanies)} for \"{strSearch}\".";
     }
 
-    private static String GetPlural(Int32 intCount)
+    private static String GetPlural(
+        Int32 intCount)
     {
-        return intCount == 1 ? String.Empty : "s";
+        return intCount == 1
+            ? String.Empty
+            : "s";
     }
 
-    private static String GetCompanyInitial(Company objCompany)
+    private static String GetCompanyInitial(
+        Company objCompany)
     {
         if (String.IsNullOrWhiteSpace(objCompany.Name))
         {
             return "?";
         }
 
-        return objCompany.Name.Trim().Substring(0, 1).ToUpperInvariant();
+        return objCompany.Name
+            .Trim()
+            .Substring(0, 1)
+            .ToUpperInvariant();
     }
 
-    private static String GetLocation(Company objCompany)
+    private static String GetLocation(
+        Company objCompany)
     {
         List<String> colLocationParts = [];
 
         if (!String.IsNullOrWhiteSpace(objCompany.Town))
         {
-            colLocationParts.Add(objCompany.Town);
+            colLocationParts.Add(
+                objCompany.Town);
         }
 
         if (!String.IsNullOrWhiteSpace(objCompany.County))
         {
-            colLocationParts.Add(objCompany.County);
+            colLocationParts.Add(
+                objCompany.County);
         }
 
         if (!String.IsNullOrWhiteSpace(objCompany.Country))
         {
-            colLocationParts.Add(objCompany.Country);
+            colLocationParts.Add(
+                objCompany.Country);
         }
 
         if (!colLocationParts.Any())
@@ -411,10 +749,13 @@
             return "-";
         }
 
-        return String.Join(", ", colLocationParts);
+        return String.Join(
+            ", ",
+            colLocationParts);
     }
 
-    private static String GetCompanyRowClass(Company objCompany)
+    private static String GetCompanyRowClass(
+        Company objCompany)
     {
         if (objCompany.Entity.DeletedUtc.HasValue)
         {
@@ -431,39 +772,63 @@
 
     private void SetCompanyStats()
     {
-        dteCurrentMonthStart = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+        dteCurrentMonthStart =
+            new DateTime(
+                DateTime.UtcNow.Year,
+                DateTime.UtcNow.Month,
+                1);
 
-        intTotalCompanies = colCompanies.Count;
+        intTotalCompanies =
+            colCompanies.Count;
 
-        intArchivedCompanies = colCompanies.Count(objCompany =>
-            objCompany.Entity.ArchivedUtc.HasValue &&
-            !objCompany.Entity.DeletedUtc.HasValue);
+        intArchivedCompanies =
+            colCompanies.Count(
+                objCompany =>
+                    objCompany.Entity.ArchivedUtc.HasValue &&
+                    !objCompany.Entity.DeletedUtc.HasValue);
 
-        intDeletedCompanies = colCompanies.Count(objCompany =>
-            objCompany.Entity.DeletedUtc.HasValue);
+        intDeletedCompanies =
+            colCompanies.Count(
+                objCompany =>
+                    objCompany.Entity.DeletedUtc.HasValue);
 
-        intActiveCompanies = colCompanies.Count(objCompany =>
-            !objCompany.Entity.ArchivedUtc.HasValue &&
-            !objCompany.Entity.DeletedUtc.HasValue);
+        intActiveCompanies =
+            colCompanies.Count(
+                objCompany =>
+                    !objCompany.Entity.ArchivedUtc.HasValue &&
+                    !objCompany.Entity.DeletedUtc.HasValue);
 
-        intContactableCompanies = colCompanies.Count(HasPrimaryContactDetails);
+        intContactableCompanies =
+            colCompanies.Count(
+                HasPrimaryContactDetails);
 
-        intNeedsContactDetailsCompanies = colCompanies.Count(objCompany =>
-            !objCompany.Entity.ArchivedUtc.HasValue &&
-            !objCompany.Entity.DeletedUtc.HasValue &&
-            !HasPrimaryContactDetails(objCompany));
+        intNeedsContactDetailsCompanies =
+            colCompanies.Count(
+                objCompany =>
+                    !objCompany.Entity.ArchivedUtc.HasValue &&
+                    !objCompany.Entity.DeletedUtc.HasValue &&
+                    !HasPrimaryContactDetails(objCompany));
 
-        intNewThisMonthCompanies = colCompanies.Count(objCompany =>
-            objCompany.Entity.CreatedUtc >= dteCurrentMonthStart);
+        intNewThisMonthCompanies =
+            colCompanies.Count(
+                objCompany =>
+                    objCompany.Entity.CreatedUtc >=
+                    dteCurrentMonthStart);
 
-        intContactablePercentage = intTotalCompanies == 0
-            ? 0
-            : (Int32)Math.Round((Decimal)intContactableCompanies / intTotalCompanies * 100);
+        intContactablePercentage =
+            intTotalCompanies == 0
+                ? 0
+                : (Int32)Math.Round(
+                    (Decimal)intContactableCompanies /
+                    intTotalCompanies *
+                    100);
     }
 
-    private static Boolean HasPrimaryContactDetails(Company objCompany)
+    private static Boolean HasPrimaryContactDetails(
+        Company objCompany)
     {
-        return !String.IsNullOrWhiteSpace(objCompany.PrimaryEmail) ||
-               !String.IsNullOrWhiteSpace(objCompany.PrimaryPhone);
+        return
+            !String.IsNullOrWhiteSpace(objCompany.PrimaryEmail) ||
+            !String.IsNullOrWhiteSpace(objCompany.PrimaryPhone);
     }
 }
