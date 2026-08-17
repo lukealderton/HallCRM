@@ -88,6 +88,7 @@ namespace CRM.Infrastructure.Data
             objModelBuilder.ApplyConfiguration(new ActivityConfiguration());
 
             objModelBuilder.ApplyConfiguration(new ServiceConfiguration());
+            objModelBuilder.ApplyConfiguration(new JobServiceLinkConfiguration());
         }
     }
 }

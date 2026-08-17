@@ -90,6 +90,15 @@ namespace CRM.Infrastructure.Entities.Configurations
                 },
                 new CrmEntityType
                 {
+                    Id = (Int32)PredefinedEntityType.Service,
+                    Name = "Service",
+                    Alias = "service",
+                    IsSystem = true,
+                    IsCustom = false,
+                    CreatedUtc = objSeedDate
+                },
+                new CrmEntityType
+                {
                     Id = (Int32)PredefinedEntityType.CustomRecord,
                     Name = "Custom Record",
                     Alias = "custom-record",
