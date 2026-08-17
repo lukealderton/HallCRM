@@ -1,17 +1,22 @@
 ﻿@page "/"
 @page "/dashboard"
+
 @attribute [Authorize]
+@rendermode InteractiveServer
 
 @using CRM.Core.Activities.Abstractions
 @using CRM.Core.Companies.Abstractions
 @using CRM.Core.Companies.Domain
 @using CRM.Core.Contacts.Abstractions
+@using CRM.Core.Invoices.Abstractions
+@using CRM.Core.Invoices.Domain
 @using CRM.Core.Jobs.Abstractions
 @using CRM.Core.Jobs.Domain
 
 @inject IActivityService ActivityService
 @inject ICompanyService CompanyService
 @inject IContactService ContactService
+@inject IInvoiceService InvoiceService
 @inject IJobService JobService
 
 <SeoHead Title="Dashboard" />
@@ -19,33 +24,49 @@
 <div class="dashboard-page">
 
     <section class="dashboard-hero">
+
         <div class="dashboard-hero-content">
-            <h2>Welcome back</h2>
+
+            <h2>
+                Welcome back
+            </h2>
 
             <p>
                 Here’s what needs your attention across the CRM.
             </p>
+
         </div>
 
         <div class="dashboard-hero-actions">
+
             <a href="/companies/add"
                class="btn btn-primary">
+
                 <span class="material-symbols-outlined">
                     add_business
                 </span>
 
-                <span>New company</span>
-            </a>
-
-            <a href="/contacts/add"
-               class="btn btn-light">
-                <span class="material-symbols-outlined">
-                    person_add
+                <span>
+                    New company
                 </span>
 
-                <span>New contact</span>
             </a>
+
+            <a href="/jobs/add"
+               class="btn btn-light">
+
+                <span class="material-symbols-outlined">
+                    add_chart
+                </span>
+
+                <span>
+                    New job
+                </span>
+
+            </a>
+
         </div>
+
     </section>
 
     <section class="dashboard-stats">
@@ -54,12 +75,15 @@
            class="dashboard-stat-card">
 
             <div class="dashboard-stat-icon">
+
                 <span class="material-symbols-outlined">
                     business
                 </span>
+
             </div>
 
             <div class="dashboard-stat-content">
+
                 <div class="dashboard-stat-label">
                     Companies
                 </div>
@@ -71,19 +95,24 @@
                 <div class="dashboard-stat-meta">
                     Active records
                 </div>
+
             </div>
+
         </a>
 
         <a href="/contacts"
            class="dashboard-stat-card">
 
             <div class="dashboard-stat-icon">
+
                 <span class="material-symbols-outlined">
                     contacts
                 </span>
+
             </div>
 
             <div class="dashboard-stat-content">
+
                 <div class="dashboard-stat-label">
                     Contacts
                 </div>
@@ -95,19 +124,24 @@
                 <div class="dashboard-stat-meta">
                     @intContactableCount contactable
                 </div>
+
             </div>
+
         </a>
 
         <a href="/jobs"
            class="dashboard-stat-card">
 
             <div class="dashboard-stat-icon">
+
                 <span class="material-symbols-outlined">
                     home_repair_service
                 </span>
+
             </div>
 
             <div class="dashboard-stat-content">
+
                 <div class="dashboard-stat-label">
                     Open jobs
                 </div>
@@ -119,19 +153,24 @@
                 <div class="dashboard-stat-meta">
                     @FormatCurrency(decOpenJobValue) pipeline
                 </div>
+
             </div>
+
         </a>
 
         <a href="/activities"
            class="dashboard-stat-card">
 
             <div class="dashboard-stat-icon">
+
                 <span class="material-symbols-outlined">
                     task_alt
                 </span>
+
             </div>
 
             <div class="dashboard-stat-content">
+
                 <div class="dashboard-stat-label">
                     Activities
                 </div>
@@ -143,8 +182,207 @@
                 <div class="dashboard-stat-meta">
                     @GetActivitySummaryText()
                 </div>
+
             </div>
+
         </a>
+
+    </section>
+
+    <section class="dashboard-finance">
+
+        <div class="dashboard-section-heading">
+
+            <div class="dashboard-section-heading-main">
+
+                <span class="dashboard-section-icon">
+
+                    <span class="material-symbols-outlined">
+                        account_balance_wallet
+                    </span>
+
+                </span>
+
+                <div>
+
+                    <h3>
+                        Finance
+                    </h3>
+
+                    <p>
+                        Invoices, payments and balances requiring attention.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <a href="/invoices"
+               class="btn btn-sm btn-light">
+
+                View invoices
+
+            </a>
+
+        </div>
+
+        @if (blnLoading)
+        {
+            <div class="crm-loading">
+
+                <span class="spinner-border spinner-border-sm"></span>
+
+                Loading finance...
+
+            </div>
+        }
+        else
+        {
+            <div class="dashboard-finance-grid">
+
+                <a href="/invoices?outstanding=true"
+                   class="dashboard-finance-card dashboard-finance-card-outstanding">
+
+                    <div class="dashboard-finance-icon">
+
+                        <span class="material-symbols-outlined">
+                            account_balance_wallet
+                        </span>
+
+                    </div>
+
+                    <div class="dashboard-finance-content">
+
+                        <span>
+                            Outstanding
+                        </span>
+
+                        <strong>
+                            @FormatCurrency(decOutstandingInvoiceValue)
+                        </strong>
+
+                        <small>
+                            @GetPluralText(
+                                intOutstandingInvoiceCount,
+                                "invoice",
+                                "invoices")
+                        </small>
+
+                    </div>
+
+                    <span class="material-symbols-outlined dashboard-finance-arrow">
+                        chevron_right
+                    </span>
+
+                </a>
+
+                <a href="/invoices?overdue=true"
+                   class="dashboard-finance-card dashboard-finance-card-overdue">
+
+                    <div class="dashboard-finance-icon">
+
+                        <span class="material-symbols-outlined">
+                            warning
+                        </span>
+
+                    </div>
+
+                    <div class="dashboard-finance-content">
+
+                        <span>
+                            Overdue
+                        </span>
+
+                        <strong>
+                            @FormatCurrency(decOverdueInvoiceValue)
+                        </strong>
+
+                        <small>
+                            @GetPluralText(
+                                intOverdueInvoiceCount,
+                                "invoice",
+                                "invoices")
+                        </small>
+
+                    </div>
+
+                    <span class="material-symbols-outlined dashboard-finance-arrow">
+                        chevron_right
+                    </span>
+
+                </a>
+
+                <a href="/invoices?status=Draft"
+                   class="dashboard-finance-card dashboard-finance-card-draft">
+
+                    <div class="dashboard-finance-icon">
+
+                        <span class="material-symbols-outlined">
+                            draft
+                        </span>
+
+                    </div>
+
+                    <div class="dashboard-finance-content">
+
+                        <span>
+                            Draft invoices
+                        </span>
+
+                        <strong>
+                            @intDraftInvoiceCount
+                        </strong>
+
+                        <small>
+                            @FormatCurrency(decDraftInvoiceValue) awaiting issue
+                        </small>
+
+                    </div>
+
+                    <span class="material-symbols-outlined dashboard-finance-arrow">
+                        chevron_right
+                    </span>
+
+                </a>
+
+                <a href="/invoices?status=Paid"
+                   class="dashboard-finance-card dashboard-finance-card-paid">
+
+                    <div class="dashboard-finance-icon">
+
+                        <span class="material-symbols-outlined">
+                            paid
+                        </span>
+
+                    </div>
+
+                    <div class="dashboard-finance-content">
+
+                        <span>
+                            Paid invoices
+                        </span>
+
+                        <strong>
+                            @FormatCurrency(decPaidInvoiceValue)
+                        </strong>
+
+                        <small>
+                            @GetPluralText(
+                                intPaidInvoiceCount,
+                                "invoice",
+                                "invoices")
+                        </small>
+
+                    </div>
+
+                    <span class="material-symbols-outlined dashboard-finance-arrow">
+                        chevron_right
+                    </span>
+
+                </a>
+
+            </div>
+        }
 
     </section>
 
@@ -153,18 +391,31 @@
         <div class="dashboard-content-main">
 
             <div class="crm-card dashboard-attention-card">
+
                 <div class="crm-card-header">
+
                     <div>
-                        <h3>Needs attention</h3>
-                        <p>Tasks and work that may need action.</p>
+
+                        <h3>
+                            Needs attention
+                        </h3>
+
+                        <p>
+                            Tasks, work and finance items that may need action.
+                        </p>
+
                     </div>
+
                 </div>
 
                 @if (blnLoading)
                 {
                     <div class="crm-loading">
+
                         <span class="spinner-border spinner-border-sm"></span>
+
                         Loading dashboard...
+
                     </div>
                 }
                 else if (!HasAttentionItems)
@@ -172,19 +423,23 @@
                     <div class="dashboard-attention-empty">
 
                         <div class="dashboard-attention-empty-icon">
+
                             <span class="material-symbols-outlined">
                                 check_circle
                             </span>
+
                         </div>
 
                         <div class="dashboard-attention-empty-content">
+
                             <strong>
                                 Nothing needs attention
                             </strong>
 
                             <span>
-                                There are no overdue activities or outstanding job items right now.
+                                There are no overdue activities, jobs or invoices right now.
                             </span>
+
                         </div>
 
                     </div>
@@ -193,18 +448,127 @@
                 {
                     <div class="dashboard-attention-list">
 
+                        @if (intOverdueInvoiceCount > 0)
+                        {
+                            <a href="/invoices?overdue=true"
+                               class="dashboard-attention-item dashboard-attention-item-danger">
+
+                                <div class="dashboard-attention-icon">
+
+                                    <span class="material-symbols-outlined">
+                                        request_quote
+                                    </span>
+
+                                </div>
+
+                                <div class="dashboard-attention-content">
+
+                                    <strong>
+                                        @GetPluralText(
+                                            intOverdueInvoiceCount,
+                                            "overdue invoice",
+                                            "overdue invoices")
+                                    </strong>
+
+                                    <span>
+                                        @FormatCurrency(decOverdueInvoiceValue)
+                                        is overdue for payment.
+                                    </span>
+
+                                </div>
+
+                                <span class="material-symbols-outlined dashboard-attention-arrow">
+                                    chevron_right
+                                </span>
+
+                            </a>
+                        }
+                        else if (intOutstandingInvoiceCount > 0)
+                        {
+                            <a href="/invoices?outstanding=true"
+                               class="dashboard-attention-item dashboard-attention-item-warning">
+
+                                <div class="dashboard-attention-icon">
+
+                                    <span class="material-symbols-outlined">
+                                        account_balance_wallet
+                                    </span>
+
+                                </div>
+
+                                <div class="dashboard-attention-content">
+
+                                    <strong>
+                                        @GetPluralText(
+                                            intOutstandingInvoiceCount,
+                                            "invoice awaiting payment",
+                                            "invoices awaiting payment")
+                                    </strong>
+
+                                    <span>
+                                        @FormatCurrency(decOutstandingInvoiceValue)
+                                        remains outstanding.
+                                    </span>
+
+                                </div>
+
+                                <span class="material-symbols-outlined dashboard-attention-arrow">
+                                    chevron_right
+                                </span>
+
+                            </a>
+                        }
+
+                        @if (intDraftInvoiceCount > 0)
+                        {
+                            <a href="/invoices?status=Draft"
+                               class="dashboard-attention-item">
+
+                                <div class="dashboard-attention-icon">
+
+                                    <span class="material-symbols-outlined">
+                                        draft
+                                    </span>
+
+                                </div>
+
+                                <div class="dashboard-attention-content">
+
+                                    <strong>
+                                        @GetPluralText(
+                                            intDraftInvoiceCount,
+                                            "draft invoice",
+                                            "draft invoices")
+                                    </strong>
+
+                                    <span>
+                                        Review and issue completed invoice drafts.
+                                    </span>
+
+                                </div>
+
+                                <span class="material-symbols-outlined dashboard-attention-arrow">
+                                    chevron_right
+                                </span>
+
+                            </a>
+                        }
+
                         @if (intOverdueActivityCount > 0)
                         {
                             <a href="/activities?overdue=true"
                                class="dashboard-attention-item dashboard-attention-item-danger">
 
                                 <div class="dashboard-attention-icon">
+
                                     <span class="material-symbols-outlined">
                                         assignment_late
                                     </span>
+
                                 </div>
 
                                 <div class="dashboard-attention-content">
+
                                     <strong>
                                         @GetPluralText(
                                             intOverdueActivityCount,
@@ -215,11 +579,13 @@
                                     <span>
                                         Tasks or follow-ups are past their due date.
                                     </span>
+
                                 </div>
 
                                 <span class="material-symbols-outlined dashboard-attention-arrow">
                                     chevron_right
                                 </span>
+
                             </a>
                         }
 
@@ -229,12 +595,15 @@
                                class="dashboard-attention-item dashboard-attention-item-warning">
 
                                 <div class="dashboard-attention-icon">
+
                                     <span class="material-symbols-outlined">
                                         today
                                     </span>
+
                                 </div>
 
                                 <div class="dashboard-attention-content">
+
                                     <strong>
                                         @GetPluralText(
                                             intDueTodayActivityCount,
@@ -245,11 +614,13 @@
                                     <span>
                                         Calls, tasks, meetings or visits scheduled for today.
                                     </span>
+
                                 </div>
 
                                 <span class="material-symbols-outlined dashboard-attention-arrow">
                                     chevron_right
                                 </span>
+
                             </a>
                         }
 
@@ -259,12 +630,15 @@
                                class="dashboard-attention-item dashboard-attention-item-danger">
 
                                 <div class="dashboard-attention-icon">
+
                                     <span class="material-symbols-outlined">
                                         warning
                                     </span>
+
                                 </div>
 
                                 <div class="dashboard-attention-content">
+
                                     <strong>
                                         @GetPluralText(
                                             intOverdueJobCount,
@@ -275,11 +649,13 @@
                                     <span>
                                         Expected close date has passed.
                                     </span>
+
                                 </div>
 
                                 <span class="material-symbols-outlined dashboard-attention-arrow">
                                     chevron_right
                                 </span>
+
                             </a>
                         }
 
@@ -289,12 +665,15 @@
                                class="dashboard-attention-item">
 
                                 <div class="dashboard-attention-icon">
+
                                     <span class="material-symbols-outlined">
                                         request_quote
                                     </span>
+
                                 </div>
 
                                 <div class="dashboard-attention-content">
+
                                     <strong>
                                         @GetPluralText(
                                             QuotedJobCount,
@@ -305,11 +684,13 @@
                                     <span>
                                         Jobs currently sitting at the quoted stage.
                                     </span>
+
                                 </div>
 
                                 <span class="material-symbols-outlined dashboard-attention-arrow">
                                     chevron_right
                                 </span>
+
                             </a>
                         }
 
@@ -319,12 +700,15 @@
                                class="dashboard-attention-item">
 
                                 <div class="dashboard-attention-icon">
+
                                     <span class="material-symbols-outlined">
                                         event_available
                                     </span>
+
                                 </div>
 
                                 <div class="dashboard-attention-content">
+
                                     <strong>
                                         @GetPluralText(
                                             ToDoJobCount,
@@ -335,76 +719,67 @@
                                     <span>
                                         Work currently waiting in the To Do stage.
                                     </span>
+
                                 </div>
 
                                 <span class="material-symbols-outlined dashboard-attention-arrow">
                                     chevron_right
                                 </span>
-                            </a>
-                        }
 
-                        @if (InvoicedJobCount > 0)
-                        {
-                            <a href="@GetJobsStageUrl(JobStage.Invoiced)"
-                               class="dashboard-attention-item">
-
-                                <div class="dashboard-attention-icon">
-                                    <span class="material-symbols-outlined">
-                                        receipt_long
-                                    </span>
-                                </div>
-
-                                <div class="dashboard-attention-content">
-                                    <strong>
-                                        @GetPluralText(
-                                            InvoicedJobCount,
-                                            "invoice awaiting payment",
-                                            "invoices awaiting payment")
-                                    </strong>
-
-                                    <span>
-                                        @FormatCurrency(InvoicedJobValue) currently invoiced.
-                                    </span>
-                                </div>
-
-                                <span class="material-symbols-outlined dashboard-attention-arrow">
-                                    chevron_right
-                                </span>
                             </a>
                         }
 
                     </div>
                 }
+
             </div>
 
             <div class="crm-card dashboard-recent-card">
+
                 <div class="crm-card-header">
+
                     <div>
-                        <h3>Recent companies</h3>
-                        <p>Latest company records added to the CRM.</p>
+
+                        <h3>
+                            Recent companies
+                        </h3>
+
+                        <p>
+                            Latest company records added to the CRM.
+                        </p>
+
                     </div>
 
                     <a href="/companies"
                        class="btn btn-sm btn-light">
+
                         View all
+
                     </a>
+
                 </div>
 
                 @if (blnLoading)
                 {
                     <div class="crm-loading">
+
                         <span class="spinner-border spinner-border-sm"></span>
+
                         Loading companies...
+
                     </div>
                 }
                 else if (!colRecentCompanies.Any())
                 {
                     <div class="crm-empty-state">
+
                         <span class="material-symbols-outlined">
                             business
                         </span>
 
-                        <h4>No companies yet</h4>
+                        <h4>
+                            No companies yet
+                        </h4>
 
                         <p>
                             Add your first company to start building the CRM.
@@ -412,42 +787,69 @@
 
                         <a href="/companies/add"
                            class="btn btn-primary">
+
                             Add company
+
                         </a>
+
                     </div>
                 }
                 else
                 {
                     <div class="dashboard-company-table">
+
                         <div class="table-responsive">
+
                             <table class="table table-hover align-middle crm-table">
+
                                 <thead>
+
                                     <tr>
-                                        <th>Company</th>
-                                        <th>Industry</th>
-                                        <th>Contact</th>
+
+                                        <th>
+                                            Company
+                                        </th>
+
+                                        <th>
+                                            Industry
+                                        </th>
+
+                                        <th>
+                                            Contact
+                                        </th>
+
                                         <th class="text-end">
                                             Action
                                         </th>
+
                                     </tr>
+
                                 </thead>
 
                                 <tbody>
-                                    @foreach (Company objCompany in colRecentCompanies)
+
+                                    @foreach (Company objCompany
+                                        in colRecentCompanies)
                                     {
                                         <tr>
+
                                             <td>
+
                                                 <a href="@($"/companies/{objCompany.Id}")"
                                                    class="fw-semibold d-block text-black">
+
                                                     @objCompany.Name
+
                                                 </a>
 
-                                                @if (!String.IsNullOrWhiteSpace(objCompany.TradingName))
+                                                @if (!String.IsNullOrWhiteSpace(
+                                                    objCompany.TradingName))
                                                 {
                                                     <small class="text-muted">
                                                         @objCompany.TradingName
                                                     </small>
                                                 }
+
                                             </td>
 
                                             <td>
@@ -455,13 +857,16 @@
                                             </td>
 
                                             <td>
-                                                @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
+
+                                                @if (!String.IsNullOrWhiteSpace(
+                                                    objCompany.PrimaryEmail))
                                                 {
                                                     <a href="mailto:@objCompany.PrimaryEmail">
                                                         @objCompany.PrimaryEmail
                                                     </a>
                                                 }
-                                                else if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
+                                                else if (!String.IsNullOrWhiteSpace(
+                                                    objCompany.PrimaryPhone))
                                                 {
                                                     <a href="tel:@objCompany.PrimaryPhone">
                                                         @objCompany.PrimaryPhone
@@ -469,34 +874,49 @@
                                                 }
                                                 else
                                                 {
-                                                    <span>-</span>
+                                                    <span>
+                                                        -
+                                                    </span>
                                                 }
+
                                             </td>
 
                                             <td class="text-end">
+
                                                 <a href="@($"/companies/{objCompany.Id}")"
                                                    class="btn btn-sm btn-outline-primary">
+
                                                     Open
+
                                                 </a>
+
                                             </td>
+
                                         </tr>
                                     }
+
                                 </tbody>
+
                             </table>
+
                         </div>
+
                     </div>
 
                     <div class="dashboard-company-mobile-list">
 
-                        @foreach (Company objCompany in colRecentCompanies)
+                        @foreach (Company objCompany
+                            in colRecentCompanies)
                         {
                             <a href="@($"/companies/{objCompany.Id}")"
                                class="dashboard-company-mobile-item">
 
                                 <div class="dashboard-company-mobile-icon">
+
                                     <span class="material-symbols-outlined">
                                         business
                                     </span>
+
                                 </div>
 
                                 <div class="dashboard-company-mobile-content">
@@ -505,26 +925,30 @@
                                         @objCompany.Name
                                     </strong>
 
-                                    @if (!String.IsNullOrWhiteSpace(objCompany.TradingName))
+                                    @if (!String.IsNullOrWhiteSpace(
+                                        objCompany.TradingName))
                                     {
                                         <span>
                                             @objCompany.TradingName
                                         </span>
                                     }
-                                    else if (!String.IsNullOrWhiteSpace(objCompany.Industry))
+                                    else if (!String.IsNullOrWhiteSpace(
+                                        objCompany.Industry))
                                     {
                                         <span>
                                             @objCompany.Industry
                                         </span>
                                     }
 
-                                    @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
+                                    @if (!String.IsNullOrWhiteSpace(
+                                        objCompany.PrimaryEmail))
                                     {
                                         <small>
                                             @objCompany.PrimaryEmail
                                         </small>
                                     }
-                                    else if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
+                                    else if (!String.IsNullOrWhiteSpace(
+                                        objCompany.PrimaryPhone))
                                     {
                                         <small>
                                             @objCompany.PrimaryPhone
@@ -542,6 +966,7 @@
 
                     </div>
                 }
+
             </div>
 
         </div>
@@ -549,11 +974,21 @@
         <div class="dashboard-content-sidebar">
 
             <div class="crm-card dashboard-actions-card">
+
                 <div class="crm-card-header">
+
                     <div>
-                        <h3>Quick actions</h3>
-                        <p>Common CRM tasks.</p>
+
+                        <h3>
+                            Quick actions
+                        </h3>
+
+                        <p>
+                            Common CRM tasks.
+                        </p>
+
                     </div>
+
                 </div>
 
                 <div class="dashboard-actions-list">
@@ -562,98 +997,182 @@
                        class="dashboard-action">
 
                         <span class="dashboard-action-icon">
+
                             <span class="material-symbols-outlined">
                                 add_business
                             </span>
+
                         </span>
 
                         <span class="dashboard-action-content">
-                            <strong>Add company</strong>
-                            <small>Create a new organisation record</small>
+
+                            <strong>
+                                Add company
+                            </strong>
+
+                            <small>
+                                Create a new organisation record
+                            </small>
+
                         </span>
+
                     </a>
 
                     <a href="/contacts/add"
                        class="dashboard-action">
 
                         <span class="dashboard-action-icon">
+
                             <span class="material-symbols-outlined">
                                 person_add
                             </span>
+
                         </span>
 
                         <span class="dashboard-action-content">
-                            <strong>Add contact</strong>
-                            <small>Add a person to a company</small>
+
+                            <strong>
+                                Add contact
+                            </strong>
+
+                            <small>
+                                Add a person to a company
+                            </small>
+
                         </span>
+
                     </a>
 
                     <a href="/jobs/add"
                        class="dashboard-action">
 
                         <span class="dashboard-action-icon">
+
                             <span class="material-symbols-outlined">
                                 add_chart
                             </span>
+
                         </span>
 
                         <span class="dashboard-action-content">
-                            <strong>Add job</strong>
-                            <small>Track a new job</small>
+
+                            <strong>
+                                Add job
+                            </strong>
+
+                            <small>
+                                Track a new job
+                            </small>
+
                         </span>
+
                     </a>
 
                     <a href="/activities/add"
                        class="dashboard-action">
 
                         <span class="dashboard-action-icon">
+
                             <span class="material-symbols-outlined">
                                 event
                             </span>
+
                         </span>
 
                         <span class="dashboard-action-content">
-                            <strong>Add activity</strong>
-                            <small>Schedule a CRM activity</small>
+
+                            <strong>
+                                Add activity
+                            </strong>
+
+                            <small>
+                                Schedule a CRM activity
+                            </small>
+
                         </span>
+
+                    </a>
+
+                    <a href="/invoices"
+                       class="dashboard-action">
+
+                        <span class="dashboard-action-icon">
+
+                            <span class="material-symbols-outlined">
+                                receipt_long
+                            </span>
+
+                        </span>
+
+                        <span class="dashboard-action-content">
+
+                            <strong>
+                                View invoices
+                            </strong>
+
+                            <small>
+                                Review billing and outstanding balances
+                            </small>
+
+                        </span>
+
                     </a>
 
                 </div>
+
             </div>
 
             <div class="crm-card dashboard-pipeline-card">
+
                 <div class="crm-card-header">
+
                     <div>
-                        <h3>Jobs pipeline</h3>
-                        <p>Current active workload and value.</p>
+
+                        <h3>
+                            Jobs pipeline
+                        </h3>
+
+                        <p>
+                            Current active workload and value.
+                        </p>
+
                     </div>
 
                     <a href="/jobs"
                        class="btn btn-sm btn-light">
+
                         View all
+
                     </a>
+
                 </div>
 
                 @if (blnLoading)
                 {
                     <div class="crm-loading">
+
                         <span class="spinner-border spinner-border-sm"></span>
+
                         Loading pipeline...
+
                     </div>
                 }
                 else
                 {
                     <div class="pipeline-list">
 
-                        @foreach (JobStage enmStage in colPipelineStages)
+                        @foreach (JobStage enmStage
+                            in colPipelineStages)
                         {
                             JobStageSummary? objSummary =
-                                GetStageSummary(enmStage);
+                                GetStageSummary(
+                                    enmStage);
 
                             <a href="@GetJobsStageUrl(enmStage)"
                                class="pipeline-row">
 
                                 <div class="pipeline-stage">
+
                                     <div class="pipeline-stage-heading">
 
                                         <span class="pipeline-stage-dot">
@@ -666,11 +1185,15 @@
                                     </div>
 
                                     <small>
-                                        @FormatCurrency(objSummary?.Value ?? 0m)
+                                        @FormatCurrency(
+                                            objSummary?.Value ??
+                                            0m)
                                     </small>
+
                                 </div>
 
                                 <div class="pipeline-count">
+
                                     <strong>
                                         @(objSummary?.Count ?? 0)
                                     </strong>
@@ -678,6 +1201,7 @@
                                     <span class="material-symbols-outlined">
                                         chevron_right
                                     </span>
+
                                 </div>
 
                             </a>
@@ -686,11 +1210,13 @@
                     </div>
 
                     <div class="pipeline-total">
+
                         <span>
                             Open pipeline
                         </span>
 
                         <div>
+
                             <strong>
                                 @GetPluralText(
                                     intOpenJobCount,
@@ -699,11 +1225,15 @@
                             </strong>
 
                             <small>
-                                @FormatCurrency(decOpenJobValue)
+                                @FormatCurrency(
+                                    decOpenJobValue)
                             </small>
+
                         </div>
+
                     </div>
                 }
+
             </div>
 
         </div>
@@ -713,24 +1243,37 @@
 </div>
 
 @code {
-    private Boolean blnLoading = true;
+    private Boolean blnLoading =
+        true;
 
     private Int32 intCompanyCount;
+
     private Int32 intContactCount;
+
     private Int32 intContactableCount;
 
     private Int32 intOpenJobCount;
+
     private Int32 intOverdueJobCount;
 
     private Int32 intOpenActivityCount;
+
     private Int32 intOverdueActivityCount;
+
     private Int32 intDueTodayActivityCount;
+
     private Int32 intDueSoonActivityCount;
 
     private Decimal decOpenJobValue;
 
-    private List<Company> colRecentCompanies = [];
-    private List<JobStageSummary> colPipeline = [];
+    private List<Company> colRecentCompanies =
+        [];
+
+    private List<JobStageSummary> colPipeline =
+        [];
+
+    private List<Invoice> colInvoices =
+        [];
 
     private readonly JobStage[] colPipelineStages =
     [
@@ -742,24 +1285,76 @@
     ];
 
     private Int32 QuotedJobCount =>
-        GetStageCount(JobStage.Quoted);
+        GetStageCount(
+            JobStage.Quoted);
 
     private Int32 ToDoJobCount =>
-        GetStageCount(JobStage.ToDo);
+        GetStageCount(
+            JobStage.ToDo);
 
-    private Int32 InvoicedJobCount =>
-        GetStageCount(JobStage.Invoiced);
+    private Int32 intOutstandingInvoiceCount =>
+        colInvoices.Count(
+            IsOutstanding);
 
-    private Decimal InvoicedJobValue =>
-        GetStageValue(JobStage.Invoiced);
+    private Decimal decOutstandingInvoiceValue =>
+        colInvoices
+            .Where(
+                IsOutstanding)
+            .Sum(
+                GetOutstanding);
+
+    private Int32 intOverdueInvoiceCount =>
+        colInvoices.Count(
+            IsOverdue);
+
+    private Decimal decOverdueInvoiceValue =>
+        colInvoices
+            .Where(
+                IsOverdue)
+            .Sum(
+                GetOutstanding);
+
+    private Int32 intDraftInvoiceCount =>
+        colInvoices.Count(
+            objInvoice =>
+                objInvoice.Status ==
+                InvoiceStatus.Draft);
+
+    private Decimal decDraftInvoiceValue =>
+        colInvoices
+            .Where(
+                objInvoice =>
+                    objInvoice.Status ==
+                    InvoiceStatus.Draft)
+            .Sum(
+                objInvoice =>
+                    objInvoice.Total);
+
+    private Int32 intPaidInvoiceCount =>
+        colInvoices.Count(
+            objInvoice =>
+                objInvoice.Status ==
+                InvoiceStatus.Paid);
+
+    private Decimal decPaidInvoiceValue =>
+        colInvoices
+            .Where(
+                objInvoice =>
+                    objInvoice.Status ==
+                    InvoiceStatus.Paid)
+            .Sum(
+                objInvoice =>
+                    objInvoice.Total);
 
     private Boolean HasAttentionItems =>
+        intOverdueInvoiceCount > 0 ||
+        intOutstandingInvoiceCount > 0 ||
+        intDraftInvoiceCount > 0 ||
         intOverdueActivityCount > 0 ||
         intDueTodayActivityCount > 0 ||
         intOverdueJobCount > 0 ||
         QuotedJobCount > 0 ||
-        ToDoJobCount > 0 ||
-        InvoicedJobCount > 0;
+        ToDoJobCount > 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -773,7 +1368,8 @@
                 CompanyService.CountCompaniesAsync();
 
             Task<List<Company>> objRecentCompaniesTask =
-                CompanyService.GetRecentCompaniesAsync(5);
+                CompanyService.GetRecentCompaniesAsync(
+                    5);
 
             Task<Int32> objContactCountTask =
                 ContactService.CountContactsAsync();
@@ -803,7 +1399,11 @@
                 ActivityService.CountDueTodayActivitiesAsync();
 
             Task<Int32> objDueSoonActivityCountTask =
-                ActivityService.CountDueSoonActivitiesAsync(7);
+                ActivityService.CountDueSoonActivitiesAsync(
+                    7);
+
+            Task<List<Invoice>> objInvoicesTask =
+                InvoiceService.GetInvoicesAsync();
 
             await Task.WhenAll(
                 objCompanyCountTask,
@@ -817,7 +1417,8 @@
                 objOpenActivityCountTask,
                 objOverdueActivityCountTask,
                 objDueTodayActivityCountTask,
-                objDueSoonActivityCountTask);
+                objDueSoonActivityCountTask,
+                objInvoicesTask);
 
             intCompanyCount =
                 await objCompanyCountTask;
@@ -854,10 +1455,14 @@
 
             intDueSoonActivityCount =
                 await objDueSoonActivityCountTask;
+
+            colInvoices =
+                await objInvoicesTask;
         }
         finally
         {
-            blnLoading = false;
+            blnLoading =
+                false;
         }
     }
 
@@ -866,19 +1471,69 @@
     {
         return colPipeline.FirstOrDefault(
             objSummary =>
-                objSummary.Stage == enmStage);
+                objSummary.Stage ==
+                enmStage);
     }
 
     private Int32 GetStageCount(
         JobStage enmStage)
     {
-        return GetStageSummary(enmStage)?.Count ?? 0;
+        return GetStageSummary(
+            enmStage)?.Count ??
+            0;
     }
 
-    private Decimal GetStageValue(
-        JobStage enmStage)
+    private static Decimal GetAmountPaid(
+        Invoice objInvoice)
     {
-        return GetStageSummary(enmStage)?.Value ?? 0m;
+        return objInvoice.Payments
+            .Where(
+                objPayment =>
+                    !objPayment.Entity.DeletedUtc.HasValue)
+            .Sum(
+                objPayment =>
+                    objPayment.Amount);
+    }
+
+    private static Decimal GetOutstanding(
+        Invoice objInvoice)
+    {
+        if (objInvoice.Status ==
+                InvoiceStatus.Draft ||
+            objInvoice.Status ==
+                InvoiceStatus.Void)
+        {
+            return 0m;
+        }
+
+        return Math.Max(
+            0m,
+            objInvoice.Total -
+            GetAmountPaid(
+                objInvoice));
+    }
+
+    private static Boolean IsOutstanding(
+        Invoice objInvoice)
+    {
+        return
+            objInvoice.Status !=
+                InvoiceStatus.Draft &&
+            objInvoice.Status !=
+                InvoiceStatus.Void &&
+            GetOutstanding(
+                objInvoice) > 0m;
+    }
+
+    private static Boolean IsOverdue(
+        Invoice objInvoice)
+    {
+        return
+            IsOutstanding(
+                objInvoice) &&
+            objInvoice.DueDateUtc.HasValue &&
+            objInvoice.DueDateUtc.Value.Date <
+                DateTime.UtcNow.Date;
     }
 
     private String GetActivitySummaryText()
@@ -915,13 +1570,15 @@
     private static String GetJobsStageUrl(
         JobStage enmStage)
     {
-        return $"/jobs?stage={enmStage}";
+        return
+            $"/jobs?stage={enmStage}";
     }
 
     private static String FormatCurrency(
         Decimal decValue)
     {
-        return decValue.ToString("C0");
+        return decValue.ToString(
+            "C0");
     }
 
     private static String GetPluralText(

@@ -93,11 +93,17 @@
 
 .invoice-profile-actions {
     flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .55rem;
+    flex-wrap: wrap;
 }
 
     .invoice-profile-actions .btn {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: .4rem;
     }
 
@@ -124,6 +130,74 @@
     .material-symbols-outlined {
         font-size: 16px;
     }
+
+/* ---------------------------------
+   Finance summary cards
+---------------------------------- */
+
+.invoice-finance-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.invoice-finance-card {
+    min-width: 0;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+}
+
+.invoice-finance-icon {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    background: #eef4ff;
+    border-radius: .8rem;
+}
+
+.invoice-finance-icon-paid {
+    color: #15803d;
+    background: #ecfdf3;
+}
+
+.invoice-finance-icon-outstanding {
+    color: #b45309;
+    background: #fffbeb;
+}
+
+.invoice-finance-icon
+.material-symbols-outlined {
+    font-size: 23px;
+}
+
+.invoice-finance-card > div:last-child {
+    min-width: 0;
+}
+
+.invoice-finance-card small,
+.invoice-finance-card strong {
+    display: block;
+}
+
+.invoice-finance-card small {
+    color: #64748b;
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+.invoice-finance-card strong {
+    margin-top: .12rem;
+    color: #0f172a;
+    font-size: 1.05rem;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+}
 
 /* ---------------------------------
    Layout
@@ -155,7 +229,7 @@
 }
 
 /* ---------------------------------
-   Lines
+   Invoice lines
 ---------------------------------- */
 
 .invoice-lines-table {
@@ -238,6 +312,252 @@
 }
 
 /* ---------------------------------
+   Payment form
+---------------------------------- */
+
+.invoice-payment-form {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8fbff;
+    border: 1px solid #cdddf4;
+    border-radius: .9rem;
+}
+
+.invoice-payment-form-header {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .75rem;
+}
+
+    .invoice-payment-form-header > div {
+        min-width: 0;
+    }
+
+    .invoice-payment-form-header strong,
+    .invoice-payment-form-header span {
+        display: block;
+    }
+
+    .invoice-payment-form-header strong {
+        color: #0f172a;
+        font-size: .9rem;
+        font-weight: 850;
+    }
+
+    .invoice-payment-form-header span {
+        margin-top: .15rem;
+        color: #64748b;
+        font-size: .74rem;
+    }
+
+    .invoice-payment-form-header .btn {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        flex: 0 0 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .invoice-payment-form-header
+    .material-symbols-outlined {
+        font-size: 18px;
+    }
+
+.invoice-payment-form .form-label {
+    margin-bottom: .3rem;
+    color: #334155;
+    font-size: .75rem;
+    font-weight: 750;
+}
+
+.invoice-payment-form .form-control,
+.invoice-payment-form .form-select,
+.invoice-payment-form .input-group-text {
+    min-height: 42px;
+}
+
+.invoice-payment-notes {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.invoice-payment-form-actions {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+}
+
+    .invoice-payment-form-actions .btn {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .35rem;
+    }
+
+/* ---------------------------------
+   Payment history
+---------------------------------- */
+
+.invoice-payments-list {
+    display: flex;
+    flex-direction: column;
+    gap: .65rem;
+}
+
+.invoice-payment-item {
+    min-width: 0;
+    padding: .85rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    background: #fbfdff;
+    border: 1px solid #e5eaf2;
+    border-radius: .85rem;
+}
+
+.invoice-payment-method-icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--payment-method-color);
+    background: color-mix( in srgb, var(--payment-method-color) 10%, white);
+    border-radius: .7rem;
+}
+
+    .invoice-payment-method-icon
+    .material-symbols-outlined {
+        font-size: 21px;
+    }
+
+.invoice-payment-main {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.invoice-payment-title {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+
+    .invoice-payment-title strong {
+        color: #0f172a;
+        font-size: .9rem;
+        font-weight: 900;
+    }
+
+    .invoice-payment-title > span {
+        padding: .15rem .45rem;
+        color: #64748b;
+        background: #f1f5f9;
+        border-radius: 999px;
+        font-size: .66rem;
+        font-weight: 750;
+    }
+
+.invoice-payment-meta {
+    margin-top: .35rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem .75rem;
+    flex-wrap: wrap;
+    color: #64748b;
+    font-size: .7rem;
+}
+
+    .invoice-payment-meta > span {
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: .2rem;
+        overflow-wrap: anywhere;
+    }
+
+    .invoice-payment-meta
+    .material-symbols-outlined {
+        flex: 0 0 auto;
+        font-size: 15px;
+    }
+
+.invoice-payment-main p {
+    margin: .45rem 0 0;
+    color: #475569;
+    font-size: .74rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.invoice-payment-delete {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    flex: 0 0 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .invoice-payment-delete
+    .material-symbols-outlined {
+        font-size: 18px;
+    }
+
+.invoice-payments-empty {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    color: #64748b;
+    background: #fbfdff;
+    border: 1px dashed #cbd5e1;
+    border-radius: .85rem;
+}
+
+    .invoice-payments-empty >
+    .material-symbols-outlined {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        background: #f1f5f9;
+        border-radius: .7rem;
+    }
+
+    .invoice-payments-empty > div {
+        min-width: 0;
+    }
+
+    .invoice-payments-empty strong,
+    .invoice-payments-empty div > span {
+        display: block;
+    }
+
+    .invoice-payments-empty strong {
+        color: #334155;
+        font-size: .84rem;
+        font-weight: 800;
+    }
+
+    .invoice-payments-empty div > span {
+        margin-top: .12rem;
+        font-size: .74rem;
+    }
+
+/* ---------------------------------
    Customer
 ---------------------------------- */
 
@@ -291,6 +611,66 @@
     color: #0f172a;
     font-size: .95rem;
     font-weight: 850;
+}
+
+.invoice-finance-summary {
+    display: flex;
+    flex-direction: column;
+}
+
+    .invoice-finance-summary > div {
+        padding: .65rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+        .invoice-finance-summary > div:first-child {
+            padding-top: 0;
+        }
+
+        .invoice-finance-summary > div:last-child {
+            border-bottom: 0;
+        }
+
+    .invoice-finance-summary span {
+        color: #64748b;
+        font-size: .76rem;
+    }
+
+    .invoice-finance-summary strong {
+        color: #0f172a;
+        font-size: .82rem;
+        font-weight: 850;
+    }
+
+    .invoice-finance-summary
+    .invoice-paid-value {
+        color: #15803d;
+    }
+
+    .invoice-finance-summary
+    .invoice-outstanding-row {
+        margin-top: .2rem;
+        padding-top: .8rem;
+        border-top: 1px solid #dce3ec;
+    }
+
+.invoice-outstanding-row span,
+.invoice-outstanding-row strong {
+    color: #b45309;
+    font-weight: 850;
+}
+
+.invoice-sidebar-payment-button {
+    min-height: 42px;
+    margin-top: .8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
 }
 
 .invoice-summary-list {
@@ -364,18 +744,32 @@
 }
 
 .invoice-alert {
+    min-width: 0;
     display: flex;
     align-items: flex-start;
     gap: .65rem;
 }
 
+    .invoice-alert >
+    .material-symbols-outlined {
+        flex: 0 0 auto;
+    }
+
     .invoice-alert .alert-content {
         min-width: 0;
+        flex: 1 1 auto;
     }
 
         .invoice-alert .alert-content p {
             margin: .15rem 0 0;
         }
+
+    .invoice-alert .alert-actions {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
 
 /* ---------------------------------
    Tablet
@@ -392,6 +786,11 @@
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+        .invoice-side-column >
+        .crm-card:first-child {
+            grid-column: 1 / -1;
+        }
 }
 
 /* ---------------------------------
@@ -430,15 +829,42 @@
         gap: .3rem;
     }
 
-    .invoice-profile-actions,
-    .invoice-profile-actions .btn {
+    .invoice-profile-actions {
         width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
     }
 
         .invoice-profile-actions .btn {
+            width: 100%;
             min-height: 44px;
-            justify-content: center;
         }
+
+    .invoice-finance-grid {
+        grid-template-columns: 1fr;
+        gap: .6rem;
+    }
+
+    .invoice-finance-card {
+        padding: .8rem;
+    }
+
+    .invoice-layout {
+        display: flex;
+        flex-direction: column;
+        gap: .8rem;
+    }
+
+    .invoice-main-column,
+    .invoice-side-column {
+        width: 100%;
+        gap: .8rem;
+    }
+
+    .invoice-side-column {
+        display: flex;
+        flex-direction: column;
+    }
 
     .invoice-card-body {
         padding: .85rem;
@@ -487,16 +913,94 @@
             font-weight: 850;
         }
 
+    .invoice-payment-form {
+        padding: .8rem;
+    }
+
+        .invoice-payment-form .form-control,
+        .invoice-payment-form .form-select,
+        .invoice-payment-form .input-group-text {
+            min-height: 44px;
+        }
+
+    .invoice-payment-form-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+        .invoice-payment-form-actions .btn {
+            width: 100%;
+            min-height: 44px;
+        }
+
+    .invoice-payment-item {
+        padding: .75rem;
+    }
+
+    .invoice-payment-delete {
+        width: 40px;
+        height: 40px;
+        flex-basis: 40px;
+    }
+
     .invoice-details-grid {
         grid-template-columns: 1fr;
     }
 
-    .invoice-side-column {
-        display: flex;
-        flex-direction: column;
+    .invoice-action-list .btn,
+    .invoice-sidebar-payment-button {
+        min-height: 44px;
     }
 
-    .invoice-action-list .btn {
-        min-height: 44px;
+    .invoice-alert {
+        flex-wrap: wrap;
+    }
+
+        .invoice-alert .alert-actions {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+}
+
+/* ---------------------------------
+   Small phones
+---------------------------------- */
+
+@media (max-width: 575.98px) {
+
+    .invoice-profile-card {
+        padding: .85rem;
+    }
+
+    .invoice-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .3rem;
+    }
+
+    .invoice-card-body {
+        padding: .75rem;
+    }
+
+    .invoice-payment-item {
+        flex-wrap: wrap;
+    }
+
+    .invoice-payment-main {
+        min-width: calc(100% - 55px);
+    }
+
+    .invoice-payment-delete {
+        margin-left: 48px;
+    }
+
+    .invoice-summary-list > div,
+    .invoice-finance-summary > div {
+        align-items: flex-start;
+    }
+
+    .invoice-alert .alert-actions {
+        grid-template-columns: 1fr;
     }
 }

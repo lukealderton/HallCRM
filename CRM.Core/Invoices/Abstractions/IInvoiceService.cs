@@ -19,6 +19,8 @@ namespace CRM.Core.Invoices.Abstractions
             InvoiceStatus? enmStatus = null,
             Guid? objJobId = null,
             Guid? objCompanyId = null,
+            Boolean blnOutstandingOnly = false,
+            Boolean blnOverdueOnly = false,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default);

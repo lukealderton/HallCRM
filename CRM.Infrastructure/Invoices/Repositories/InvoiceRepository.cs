@@ -67,6 +67,8 @@ namespace CRM.Infrastructure.Invoices.Repositories
             InvoiceStatus? enmStatus = null,
             Guid? objJobId = null,
             Guid? objCompanyId = null,
+            Boolean blnOutstandingOnly = false,
+            Boolean blnOverdueOnly = false,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default)
@@ -87,10 +89,14 @@ namespace CRM.Infrastructure.Invoices.Repositories
                         objInvoice.Company)
                     .Include(objInvoice =>
                         objInvoice.Contact)
-                            .ThenInclude(objContact =>
-                                objContact!.Entity)
+                        .ThenInclude(objContact =>
+                            objContact!.Entity)
                     .Include(objInvoice =>
-                        objInvoice.Lines);
+                        objInvoice.Lines)
+                    .Include(objInvoice =>
+                        objInvoice.Payments)
+                        .ThenInclude(objPayment =>
+                            objPayment.Entity);
 
             if (!blnIncludeDeleted)
             {
@@ -163,14 +169,56 @@ namespace CRM.Infrastructure.Invoices.Repositories
                                  strSearchValue)));
             }
 
+            if (blnOutstandingOnly ||
+                blnOverdueOnly)
+            {
+                objQuery =
+                    objQuery.Where(
+                        objInvoice =>
+                            objInvoice.Status !=
+                            InvoiceStatus.Draft &&
+
+                            objInvoice.Status !=
+                            InvoiceStatus.Void &&
+
+                            (
+                                objInvoice.Lines
+                                    .Sum(objLine =>
+                                        (Decimal?)(
+                                            objLine.Quantity *
+                                            objLine.UnitPrice))
+                                ?? 0m
+                            )
+                            >
+                            (
+                                objInvoice.Payments
+                                    .Where(objPayment =>
+                                        !objPayment.Entity.DeletedUtc.HasValue)
+                                    .Sum(objPayment =>
+                                        (Decimal?)objPayment.Amount)
+                                ?? 0m
+                            ));
+            }
+
+            if (blnOverdueOnly)
+            {
+                DateTime dteTodayUtc =
+                    DateTime.UtcNow.Date;
+
+                objQuery =
+                    objQuery.Where(
+                        objInvoice =>
+                            objInvoice.DueDateUtc.HasValue &&
+                            objInvoice.DueDateUtc.Value <
+                            dteTodayUtc);
+            }
+
             return await objQuery
-                .OrderByDescending(
-                    objInvoice =>
-                        objInvoice.IssueDateUtc ??
-                        objInvoice.Entity.CreatedUtc)
-                .ThenByDescending(
-                    objInvoice =>
-                        objInvoice.Entity.CreatedUtc)
+                .OrderByDescending(objInvoice =>
+                    objInvoice.IssueDateUtc ??
+                    objInvoice.Entity.CreatedUtc)
+                .ThenByDescending(objInvoice =>
+                    objInvoice.Entity.CreatedUtc)
                 .ToListAsync(
                     objToken);
         }

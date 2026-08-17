@@ -45,18 +45,22 @@ namespace CRM.Core.Invoices.Services
             InvoiceStatus? enmStatus = null,
             Guid? objJobId = null,
             Guid? objCompanyId = null,
+            Boolean blnOutstandingOnly = false,
+            Boolean blnOverdueOnly = false,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
             CancellationToken objToken = default)
         {
             return _invoiceRepository.GetInvoicesAsync(
-                strSearch,
-                enmStatus,
-                objJobId,
-                objCompanyId,
-                blnIncludeArchived,
-                blnIncludeDeleted,
-                objToken);
+                strSearch: strSearch,
+                enmStatus: enmStatus,
+                objJobId: objJobId,
+                objCompanyId: objCompanyId,
+                blnOutstandingOnly: blnOutstandingOnly,
+                blnOverdueOnly: blnOverdueOnly,
+                blnIncludeArchived: blnIncludeArchived,
+                blnIncludeDeleted: blnIncludeDeleted,
+                objToken: objToken);
         }
 
         ///<inheritdoc/>

@@ -18,7 +18,7 @@
     justify-content: space-between;
     gap: 1.5rem;
     color: #ffffff;
-    background: linear-gradient(135deg, #0d6efd, #4f46e5);
+    background: linear-gradient( 135deg, #0d6efd, #4f46e5);
     border-radius: 1.25rem;
     box-shadow: 0 10px 28px rgba(37, 74, 222, .12);
 }
@@ -84,7 +84,8 @@
             border-color: #f4f7ff;
         }
 
-    .dashboard-hero-actions .material-symbols-outlined {
+    .dashboard-hero-actions
+    .material-symbols-outlined {
         font-size: 19px;
     }
 
@@ -132,7 +133,8 @@
     border-radius: .85rem;
 }
 
-    .dashboard-stat-icon .material-symbols-outlined {
+    .dashboard-stat-icon
+    .material-symbols-outlined {
         font-size: 23px;
     }
 
@@ -166,6 +168,174 @@
     line-height: 1.3;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* ---------------------------------
+   Finance
+---------------------------------- */
+
+.dashboard-finance {
+    padding: 1rem;
+    background: #ffffff;
+    border: 1px solid #e9edf3;
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+}
+
+.dashboard-section-heading {
+    margin-bottom: .9rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.dashboard-section-heading-main {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+}
+
+.dashboard-section-icon {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    background: #eef4ff;
+    border-radius: .7rem;
+}
+
+    .dashboard-section-icon
+    .material-symbols-outlined {
+        font-size: 20px;
+    }
+
+.dashboard-section-heading h3 {
+    margin: 0;
+    color: #111827;
+    font-size: .95rem;
+    font-weight: 750;
+}
+
+.dashboard-section-heading p {
+    margin: .1rem 0 0;
+    color: #667085;
+    font-size: .74rem;
+}
+
+.dashboard-finance-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .7rem;
+}
+
+.dashboard-finance-card {
+    min-width: 0;
+    min-height: 88px;
+    padding: .8rem;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 20px;
+    gap: .65rem;
+    align-items: center;
+    color: inherit;
+    background: #fbfdff;
+    border: 1px solid #e5eaf2;
+    border-radius: .85rem;
+    text-decoration: none;
+    transition: background .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+
+    .dashboard-finance-card:hover {
+        color: inherit;
+        background: #f8fbff;
+        border-color: #cbd8e8;
+        transform: translateY(-1px);
+        box-shadow: 0 5px 14px rgba(15, 23, 42, .05);
+    }
+
+.dashboard-finance-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    background: #eef4ff;
+    border-radius: .7rem;
+}
+
+.dashboard-finance-card-overdue
+.dashboard-finance-icon {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+.dashboard-finance-card-draft
+.dashboard-finance-icon {
+    color: #64748b;
+    background: #f1f5f9;
+}
+
+.dashboard-finance-card-paid
+.dashboard-finance-icon {
+    color: #15803d;
+    background: #ecfdf3;
+}
+
+.dashboard-finance-icon
+.material-symbols-outlined {
+    font-size: 21px;
+}
+
+.dashboard-finance-content {
+    min-width: 0;
+}
+
+    .dashboard-finance-content span,
+    .dashboard-finance-content strong,
+    .dashboard-finance-content small {
+        display: block;
+    }
+
+    .dashboard-finance-content > span {
+        color: #667085;
+        font-size: .7rem;
+        font-weight: 700;
+    }
+
+    .dashboard-finance-content strong {
+        margin-top: .08rem;
+        color: #111827;
+        font-size: 1.05rem;
+        font-weight: 850;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+    }
+
+.dashboard-finance-card-overdue
+.dashboard-finance-content strong {
+    color: #b91c1c;
+}
+
+.dashboard-finance-card-paid
+.dashboard-finance-content strong {
+    color: #15803d;
+}
+
+.dashboard-finance-content small {
+    margin-top: .12rem;
+    color: #98a2b3;
+    font-size: .67rem;
+    line-height: 1.3;
+}
+
+.dashboard-finance-arrow {
+    color: #a6afbd;
+    font-size: 19px;
 }
 
 /* ---------------------------------
@@ -226,7 +396,8 @@
     border-radius: .7rem;
 }
 
-    .dashboard-action-icon .material-symbols-outlined {
+    .dashboard-action-icon
+    .material-symbols-outlined {
         font-size: 21px;
     }
 
@@ -294,16 +465,19 @@
     border-radius: .75rem;
 }
 
-    .dashboard-attention-icon .material-symbols-outlined {
+    .dashboard-attention-icon
+    .material-symbols-outlined {
         font-size: 21px;
     }
 
-.dashboard-attention-item-warning .dashboard-attention-icon {
+.dashboard-attention-item-warning
+.dashboard-attention-icon {
     color: #d97706;
     background: #fef3c7;
 }
 
-.dashboard-attention-item-danger .dashboard-attention-icon {
+.dashboard-attention-item-danger
+.dashboard-attention-icon {
     color: #dc2626;
     background: #fff1f2;
 }
@@ -357,7 +531,8 @@
     border-radius: .8rem;
 }
 
-    .dashboard-attention-empty-icon .material-symbols-outlined {
+    .dashboard-attention-empty-icon
+    .material-symbols-outlined {
         font-size: 22px;
     }
 
@@ -433,7 +608,8 @@
     transition: color .15s ease;
 }
 
-.pipeline-row:hover .pipeline-stage-name {
+.pipeline-row:hover
+.pipeline-stage-name {
     color: #0d6efd;
 }
 
@@ -459,7 +635,8 @@
         text-align: right;
     }
 
-    .pipeline-count .material-symbols-outlined {
+    .pipeline-count
+    .material-symbols-outlined {
         color: #b1bac8;
         font-size: 19px;
     }
@@ -523,6 +700,10 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .dashboard-finance-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .dashboard-content-grid {
         grid-template-columns: minmax(0, 1.5fr) minmax(280px, .9fr);
     }
@@ -546,14 +727,6 @@
 
     .dashboard-content-grid {
         grid-template-columns: 1fr;
-    }
-
-    .dashboard-content-main {
-        order: 1;
-    }
-
-    .dashboard-content-sidebar {
-        order: 2;
     }
 }
 
@@ -614,8 +787,6 @@
         width: 100%;
         min-height: 78px;
         padding: .85rem;
-        align-items: center;
-        flex-direction: row;
         gap: .8rem;
     }
 
@@ -626,11 +797,13 @@
         border-radius: .75rem;
     }
 
-        .dashboard-stat-icon .material-symbols-outlined {
+        .dashboard-stat-icon
+        .material-symbols-outlined {
             font-size: 21px;
         }
 
-    .dashboard-stat-label {
+    .dashboard-stat-label,
+    .dashboard-stat-meta {
         white-space: normal;
     }
 
@@ -639,11 +812,31 @@
         font-size: 1.4rem;
     }
 
-    .dashboard-stat-meta {
-        white-space: normal;
+    /* Finance */
+
+    .dashboard-finance {
+        padding: .8rem;
     }
 
-    /* Main content */
+    .dashboard-section-heading {
+        align-items: flex-start;
+    }
+
+        .dashboard-section-heading .btn {
+            min-height: 40px;
+        }
+
+    .dashboard-finance-grid {
+        grid-template-columns: 1fr;
+        gap: .55rem;
+    }
+
+    .dashboard-finance-card {
+        min-height: 76px;
+        padding: .7rem;
+    }
+
+    /* Main layout */
 
     .dashboard-content-grid {
         width: 100%;
@@ -655,30 +848,9 @@
     .dashboard-content-main,
     .dashboard-content-sidebar {
         width: 100%;
-        display: contents;
-    }
-
-    .dashboard-attention-card,
-    .dashboard-actions-card,
-    .dashboard-pipeline-card,
-    .dashboard-recent-card {
-        width: 100%;
-    }
-
-    .dashboard-attention-card {
-        order: 1;
-    }
-
-    .dashboard-actions-card {
-        order: 2;
-    }
-
-    .dashboard-pipeline-card {
-        order: 3;
-    }
-
-    .dashboard-recent-card {
-        order: 4;
+        display: flex;
+        flex-direction: column;
+        gap: .8rem;
     }
 
     /* Quick actions */
@@ -686,8 +858,6 @@
     .dashboard-actions-list {
         width: 100%;
         padding: .4rem;
-        display: flex;
-        flex-direction: column;
         gap: .15rem;
     }
 
@@ -695,36 +865,13 @@
         width: 100%;
         min-height: 64px;
         padding: .7rem .75rem;
-        align-items: center;
-        flex-direction: row;
-        gap: .75rem;
-        background: transparent;
-        border: 0;
     }
-
-        .dashboard-action:hover {
-            background: #f6f8fb;
-        }
 
     .dashboard-action-icon {
         width: 40px;
         height: 40px;
         flex: 0 0 40px;
-        border-radius: .75rem;
     }
-
-    .dashboard-action-content {
-        min-width: 0;
-        flex: 1 1 auto;
-    }
-
-        .dashboard-action-content strong {
-            font-size: .86rem;
-        }
-
-        .dashboard-action-content small {
-            font-size: .72rem;
-        }
 
     /* Attention */
 
@@ -736,10 +883,6 @@
         width: 100%;
         min-height: 66px;
         padding: .7rem;
-    }
-
-    .dashboard-attention-content span {
-        display: block;
     }
 
     .dashboard-attention-empty {
@@ -802,7 +945,8 @@
         border-radius: .75rem;
     }
 
-        .dashboard-company-mobile-icon .material-symbols-outlined {
+        .dashboard-company-mobile-icon
+        .material-symbols-outlined {
             font-size: 21px;
         }
 
@@ -854,7 +998,8 @@
         padding: 1rem;
     }
 
-    .dashboard-hero-actions .material-symbols-outlined {
+    .dashboard-hero-actions
+    .material-symbols-outlined {
         font-size: 18px;
     }
 
@@ -880,6 +1025,24 @@
     .dashboard-stat-meta {
         font-size: .68rem;
         line-height: 1.25;
+    }
+
+    .dashboard-section-heading {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dashboard-section-heading-main {
+        width: 100%;
+    }
+
+    .dashboard-section-heading .btn {
+        width: 100%;
+        min-height: 44px;
+    }
+
+    .dashboard-finance-card {
+        grid-template-columns: 40px minmax(0, 1fr) 20px;
     }
 
     .dashboard-attention-icon {

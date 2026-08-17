@@ -5,9 +5,14 @@
 
 @using CRM.Core.Invoices.Abstractions
 @using CRM.Core.Invoices.Domain
+@using CRM.Core.Payments.Abstractions
+@using CRM.Core.Payments.Domain
 @using CRM.Web.State
+@using CRM.Web.Users.Abstraction
 
 @inject IInvoiceService InvoiceService
+@inject IPaymentService PaymentService
+@inject ICurrentUserState CurrentUserState
 @inject NavigationManager Navigation
 @inject PageHeaderState HeaderState
 
@@ -18,7 +23,8 @@
     @if (!String.IsNullOrWhiteSpace(
         strSuccessMessage))
     {
-        <div class="alert alert-success invoice-alert">
+        <div class="alert alert-success invoice-alert"
+             role="alert">
 
             <span class="material-symbols-outlined">
                 check_circle
@@ -38,7 +44,8 @@
     @if (!String.IsNullOrWhiteSpace(
         strErrorMessage))
     {
-        <div class="alert alert-danger invoice-alert">
+        <div class="alert alert-danger invoice-alert"
+             role="alert">
 
             <span class="material-symbols-outlined">
                 error
@@ -59,6 +66,67 @@
         </div>
     }
 
+    @if (objDeletePaymentId.HasValue)
+    {
+        Payment? objDeletePayment =
+            colPayments.FirstOrDefault(
+                objPayment =>
+                    objPayment.Id ==
+                    objDeletePaymentId.Value);
+
+        @if (objDeletePayment != null)
+        {
+            <div class="alert alert-warning invoice-alert">
+
+                <span class="material-symbols-outlined">
+                    delete
+                </span>
+
+                <div class="alert-content">
+
+                    <strong>
+                        Remove this payment?
+                    </strong>
+
+                    <p>
+                        This will remove the
+                        @objDeletePayment.Amount.ToString("C")
+                        payment from the invoice balance.
+                    </p>
+
+                </div>
+
+                <div class="alert-actions">
+
+                    <button type="button"
+                            class="btn btn-soft-danger btn-sm"
+                            disabled="@blnDeletingPayment"
+                            @onclick="DeletePaymentAsync">
+
+                        @if (blnDeletingPayment)
+                        {
+                            <span class="spinner-border spinner-border-sm"></span>
+                        }
+
+                        Remove payment
+
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-soft-secondary btn-sm"
+                            disabled="@blnDeletingPayment"
+                            @onclick="CancelDeletePayment">
+
+                        Cancel
+
+                    </button>
+
+                </div>
+
+            </div>
+        }
+    }
+
     @if (blnLoading)
     {
         <div class="crm-card">
@@ -75,7 +143,8 @@
     }
     else if (objInvoice == null)
     {
-        <div class="alert alert-danger invoice-alert">
+        <div class="alert alert-danger invoice-alert"
+             role="alert">
 
             <span class="material-symbols-outlined">
                 search_off
@@ -118,7 +187,8 @@
                         </h2>
 
                         <span class="invoice-status-pill"
-                              style="@GetStatusStyle(objInvoice.Status)">
+                              style="@GetStatusStyle(
+                                                              objInvoice.Status)">
 
                             <span class="material-symbols-outlined">
                                 @objInvoice.Status.GetUI().IconName
@@ -170,7 +240,8 @@
                                 event
                             </span>
 
-                            @GetDateSummary(objInvoice)
+                            @GetDateSummary(
+                                objInvoice)
 
                         </span>
 
@@ -182,9 +253,11 @@
 
             <div class="invoice-profile-actions">
 
-                @if (objInvoice.Status == InvoiceStatus.Draft)
+                @if (objInvoice.Status ==
+                    InvoiceStatus.Draft)
                 {
-                    <a href="@GetEditUrl(objInvoice.Id)"
+                    <a href="@GetEditUrl(
+                                               objInvoice.Id)"
                        class="btn btn-primary">
 
                         <span class="material-symbols-outlined">
@@ -192,11 +265,13 @@
                         </span>
 
                         Edit invoice
+
                     </a>
                 }
                 else
                 {
-                    <a href="@GetInvoicePdfUrl(objInvoice.Id)"
+                    <a href="@GetInvoicePdfUrl(
+                                               objInvoice.Id)"
                        class="btn btn-primary"
                        target="_blank">
 
@@ -205,22 +280,107 @@
                         </span>
 
                         Open PDF
+
                     </a>
                 }
 
-                <a href="@GetJobUrl(objInvoice.JobId)"
-                   class="btn btn-soft-secondary ms-3">
+                <a href="@GetJobUrl(
+                                       objInvoice.JobId)"
+                   class="btn btn-soft-secondary">
 
                     <span class="material-symbols-outlined">
                         work
                     </span>
 
                     Open job
+
                 </a>
 
             </div>
 
         </div>
+
+        @if (objInvoice.Status !=
+             InvoiceStatus.Draft &&
+            objInvoice.Status !=
+             InvoiceStatus.Void)
+        {
+            <div class="invoice-finance-grid">
+
+                <div class="invoice-finance-card crm-card">
+
+                    <div class="invoice-finance-icon">
+
+                        <span class="material-symbols-outlined">
+                            receipt_long
+                        </span>
+
+                    </div>
+
+                    <div>
+
+                        <small>
+                            Invoice total
+                        </small>
+
+                        <strong>
+                            @objInvoice.Total.ToString("C")
+                        </strong>
+
+                    </div>
+
+                </div>
+
+                <div class="invoice-finance-card crm-card">
+
+                    <div class="invoice-finance-icon invoice-finance-icon-paid">
+
+                        <span class="material-symbols-outlined">
+                            payments
+                        </span>
+
+                    </div>
+
+                    <div>
+
+                        <small>
+                            Paid
+                        </small>
+
+                        <strong>
+                            @GetAmountPaid().ToString("C")
+                        </strong>
+
+                    </div>
+
+                </div>
+
+                <div class="invoice-finance-card crm-card">
+
+                    <div class="invoice-finance-icon invoice-finance-icon-outstanding">
+
+                        <span class="material-symbols-outlined">
+                            account_balance_wallet
+                        </span>
+
+                    </div>
+
+                    <div>
+
+                        <small>
+                            Outstanding
+                        </small>
+
+                        <strong>
+                            @GetOutstanding().ToString("C")
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
 
         <div class="invoice-layout">
 
@@ -395,6 +555,344 @@
 
                 </div>
 
+                @if (objInvoice.Status !=
+                     InvoiceStatus.Draft &&
+                    objInvoice.Status !=
+                     InvoiceStatus.Void)
+                {
+                    <div class="crm-card">
+
+                        <div class="crm-card-header">
+
+                            <div>
+
+                                <h3>
+                                    Payments
+                                </h3>
+
+                                <p>
+                                    Payments recorded against this invoice.
+                                </p>
+
+                            </div>
+
+                            @if (GetOutstanding() > 0m)
+                            {
+                                <button type="button"
+                                        class="btn btn-soft-primary btn-sm"
+                                        @onclick="ShowPaymentForm">
+
+                                    <span class="material-symbols-outlined">
+                                        add_card
+                                    </span>
+
+                                    Record payment
+
+                                </button>
+                            }
+
+                        </div>
+
+                        <div class="invoice-card-body">
+
+                            @if (blnShowPaymentForm)
+                            {
+                                <div class="invoice-payment-form">
+
+                                    <div class="invoice-payment-form-header">
+
+                                        <div>
+
+                                            <strong>
+                                                Record payment
+                                            </strong>
+
+                                            <span>
+                                                Outstanding balance:
+                                                @GetOutstanding().ToString("C")
+                                            </span>
+
+                                        </div>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-soft-secondary"
+                                                @onclick="CancelPayment">
+
+                                            <span class="material-symbols-outlined">
+                                                close
+                                            </span>
+
+                                        </button>
+
+                                    </div>
+
+                                    <div class="row g-3">
+
+                                        <div class="col-md-6">
+
+                                            <label class="form-label"
+                                                   for="paymentAmount">
+                                                Amount
+                                            </label>
+
+                                            <div class="input-group">
+
+                                                <span class="input-group-text">
+                                                    £
+                                                </span>
+
+                                                <InputNumber id="paymentAmount"
+                                                             class="form-control"
+                                                             min="0.01"
+                                                             step="0.01"
+                                                             @bind-Value="objPaymentForm.Amount" />
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-md-6">
+
+                                            <label class="form-label"
+                                                   for="paymentDate">
+                                                Payment date
+                                            </label>
+
+                                            <InputDate id="paymentDate"
+                                                       class="form-control"
+                                                       @bind-Value="objPaymentForm.PaymentDateUtc" />
+
+                                        </div>
+
+                                        <div class="col-md-6">
+
+                                            <label class="form-label"
+                                                   for="paymentMethod">
+                                                Payment method
+                                            </label>
+
+                                            <InputSelect id="paymentMethod"
+                                                         class="form-select"
+                                                         @bind-Value="objPaymentForm.Method">
+
+                                                @foreach (PaymentMethod enmMethod
+                                                    in Enum.GetValues<PaymentMethod>())
+                                                {
+                                                    <option value="@enmMethod">
+                                                        @enmMethod.GetDisplay().Name
+                                                    </option>
+                                                }
+
+                                            </InputSelect>
+
+                                        </div>
+
+                                        <div class="col-md-6">
+
+                                            <label class="form-label"
+                                                   for="paymentReference">
+                                                Reference
+                                            </label>
+
+                                            <InputText id="paymentReference"
+                                                       class="form-control"
+                                                       @bind-Value="objPaymentForm.Reference"
+                                                       placeholder="Bank reference, receipt number..." />
+
+                                        </div>
+
+                                        <div class="col-12">
+
+                                            <label class="form-label"
+                                                   for="paymentNotes">
+                                                Notes
+                                            </label>
+
+                                            <InputTextArea id="paymentNotes"
+                                                           class="form-control invoice-payment-notes"
+                                                           @bind-Value="objPaymentForm.Notes"
+                                                           placeholder="Optional internal note..." />
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="invoice-payment-form-actions">
+
+                                        <button type="button"
+                                                class="btn btn-primary"
+                                                disabled="@blnSavingPayment"
+                                                @onclick="SavePaymentAsync">
+
+                                            @if (blnSavingPayment)
+                                            {
+                                                <span class="spinner-border spinner-border-sm"></span>
+
+                                                <span>
+                                                    Saving...
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="material-symbols-outlined">
+                                                    payments
+                                                </span>
+
+                                                <span>
+                                                    Record payment
+                                                </span>
+                                            }
+
+                                        </button>
+
+                                        <button type="button"
+                                                class="btn btn-soft-secondary"
+                                                disabled="@blnSavingPayment"
+                                                @onclick="CancelPayment">
+
+                                            Cancel
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+                            }
+
+                            @if (colPayments.Count == 0)
+                            {
+                                <div class="invoice-payments-empty">
+
+                                    <span class="material-symbols-outlined">
+                                        payments
+                                    </span>
+
+                                    <div>
+
+                                        <strong>
+                                            No payments recorded
+                                        </strong>
+
+                                        <span>
+                                            @if (GetOutstanding() > 0m)
+                                            {
+                                                <text>
+                                                    The full
+                                                    @GetOutstanding().ToString("C")
+                                                    remains outstanding.
+                                                </text>
+                                            }
+                                            else
+                                            {
+                                                <text>
+                                                    There is no outstanding balance.
+                                                </text>
+                                            }
+                                        </span>
+
+                                    </div>
+
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="invoice-payments-list">
+
+                                    @foreach (Payment objPayment
+                                        in colPayments
+                                            .OrderByDescending(objPayment =>
+                                                objPayment.PaymentDateUtc)
+                                            .ThenByDescending(objPayment =>
+                                                objPayment.Entity.CreatedUtc))
+                                    {
+                                        <div class="invoice-payment-item">
+
+                                            <div class="invoice-payment-method-icon"
+                                                 style="@GetPaymentMethodStyle(
+                                                                                                     objPayment.Method)">
+
+                                                <span class="material-symbols-outlined">
+                                                    @objPayment.Method.GetUI().IconName
+                                                </span>
+
+                                            </div>
+
+                                            <div class="invoice-payment-main">
+
+                                                <div class="invoice-payment-title">
+
+                                                    <strong>
+                                                        @objPayment.Amount.ToString("C")
+                                                    </strong>
+
+                                                    <span>
+                                                        @objPayment.Method.GetDisplay().Name
+                                                    </span>
+
+                                                </div>
+
+                                                <div class="invoice-payment-meta">
+
+                                                    <span>
+
+                                                        <span class="material-symbols-outlined">
+                                                            calendar_today
+                                                        </span>
+
+                                                        @FormatDate(
+                                                            objPayment.PaymentDateUtc)
+
+                                                    </span>
+
+                                                    @if (!String.IsNullOrWhiteSpace(
+                                                        objPayment.Reference))
+                                                    {
+                                                        <span>
+
+                                                            <span class="material-symbols-outlined">
+                                                                tag
+                                                            </span>
+
+                                                            @objPayment.Reference
+
+                                                        </span>
+                                                    }
+
+                                                </div>
+
+                                                @if (!String.IsNullOrWhiteSpace(
+                                                    objPayment.Notes))
+                                                {
+                                                    <p>
+                                                        @objPayment.Notes
+                                                    </p>
+                                                }
+
+                                            </div>
+
+                                            <button type="button"
+                                                    class="btn btn-sm btn-soft-danger invoice-payment-delete"
+                                                    title="Remove payment"
+                                                    @onclick="@(() => ConfirmDeletePayment(
+                                                                                                        objPayment.Id))">
+
+                                                <span class="material-symbols-outlined">
+                                                    delete
+                                                </span>
+
+                                            </button>
+
+                                        </div>
+                                    }
+
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+                }
+
                 <div class="crm-card">
 
                     <div class="crm-card-header">
@@ -486,6 +984,77 @@
                     <div class="invoice-card-body">
 
                         <h4 class="invoice-side-heading">
+                            Finance
+                        </h4>
+
+                        <div class="invoice-finance-summary">
+
+                            <div>
+
+                                <span>
+                                    Invoice total
+                                </span>
+
+                                <strong>
+                                    @objInvoice.Total.ToString("C")
+                                </strong>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Paid
+                                </span>
+
+                                <strong class="invoice-paid-value">
+                                    @GetAmountPaid().ToString("C")
+                                </strong>
+
+                            </div>
+
+                            <div class="invoice-outstanding-row">
+
+                                <span>
+                                    Outstanding
+                                </span>
+
+                                <strong>
+                                    @GetOutstanding().ToString("C")
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                        @if (objInvoice.Status !=
+                             InvoiceStatus.Draft &&
+                            objInvoice.Status !=
+                             InvoiceStatus.Void &&
+                            GetOutstanding() > 0m)
+                        {
+                            <button type="button"
+                                    class="btn btn-primary w-100 invoice-sidebar-payment-button"
+                                    @onclick="ShowPaymentForm">
+
+                                <span class="material-symbols-outlined">
+                                    add_card
+                                </span>
+
+                                Record payment
+
+                            </button>
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="crm-card">
+
+                    <div class="invoice-card-body">
+
+                        <h4 class="invoice-side-heading">
                             Overview
                         </h4>
 
@@ -532,11 +1101,12 @@
                             <div>
 
                                 <span>
-                                    Total
+                                    Payments
                                 </span>
 
                                 <strong>
-                                    @objInvoice.Total.ToString("C")
+                                    @FormatPaymentCount(
+                                        colPayments.Count)
                                 </strong>
 
                             </div>
@@ -565,12 +1135,44 @@
                     <div class="invoice-card-body">
 
                         <h4 class="invoice-side-heading">
-                            Linked records
+                            Actions
                         </h4>
 
                         <div class="invoice-action-list">
 
-                            <a href="@GetJobUrl(objInvoice.JobId)"
+                            @if (objInvoice.Status ==
+                                InvoiceStatus.Draft)
+                            {
+                                <a href="@GetEditUrl(
+                                                                       objInvoice.Id)"
+                                   class="btn btn-soft-primary w-100">
+
+                                    <span class="material-symbols-outlined">
+                                        edit
+                                    </span>
+
+                                    Edit invoice
+
+                                </a>
+                            }
+                            else
+                            {
+                                <a href="@GetInvoicePdfUrl(
+                                                                       objInvoice.Id)"
+                                   target="_blank"
+                                   class="btn btn-soft-primary w-100">
+
+                                    <span class="material-symbols-outlined">
+                                        picture_as_pdf
+                                    </span>
+
+                                    Open invoice PDF
+
+                                </a>
+                            }
+
+                            <a href="@GetJobUrl(
+                                                               objInvoice.JobId)"
                                class="btn btn-soft-secondary w-100">
 
                                 <span class="material-symbols-outlined">
@@ -630,6 +1232,14 @@
 
     private Invoice? objInvoice;
 
+    private List<Payment> colPayments =
+        [];
+
+    private Payment objPaymentForm =
+        new();
+
+    private Guid? objDeletePaymentId;
+
     private String strPageTitle =
         "Invoice";
 
@@ -639,6 +1249,12 @@
 
     private Boolean blnLoading =
         true;
+
+    private Boolean blnShowPaymentForm;
+
+    private Boolean blnSavingPayment;
+
+    private Boolean blnDeletingPayment;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -659,19 +1275,44 @@
         </a>;
     }
 
-    private async Task LoadInvoiceAsync()
+    private async Task LoadInvoiceAsync(
+        Boolean blnClearMessages = true)
     {
         blnLoading =
             true;
 
-        strErrorMessage =
+        if (blnClearMessages)
+        {
+            strSuccessMessage =
+                null;
+
+            strErrorMessage =
+                null;
+        }
+
+        objDeletePaymentId =
             null;
+
+        HeaderState.SetHeader(
+            "Invoice",
+            "Loading invoice...",
+            GetHeaderActions());
 
         try
         {
-            objInvoice =
-                await InvoiceService.GetInvoiceByIdAsync(
+            Task<Invoice?> objInvoiceTask =
+                InvoiceService.GetInvoiceByIdAsync(
                     InvoiceId);
+
+            Task<List<Payment>> objPaymentsTask =
+                PaymentService.GetPaymentsForInvoiceAsync(
+                    InvoiceId);
+
+            objInvoice =
+                await objInvoiceTask;
+
+            colPayments =
+                await objPaymentsTask;
 
             if (objInvoice == null)
             {
@@ -694,10 +1335,13 @@
                 objInvoice.CustomerName ??
                     objInvoice.Job.Name,
                 GetHeaderActions());
+
+            ResetPaymentForm();
         }
         catch (Exception objError)
         {
             strErrorMessage =
+                "Failed to load invoice: " +
                 objError.Message;
 
             HeaderState.SetHeader(
@@ -712,12 +1356,229 @@
         }
     }
 
-    private static String GetStatusStyle(InvoiceStatus enmStatus)
+    private void ShowPaymentForm()
     {
-        return $"--invoice-status-color: {enmStatus.GetUI().ColorHex};";
+        if (objInvoice == null ||
+            GetOutstanding() <= 0m)
+        {
+            return;
+        }
+
+        ResetPaymentForm();
+
+        blnShowPaymentForm =
+            true;
     }
 
-    private static String GetDateSummary(Invoice objInvoice)
+    private void CancelPayment()
+    {
+        blnShowPaymentForm =
+            false;
+
+        ResetPaymentForm();
+    }
+
+    private void ResetPaymentForm()
+    {
+        objPaymentForm =
+            new Payment
+            {
+                InvoiceId =
+                    InvoiceId,
+
+                Amount =
+                    GetOutstanding(),
+
+                PaymentDateUtc =
+                    DateTime.Today,
+
+                Method =
+                    PaymentMethod.BankTransfer
+            };
+    }
+
+    private async Task SavePaymentAsync()
+    {
+        if (objInvoice == null ||
+            blnSavingPayment)
+        {
+            return;
+        }
+
+        strErrorMessage =
+            null;
+
+        strSuccessMessage =
+            null;
+
+        if (objPaymentForm.Amount <= 0m)
+        {
+            strErrorMessage =
+                "Payment amount must be greater than zero.";
+
+            return;
+        }
+
+        if (objPaymentForm.Amount >
+            GetOutstanding())
+        {
+            strErrorMessage =
+                $"Payment cannot exceed the outstanding balance of {GetOutstanding():C}.";
+
+            return;
+        }
+
+        blnSavingPayment =
+            true;
+
+        try
+        {
+            Guid? objUserId =
+                await CurrentUserState
+                    .GetCurrentUserIdAsync();
+
+            objPaymentForm.InvoiceId =
+                InvoiceId;
+
+            await PaymentService.AddPaymentAsync(
+                objPaymentForm,
+                objUserId);
+
+            blnShowPaymentForm =
+                false;
+
+            await LoadInvoiceAsync(
+                false);
+
+            strSuccessMessage =
+                "Payment recorded";
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Failed to record payment: " +
+                objError.Message;
+        }
+        finally
+        {
+            blnSavingPayment =
+                false;
+        }
+    }
+
+    private void ConfirmDeletePayment(
+        Guid objPaymentId)
+    {
+        objDeletePaymentId =
+            objPaymentId;
+
+        strSuccessMessage =
+            null;
+
+        strErrorMessage =
+            null;
+    }
+
+    private void CancelDeletePayment()
+    {
+        objDeletePaymentId =
+            null;
+    }
+
+    private async Task DeletePaymentAsync()
+    {
+        if (!objDeletePaymentId.HasValue ||
+            blnDeletingPayment)
+        {
+            return;
+        }
+
+        blnDeletingPayment =
+            true;
+
+        strErrorMessage =
+            null;
+
+        strSuccessMessage =
+            null;
+
+        try
+        {
+            Guid? objUserId =
+                await CurrentUserState
+                    .GetCurrentUserIdAsync();
+
+            Boolean blnDeleted =
+                await PaymentService.DeletePaymentAsync(
+                    objDeletePaymentId.Value,
+                    objUserId);
+
+            if (!blnDeleted)
+            {
+                strErrorMessage =
+                    "The payment could not be removed.";
+
+                return;
+            }
+
+            objDeletePaymentId =
+                null;
+
+            await LoadInvoiceAsync(
+                false);
+
+            strSuccessMessage =
+                "Payment removed";
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Failed to remove payment: " +
+                objError.Message;
+        }
+        finally
+        {
+            blnDeletingPayment =
+                false;
+        }
+    }
+
+    private Decimal GetAmountPaid()
+    {
+        return colPayments.Sum(
+            objPayment =>
+                objPayment.Amount);
+    }
+
+    private Decimal GetOutstanding()
+    {
+        if (objInvoice == null)
+        {
+            return 0m;
+        }
+
+        return Math.Max(
+            0m,
+            objInvoice.Total -
+            GetAmountPaid());
+    }
+
+    private static String GetStatusStyle(
+        InvoiceStatus enmStatus)
+    {
+        return
+            $"--invoice-status-color: {enmStatus.GetUI().ColorHex};";
+    }
+
+    private static String GetPaymentMethodStyle(
+        PaymentMethod enmMethod)
+    {
+        return
+            $"--payment-method-color: {enmMethod.GetUI().ColorHex};";
+    }
+
+    private static String GetDateSummary(
+        Invoice objInvoice)
     {
         if (!objInvoice.IssueDateUtc.HasValue)
         {
@@ -726,13 +1587,16 @@
 
         if (objInvoice.DueDateUtc.HasValue)
         {
-            return $"Due {FormatDate(objInvoice.DueDateUtc)}";
+            return
+                $"Due {FormatDate(objInvoice.DueDateUtc)}";
         }
 
-        return $"Issued {FormatDate(objInvoice.IssueDateUtc)}";
+        return
+            $"Issued {FormatDate(objInvoice.IssueDateUtc)}";
     }
 
-    private static String FormatAddress(Invoice objInvoice)
+    private static String FormatAddress(
+        Invoice objInvoice)
     {
         List<String> colParts =
             new[]
@@ -757,7 +1621,8 @@
                 colParts);
     }
 
-    private static String FormatQuantity(Decimal dcmQuantity)
+    private static String FormatQuantity(
+        Decimal dcmQuantity)
     {
         return dcmQuantity.ToString(
             dcmQuantity % 1m == 0m
@@ -765,7 +1630,16 @@
                 : "0.##");
     }
 
-    private static String FormatDate(DateTime? dteDate)
+    private static String FormatPaymentCount(
+        Int32 intCount)
+    {
+        return intCount == 1
+            ? "1 payment"
+            : $"{intCount} payments";
+    }
+
+    private static String FormatDate(
+        DateTime? dteDate)
     {
         return dteDate.HasValue
             ? dteDate.Value
@@ -774,7 +1648,16 @@
             : "-";
     }
 
-    private static String DisplayValue(String? strValue)
+    private static String FormatDate(
+        DateTime dteDate)
+    {
+        return dteDate
+            .ToLocalTime()
+            .ToString("dd MMM yyyy");
+    }
+
+    private static String DisplayValue(
+        String? strValue)
     {
         return String.IsNullOrWhiteSpace(
             strValue)
@@ -782,32 +1665,38 @@
             : strValue;
     }
 
-    private static String GetJobUrl(Guid objJobId)
+    private static String GetJobUrl(
+        Guid objJobId)
     {
         return
             $"/jobs/{objJobId}";
     }
 
-    private static String GetCompanyUrl(Guid objCompanyId)
+    private static String GetCompanyUrl(
+        Guid objCompanyId)
     {
         return
             $"/companies/{objCompanyId}";
     }
 
-    private static String GetContactUrl(Guid objContactId)
+    private static String GetContactUrl(
+        Guid objContactId)
     {
         return
             $"/contacts/{objContactId}";
     }
 
-    private static String GetEditUrl(Guid objInvoiceId)
+    private static String GetEditUrl(
+        Guid objInvoiceId)
     {
         return
             $"/invoices/{objInvoiceId}/edit";
     }
 
-    private static String GetInvoicePdfUrl(Guid objInvoiceId)
+    private static String GetInvoicePdfUrl(
+        Guid objInvoiceId)
     {
-        return $"/invoices/{objInvoiceId}/invoice.pdf";
+        return
+            $"/invoices/{objInvoiceId}/invoice.pdf";
     }
 }

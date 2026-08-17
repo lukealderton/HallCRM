@@ -1,0 +1,1039 @@
+﻿@page "/invoices"
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using CRM.Core.Invoices.Abstractions
+@using CRM.Core.Invoices.Domain
+@using CRM.Core.Payments.Domain
+@using CRM.Web.State
+@using Microsoft.AspNetCore.Components
+
+@inject IInvoiceService InvoiceService
+@inject NavigationManager Navigation
+@inject PageHeaderState HeaderState
+
+<SeoHead Title="Invoices" />
+
+<section class="invoices-page">
+
+    <div class="crm-card invoices-toolbar">
+
+        <div class="invoices-search">
+
+            <label class="form-label"
+                   for="invoiceSearch">
+                Search invoices
+            </label>
+
+            <div class="input-group">
+
+                <span class="input-group-text">
+
+                    <span class="material-symbols-outlined">
+                        search
+                    </span>
+
+                </span>
+
+                <input id="invoiceSearch"
+                       type="search"
+                       class="form-control"
+                       placeholder="Invoice number, customer, job or postcode..."
+                       @bind="strSearchInput"
+                       @bind:event="oninput"
+                       @onkeydown="HandleSearchKeyDown" />
+
+            </div>
+
+        </div>
+
+        <div class="invoices-filters">
+
+            <div class="invoices-status-filter">
+
+                <label class="form-label"
+                       for="invoiceStatus">
+                    Status
+                </label>
+
+                <select id="invoiceStatus"
+                        class="form-select"
+                        value="@GetStatusValue()"
+                        @onchange="StatusChanged">
+
+                    <option value="">
+                        All statuses
+                    </option>
+
+                    @foreach (InvoiceStatus enmStatus
+                        in Enum.GetValues<InvoiceStatus>())
+                    {
+                        <option value="@((Int32)enmStatus)">
+                            @enmStatus.GetDisplay().Name
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+            <div class="invoices-filter-divider"></div>
+
+            <div class="invoices-toggle-filters">
+
+                <button type="button"
+                        class="@GetOutstandingButtonClass()"
+                        @onclick="ToggleOutstanding">
+
+                    <span class="material-symbols-outlined">
+                        account_balance_wallet
+                    </span>
+
+                    Outstanding
+
+                </button>
+
+                <button type="button"
+                        class="@GetOverdueButtonClass()"
+                        @onclick="ToggleOverdue">
+
+                    <span class="material-symbols-outlined">
+                        warning
+                    </span>
+
+                    Overdue
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="invoices-toolbar-actions">
+
+            @if (HasFilters)
+            {
+                <button type="button"
+                        class="btn btn-soft-secondary"
+                        @onclick="ClearFilters">
+
+                    <span class="material-symbols-outlined">
+                        filter_alt_off
+                    </span>
+
+                    Clear
+
+                </button>
+            }
+
+            <button type="button"
+                    class="btn btn-primary"
+                    @onclick="ApplySearch">
+
+                <span class="material-symbols-outlined">
+                    search
+                </span>
+
+                Search
+
+            </button>
+
+        </div>
+
+    </div>
+
+    @if (!String.IsNullOrWhiteSpace(
+        strErrorMessage))
+    {
+        <div class="alert alert-danger invoices-alert">
+
+            <span class="material-symbols-outlined">
+                error
+            </span>
+
+            <div>
+
+                <strong>
+                    Unable to load invoices
+                </strong>
+
+                <p>
+                    @strErrorMessage
+                </p>
+
+            </div>
+
+        </div>
+    }
+
+    @if (blnLoading)
+    {
+        <div class="crm-card">
+
+            <div class="crm-loading">
+
+                <span class="spinner-border spinner-border-sm"></span>
+
+                Loading invoices...
+
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <div class="invoices-summary-grid">
+
+            <div class="crm-card invoices-summary-card">
+
+                <div class="invoices-summary-icon">
+
+                    <span class="material-symbols-outlined">
+                        receipt_long
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <small>
+                        Invoices
+                    </small>
+
+                    <strong>
+                        @colInvoices.Count
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div class="crm-card invoices-summary-card">
+
+                <div class="invoices-summary-icon invoices-summary-icon-value">
+
+                    <span class="material-symbols-outlined">
+                        payments
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <small>
+                        Invoice value
+                    </small>
+
+                    <strong>
+                        @GetInvoiceTotal().ToString("C")
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div class="crm-card invoices-summary-card">
+
+                <div class="invoices-summary-icon invoices-summary-icon-paid">
+
+                    <span class="material-symbols-outlined">
+                        check_circle
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <small>
+                        Paid
+                    </small>
+
+                    <strong>
+                        @GetPaidTotal().ToString("C")
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div class="crm-card invoices-summary-card">
+
+                <div class="invoices-summary-icon invoices-summary-icon-outstanding">
+
+                    <span class="material-symbols-outlined">
+                        account_balance_wallet
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <small>
+                        Outstanding
+                    </small>
+
+                    <strong>
+                        @GetOutstandingTotal().ToString("C")
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="crm-card invoices-results">
+
+            <div class="invoices-results-header">
+
+                <div>
+
+                    <h2>
+                        @GetResultsTitle()
+                    </h2>
+
+                    <p>
+                        @GetResultsSubtitle()
+                    </p>
+
+                </div>
+
+            </div>
+
+            @if (colInvoices.Count == 0)
+            {
+                <div class="invoices-empty">
+
+                    <div class="invoices-empty-icon">
+
+                        <span class="material-symbols-outlined">
+                            receipt_long
+                        </span>
+
+                    </div>
+
+                    <h3>
+                        No invoices found
+                    </h3>
+
+                    <p>
+                        No invoices match the current filters.
+                    </p>
+
+                    @if (HasFilters)
+                    {
+                        <button type="button"
+                                class="btn btn-soft-primary"
+                                @onclick="ClearFilters">
+
+                            Clear filters
+
+                        </button>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <div class="invoices-table-wrap">
+
+                    <table class="table invoices-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Invoice
+                                </th>
+
+                                <th>
+                                    Customer
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th>
+                                    Due
+                                </th>
+
+                                <th class="text-end">
+                                    Total
+                                </th>
+
+                                <th class="text-end">
+                                    Paid
+                                </th>
+
+                                <th class="text-end">
+                                    Outstanding
+                                </th>
+
+                                <th></th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (Invoice objInvoice
+                                in colInvoices)
+                            {
+                                <tr class="@GetInvoiceRowClass(
+                                                                        objInvoice)"
+                                    @onclick="@(() => OpenInvoice(
+                                                                            objInvoice.Id))">
+
+                                    <td>
+
+                                        <div class="invoice-list-primary">
+
+                                            <div class="invoice-list-icon">
+
+                                                <span class="material-symbols-outlined">
+                                                    receipt_long
+                                                </span>
+
+                                            </div>
+
+                                            <div>
+
+                                                <strong>
+                                                    @objInvoice.InvoiceNumber
+                                                </strong>
+
+                                                <span>
+                                                    @objInvoice.Job.Name
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+                                    <td>
+                                        @DisplayValue(
+                                            objInvoice.CustomerName)
+                                    </td>
+
+                                    <td>
+
+                                        <span class="invoice-list-status"
+                                              style="@GetStatusStyle(
+                                                                                              objInvoice.Status)">
+
+                                            <span class="material-symbols-outlined">
+                                                @objInvoice.Status.GetUI().IconName
+                                            </span>
+
+                                            @objInvoice.Status.GetDisplay().Name
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="@GetDueDateClass(
+                                                                                        objInvoice)">
+
+                                            @FormatDate(
+                                                objInvoice.DueDateUtc)
+
+                                            @if (IsOverdue(
+                                                objInvoice))
+                                            {
+                                                <small>
+                                                    Overdue
+                                                </small>
+                                            }
+
+                                        </div>
+
+                                    </td>
+
+                                    <td class="text-end invoice-money">
+                                        @objInvoice.Total.ToString("C")
+                                    </td>
+
+                                    <td class="text-end invoice-money invoice-paid">
+                                        @GetAmountPaid(
+                                            objInvoice).ToString("C")
+                                    </td>
+
+                                    <td class="text-end invoice-money">
+
+                                        <strong class="@GetOutstandingClass(
+                                                                                        objInvoice)">
+
+                                            @GetOutstanding(
+                                                objInvoice).ToString("C")
+
+                                        </strong>
+
+                                    </td>
+
+                                    <td class="invoices-chevron">
+
+                                        <span class="material-symbols-outlined">
+                                            chevron_right
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="invoices-mobile-list">
+
+                    @foreach (Invoice objInvoice
+                        in colInvoices)
+                    {
+                        <button type="button"
+                                class="@GetInvoiceMobileClass(
+                                                                objInvoice)"
+                                @onclick="@(() => OpenInvoice(
+                                                                objInvoice.Id))">
+
+                            <div class="invoice-mobile-top">
+
+                                <div>
+
+                                    <strong>
+                                        @objInvoice.InvoiceNumber
+                                    </strong>
+
+                                    <span>
+                                        @DisplayValue(
+                                            objInvoice.CustomerName)
+                                    </span>
+
+                                </div>
+
+                                <span class="invoice-list-status"
+                                      style="@GetStatusStyle(
+                                                                              objInvoice.Status)">
+
+                                    <span class="material-symbols-outlined">
+                                        @objInvoice.Status.GetUI().IconName
+                                    </span>
+
+                                    @objInvoice.Status.GetDisplay().Name
+
+                                </span>
+
+                            </div>
+
+                            <div class="invoice-mobile-job">
+
+                                <span class="material-symbols-outlined">
+                                    work
+                                </span>
+
+                                @objInvoice.Job.Name
+
+                            </div>
+
+                            <div class="invoice-mobile-money">
+
+                                <div>
+
+                                    <small>
+                                        Total
+                                    </small>
+
+                                    <strong>
+                                        @objInvoice.Total.ToString("C")
+                                    </strong>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Paid
+                                    </small>
+
+                                    <strong class="invoice-paid">
+                                        @GetAmountPaid(
+                                            objInvoice).ToString("C")
+                                    </strong>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Outstanding
+                                    </small>
+
+                                    <strong class="@GetOutstandingClass(
+                                                                                objInvoice)">
+                                        @GetOutstanding(
+                                            objInvoice).ToString("C")
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                            <div class="invoice-mobile-footer">
+
+                                <span class="@GetDueDateClass(
+                                                                        objInvoice)">
+
+                                    <span class="material-symbols-outlined">
+                                        event
+                                    </span>
+
+                                    @if (IsOverdue(
+                                        objInvoice))
+                                    {
+                                        <text>
+                                            Overdue ·
+                                        </text>
+                                    }
+
+                                    @FormatDate(
+                                        objInvoice.DueDateUtc)
+
+                                </span>
+
+                                <span class="material-symbols-outlined">
+                                    chevron_right
+                                </span>
+
+                            </div>
+
+                        </button>
+                    }
+
+                </div>
+            }
+
+        </div>
+    }
+
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "search")]
+    public String? Search { get; set; }
+
+    [SupplyParameterFromQuery(Name = "status")]
+    public String? StatusValue { get; set; }
+
+    [SupplyParameterFromQuery(Name = "outstanding")]
+    public Boolean Outstanding { get; set; }
+
+    [SupplyParameterFromQuery(Name = "overdue")]
+    public Boolean Overdue { get; set; }
+
+    private List<Invoice> colInvoices = [];
+
+    private String strSearchInput = String.Empty;
+
+    private String? strErrorMessage;
+
+    private Boolean blnLoading = true;
+
+    private InvoiceStatus? Status => TryParseStatus(StatusValue);
+
+    private Boolean HasFilters =>
+        !String.IsNullOrWhiteSpace(
+            Search) ||
+        Status.HasValue ||
+        Outstanding ||
+        Overdue;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        strSearchInput =
+            Search ??
+            String.Empty;
+
+        HeaderState.SetHeader(
+            "Invoices",
+            "Invoices, payments and outstanding balances");
+
+        await LoadInvoicesAsync();
+    }
+
+    private async Task LoadInvoicesAsync()
+    {
+        blnLoading =
+            true;
+
+        strErrorMessage =
+            null;
+
+        try
+        {
+            colInvoices =
+                await InvoiceService.GetInvoicesAsync(
+                    strSearch: Search,
+                    enmStatus: Status,
+                    blnOutstandingOnly:
+                        Outstanding || Overdue,
+                    blnOverdueOnly:
+                        Overdue);
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                objError.Message;
+
+            colInvoices =
+                [];
+        }
+        finally
+        {
+            blnLoading =
+                false;
+        }
+    }
+
+    private void ApplySearch()
+    {
+        NavigateWithFilters(
+            strSearchInput,
+            Status,
+            Outstanding,
+            Overdue);
+    }
+
+    private void StatusChanged(
+        ChangeEventArgs objArgs)
+    {
+        InvoiceStatus? enmStatus =
+            null;
+
+        if (Int32.TryParse(
+                objArgs.Value?.ToString(),
+                out Int32 intStatus) &&
+            Enum.IsDefined(
+                typeof(InvoiceStatus),
+                intStatus))
+        {
+            enmStatus =
+                (InvoiceStatus)intStatus;
+        }
+
+        NavigateWithFilters(
+            strSearchInput,
+            enmStatus,
+            Outstanding,
+            Overdue);
+    }
+
+    private void ToggleOutstanding()
+    {
+        Boolean blnOutstanding =
+            !Outstanding;
+
+        NavigateWithFilters(
+            strSearchInput,
+            Status,
+            blnOutstanding,
+            false);
+    }
+
+    private void ToggleOverdue()
+    {
+        Boolean blnOverdue =
+            !Overdue;
+
+        NavigateWithFilters(
+            strSearchInput,
+            Status,
+            blnOverdue,
+            blnOverdue);
+    }
+
+    private void ClearFilters()
+    {
+        Navigation.NavigateTo(
+            "/invoices");
+    }
+
+    private void NavigateWithFilters(
+        String? strSearch,
+        InvoiceStatus? enmStatus,
+        Boolean blnOutstanding,
+        Boolean blnOverdue)
+    {
+        Dictionary<String, Object?> dicQuery =
+            new()
+            {
+                ["search"] =
+                    String.IsNullOrWhiteSpace(
+                        strSearch)
+                        ? null
+                        : strSearch.Trim(),
+
+                ["status"] =
+                    enmStatus?.ToString(),
+
+                ["outstanding"] =
+                    blnOutstanding
+                        ? true
+                        : null,
+
+                ["overdue"] =
+                    blnOverdue
+                        ? true
+                        : null
+            };
+
+        String strUrl =
+            Navigation.GetUriWithQueryParameters(
+                "/invoices",
+                dicQuery);
+
+        Navigation.NavigateTo(
+            strUrl);
+    }
+
+    private void HandleSearchKeyDown(
+        KeyboardEventArgs objArgs)
+    {
+        if (objArgs.Key ==
+            "Enter")
+        {
+            ApplySearch();
+        }
+    }
+
+    private void OpenInvoice(
+        Guid objInvoiceId)
+    {
+        Navigation.NavigateTo(
+            $"/invoices/{objInvoiceId}");
+    }
+
+    private Decimal GetInvoiceTotal()
+    {
+        return colInvoices.Sum(
+            objInvoice =>
+                objInvoice.Total);
+    }
+
+    private Decimal GetPaidTotal()
+    {
+        return colInvoices.Sum(
+            objInvoice =>
+                GetAmountPaid(
+                    objInvoice));
+    }
+
+    private Decimal GetOutstandingTotal()
+    {
+        return colInvoices.Sum(
+            objInvoice =>
+                GetOutstanding(
+                    objInvoice));
+    }
+
+    private static Decimal GetAmountPaid(
+        Invoice objInvoice)
+    {
+        return objInvoice.Payments
+            .Where(objPayment =>
+                !objPayment.Entity.DeletedUtc.HasValue)
+            .Sum(objPayment =>
+                objPayment.Amount);
+    }
+
+    private static Decimal GetOutstanding(
+        Invoice objInvoice)
+    {
+        if (objInvoice.Status ==
+                InvoiceStatus.Draft ||
+            objInvoice.Status ==
+                InvoiceStatus.Void)
+        {
+            return 0m;
+        }
+
+        return Math.Max(
+            0m,
+            objInvoice.Total -
+            GetAmountPaid(
+                objInvoice));
+    }
+
+    private static Boolean IsOverdue(
+        Invoice objInvoice)
+    {
+        return
+            objInvoice.Status !=
+                InvoiceStatus.Draft &&
+            objInvoice.Status !=
+                InvoiceStatus.Void &&
+            objInvoice.DueDateUtc.HasValue &&
+            objInvoice.DueDateUtc.Value.Date <
+                DateTime.UtcNow.Date &&
+            GetOutstanding(
+                objInvoice) > 0m;
+    }
+
+    private String GetResultsTitle()
+    {
+        if (Overdue)
+        {
+            return "Overdue invoices";
+        }
+
+        if (Outstanding)
+        {
+            return "Outstanding invoices";
+        }
+
+        if (Status.HasValue)
+        {
+            return
+                $"{Status.Value.GetDisplay().Name} invoices";
+        }
+
+        return "All invoices";
+    }
+
+    private String GetResultsSubtitle()
+    {
+        if (colInvoices.Count == 1)
+        {
+            return "1 invoice found";
+        }
+
+        return
+            $"{colInvoices.Count} invoices found";
+    }
+
+    private String GetStatusValue()
+    {
+        return Status.HasValue
+            ? ((Int32)Status.Value).ToString()
+            : String.Empty;
+    }
+
+    private String GetOutstandingButtonClass()
+    {
+        return Outstanding
+            ? "btn btn-filter-active"
+            : "btn btn-soft-secondary";
+    }
+
+    private String GetOverdueButtonClass()
+    {
+        return Overdue
+            ? "btn btn-filter-danger-active"
+            : "btn btn-soft-secondary";
+    }
+
+    private static String GetStatusStyle(
+        InvoiceStatus enmStatus)
+    {
+        return
+            $"--invoice-status-color: {enmStatus.GetUI().ColorHex};";
+    }
+
+    private static String GetInvoiceRowClass(
+        Invoice objInvoice)
+    {
+        return IsOverdue(
+            objInvoice)
+            ? "invoice-row invoice-row-overdue"
+            : "invoice-row";
+    }
+
+    private static String GetInvoiceMobileClass(
+        Invoice objInvoice)
+    {
+        return IsOverdue(
+            objInvoice)
+            ? "invoice-mobile-card invoice-mobile-card-overdue"
+            : "invoice-mobile-card";
+    }
+
+    private static String GetDueDateClass(
+        Invoice objInvoice)
+    {
+        return IsOverdue(
+            objInvoice)
+            ? "invoice-due invoice-due-overdue"
+            : "invoice-due";
+    }
+
+    private static String GetOutstandingClass(
+        Invoice objInvoice)
+    {
+        Decimal dcmOutstanding =
+            GetOutstanding(
+                objInvoice);
+
+        if (dcmOutstanding <= 0m)
+        {
+            return "invoice-outstanding invoice-outstanding-paid";
+        }
+
+        if (IsOverdue(
+            objInvoice))
+        {
+            return "invoice-outstanding invoice-outstanding-overdue";
+        }
+
+        return "invoice-outstanding";
+    }
+
+    private static String FormatDate(
+        DateTime? dteDate)
+    {
+        return dteDate.HasValue
+            ? dteDate.Value
+                .ToLocalTime()
+                .ToString("dd MMM yyyy")
+            : "-";
+    }
+
+    private static String DisplayValue(
+        String? strValue)
+    {
+        return String.IsNullOrWhiteSpace(
+            strValue)
+            ? "-"
+            : strValue;
+    }
+
+    private static InvoiceStatus? TryParseStatus(String? strValue)
+    {
+        if (String.IsNullOrWhiteSpace(
+            strValue))
+        {
+            return null;
+        }
+
+        if (Enum.TryParse(
+                strValue,
+                true,
+                out InvoiceStatus enmStatus) &&
+            Enum.IsDefined(
+                typeof(InvoiceStatus),
+                enmStatus))
+        {
+            return enmStatus;
+        }
+
+        return null;
+    }
+}
