@@ -1,0 +1,1088 @@
+@page "/services/{ServiceId:guid}"
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using CRM.Core.Jobs.Domain
+@using CRM.Core.Services.Abstractions
+@using CRM.Web.State
+@using CRM.Web.Users.Abstraction
+@using CrmService = CRM.Core.Services.Domain.Service
+
+@inject IServiceService ServiceService
+@inject ICurrentUserState CurrentUserState
+@inject NavigationManager Navigation
+@inject PageHeaderState HeaderState
+
+<SeoHead Title="@strPageTitle" />
+
+<section class="service-page">
+
+    @if (!String.IsNullOrWhiteSpace(strSuccessMessage))
+    {
+        <div class="alert alert-success service-alert"
+             role="alert">
+
+            <span class="material-symbols-outlined">
+                check_circle
+            </span>
+
+            <div class="alert-content">
+                <strong class="alert-title">
+                    @strSuccessMessage
+                </strong>
+
+                <p>
+                    The service record has been updated.
+                </p>
+            </div>
+        </div>
+    }
+
+    @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+    {
+        <div class="alert alert-danger service-alert"
+             role="alert">
+
+            <span class="material-symbols-outlined">
+                error
+            </span>
+
+            <div class="alert-content">
+                <strong class="alert-title">
+                    Unable to update service
+                </strong>
+
+                <p>
+                    @strErrorMessage
+                </p>
+            </div>
+        </div>
+    }
+
+    @if (blnConfirmArchive)
+    {
+        <div class="alert alert-warning service-alert">
+
+            <span class="material-symbols-outlined">
+                archive
+            </span>
+
+            <div class="alert-content">
+                <strong class="alert-title">
+                    Archive this service?
+                </strong>
+
+                <p>
+                    Archived services will no longer appear in normal service
+                    selectors but existing job links will be retained.
+                </p>
+            </div>
+
+            <div class="alert-actions">
+
+                <button class="btn btn-soft-danger btn-sm"
+                        type="button"
+                        disabled="@blnSaving"
+                        @onclick="ArchiveServiceAsync">
+
+                    Archive service
+                </button>
+
+                <button class="btn btn-soft-secondary btn-sm"
+                        type="button"
+                        @onclick="CancelActions">
+
+                    Cancel
+                </button>
+
+            </div>
+        </div>
+    }
+
+    @if (blnConfirmDelete)
+    {
+        <div class="alert alert-danger service-alert">
+
+            <span class="material-symbols-outlined">
+                delete
+            </span>
+
+            <div class="alert-content">
+                <strong class="alert-title">
+                    Delete this service?
+                </strong>
+
+                <p>
+                    This will mark the service as deleted.
+                    Existing job history will remain in the database.
+                </p>
+            </div>
+
+            <div class="alert-actions">
+
+                <button class="btn btn-soft-danger btn-sm"
+                        type="button"
+                        disabled="@blnSaving"
+                        @onclick="DeleteServiceAsync">
+
+                    Delete service
+                </button>
+
+                <button class="btn btn-soft-secondary btn-sm"
+                        type="button"
+                        @onclick="CancelActions">
+
+                    Cancel
+                </button>
+
+            </div>
+        </div>
+    }
+
+    @if (blnLoading)
+    {
+        <div class="crm-card">
+            <div class="crm-loading">
+
+                <span class="spinner-border spinner-border-sm"></span>
+
+                Loading service...
+
+            </div>
+        </div>
+    }
+    else if (objService == null)
+    {
+        <div class="alert alert-danger service-alert">
+
+            <span class="material-symbols-outlined">
+                search_off
+            </span>
+
+            <div class="alert-content">
+
+                <strong class="alert-title">
+                    Service not found
+                </strong>
+
+                <p>
+                    This service may have been deleted or moved.
+                </p>
+
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="service-profile-card crm-card">
+
+            <div class="service-profile-main">
+
+                <div class="service-profile-icon">
+
+                    <span class="material-symbols-outlined">
+                        home_repair_service
+                    </span>
+
+                </div>
+
+                <div class="service-profile-content">
+
+                    <div class="service-title-row">
+
+                        <h2>
+                            @objService.Name
+                        </h2>
+
+                        @if (objService.Entity.ArchivedUtc.HasValue)
+                        {
+                            <span class="services-status services-status-archived">
+                                Archived
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="services-status services-status-active">
+                                Active
+                            </span>
+                        }
+
+                    </div>
+
+                    <div class="service-meta-row">
+
+                        <span>
+                            <span class="material-symbols-outlined">
+                                payments
+                            </span>
+
+                            @FormatMoney(
+                                objService.DefaultPrice)
+                        </span>
+
+                        <span>
+                            <span class="material-symbols-outlined">
+                                work
+                            </span>
+
+                            @FormatJobCount(
+                                objService.JobLinks.Count)
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="service-profile-actions">
+
+                <a href="@($"/services/{ServiceId}/edit")"
+                   class="btn btn-primary">
+
+                    <span class="material-symbols-outlined">
+                        edit
+                    </span>
+
+                    Edit service
+                </a>
+
+                @if (objService.Entity.ArchivedUtc.HasValue)
+                {
+                    <button type="button"
+                            class="btn btn-soft-primary"
+                            disabled="@blnSaving"
+                            @onclick="RestoreServiceAsync">
+
+                        <span class="material-symbols-outlined">
+                            unarchive
+                        </span>
+
+                        Restore
+                    </button>
+                }
+                else
+                {
+                    <button type="button"
+                            class="btn btn-soft-secondary"
+                            disabled="@blnSaving"
+                            @onclick="ShowArchiveConfirmation">
+
+                        <span class="material-symbols-outlined">
+                            archive
+                        </span>
+
+                        Archive
+                    </button>
+                }
+
+                <button type="button"
+                        class="btn btn-soft-danger"
+                        disabled="@blnSaving"
+                        @onclick="ShowDeleteConfirmation">
+
+                    <span class="material-symbols-outlined">
+                        delete
+                    </span>
+
+                    Delete
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="service-layout">
+
+            <div class="service-main">
+
+                <div class="crm-card">
+
+                    <div class="crm-card-header">
+
+                        <div>
+                            <h3>
+                                Service details
+                            </h3>
+
+                            <p>
+                                Description, pricing and internal information.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="service-card-body">
+
+                        <div class="service-info-grid">
+
+                            <div class="service-info-item">
+
+                                <span class="material-symbols-outlined">
+                                    payments
+                                </span>
+
+                                <div>
+                                    <small>Default price</small>
+
+                                    <strong>
+                                        @FormatMoney(
+                                            objService.DefaultPrice)
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                            <div class="service-info-item">
+
+                                <span class="material-symbols-outlined">
+                                    work
+                                </span>
+
+                                <div>
+                                    <small>Linked jobs</small>
+
+                                    <strong>
+                                        @objService.JobLinks.Count
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="service-description">
+
+                            <small>
+                                Description
+                            </small>
+
+                            @if (!String.IsNullOrWhiteSpace(
+                                objService.Description))
+                            {
+                                <p>
+                                    @objService.Description
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="text-muted">
+                                    No description has been added.
+                                </p>
+                            }
+
+                        </div>
+
+                        <div class="service-description">
+
+                            <small>
+                                Internal notes
+                            </small>
+
+                            @if (!String.IsNullOrWhiteSpace(
+                                objService.Notes))
+                            {
+                                <p>
+                                    @objService.Notes
+                                </p>
+                            }
+                            else
+                            {
+                                <p class="text-muted">
+                                    No internal notes have been added.
+                                </p>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="crm-card">
+
+                    <div class="crm-card-header">
+
+                        <div>
+                            <h3>
+                                Job history
+                            </h3>
+
+                            <p>
+                                Jobs that include this service.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    @if (objService.JobLinks.Count == 0)
+                    {
+                        <div class="service-jobs-empty">
+
+                            <span class="material-symbols-outlined">
+                                work_off
+                            </span>
+
+                            <div>
+                                <strong>
+                                    No linked jobs
+                                </strong>
+
+                                <span>
+                                    This service has not been used on any jobs yet.
+                                </span>
+                            </div>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="service-jobs-table-view">
+
+                            <div class="table-responsive">
+
+                                <table class="table service-jobs-table align-middle">
+
+                                    <thead>
+                                        <tr>
+                                            <th>Job</th>
+                                            <th>Company</th>
+                                            <th>Stage</th>
+                                            <th>Value</th>
+                                            <th>Expected close</th>
+                                            <th class="text-end">
+                                                Action
+                                            </th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+
+                                        @foreach (JobServiceLink objLink
+                                            in objService.JobLinks
+                                                .Where(objLink =>
+                                                    objLink.Job != null)
+                                                .OrderByDescending(objLink =>
+                                                    objLink.Job.ExpectedCloseDateUtc)
+                                                .ThenBy(objLink =>
+                                                    objLink.Job.Name))
+                                        {
+                                            <tr>
+
+                                                <td>
+                                                    <a href="@GetJobUrl(objLink.JobId)"
+                                                       class="service-job-name">
+
+                                                        @objLink.Job.Name
+
+                                                    </a>
+                                                </td>
+
+                                                <td>
+                                                    @if (objLink.Job.Company != null)
+                                                    {
+                                                        <a href="@GetCompanyUrl(
+                                                                                                                       objLink.Job.Company.Id)"
+                                                           class="service-job-company">
+
+                                                            @objLink.Job.Company.Name
+
+                                                        </a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">
+                                                            -
+                                                        </span>
+                                                    }
+                                                </td>
+
+                                                <td>
+                                                    <span class="job-stage">
+                                                        @objLink.Job.Stage.GetDisplay().Name
+                                                    </span>
+                                                </td>
+
+                                                <td>
+                                                    @FormatMoney(
+                                                        objLink.Job.Value)
+                                                </td>
+
+                                                <td>
+                                                    @FormatDate(
+                                                        objLink.Job.ExpectedCloseDateUtc)
+                                                </td>
+
+                                                <td class="text-end">
+
+                                                    <a href="@GetJobUrl(objLink.JobId)"
+                                                       class="btn btn-soft-secondary btn-sm">
+
+                                                        <span class="material-symbols-outlined">
+                                                            chevron_right
+                                                        </span>
+
+                                                    </a>
+
+                                                </td>
+
+                                            </tr>
+                                        }
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                        </div>
+
+                        <div class="service-jobs-mobile">
+
+                            @foreach (JobServiceLink objLink
+                                in objService.JobLinks
+                                    .Where(objLink =>
+                                        objLink.Job != null)
+                                    .OrderByDescending(objLink =>
+                                        objLink.Job.ExpectedCloseDateUtc)
+                                    .ThenBy(objLink =>
+                                        objLink.Job.Name))
+                            {
+                                <article class="service-job-card">
+
+                                    <a href="@GetJobUrl(objLink.JobId)"
+                                       class="service-job-main">
+
+                                        <div class="service-job-icon">
+
+                                            <span class="material-symbols-outlined">
+                                                assignment
+                                            </span>
+
+                                        </div>
+
+                                        <div class="service-job-content">
+
+                                            <div class="service-job-title-row">
+
+                                                <strong>
+                                                    @objLink.Job.Name
+                                                </strong>
+
+                                                <span class="job-stage">
+                                                    @objLink.Job.Stage.GetDisplay().Name
+                                                </span>
+
+                                            </div>
+
+                                            <span>
+                                                @(objLink.Job.Company?.Name ??
+                                                    "No company linked")
+                                            </span>
+
+                                        </div>
+
+                                        <span class="material-symbols-outlined service-job-arrow">
+                                            chevron_right
+                                        </span>
+
+                                    </a>
+
+                                    <div class="service-job-details">
+
+                                        <div>
+                                            <small>Value</small>
+
+                                            <strong>
+                                                @FormatMoney(
+                                                    objLink.Job.Value)
+                                            </strong>
+                                        </div>
+
+                                        <div>
+                                            <small>Expected close</small>
+
+                                            <strong>
+                                                @FormatDate(
+                                                    objLink.Job.ExpectedCloseDateUtc)
+                                            </strong>
+                                        </div>
+
+                                    </div>
+
+                                </article>
+                            }
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+            <aside class="service-side">
+
+                <div class="crm-card">
+
+                    <div class="service-card-body">
+
+                        <h4 class="service-side-heading">
+                            Quick actions
+                        </h4>
+
+                        <div class="service-action-list">
+
+                            <a href="@($"/services/{ServiceId}/edit")"
+                               class="btn btn-soft-primary w-100">
+
+                                <span class="material-symbols-outlined">
+                                    edit
+                                </span>
+
+                                Edit service
+                            </a>
+
+                            <a href="@($"/jobs/add")"
+                               class="btn btn-soft-secondary w-100">
+
+                                <span class="material-symbols-outlined">
+                                    add
+                                </span>
+
+                                Add job
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="crm-card">
+
+                    <div class="service-card-body">
+
+                        <h4 class="service-side-heading">
+                            Overview
+                        </h4>
+
+                        <div class="service-meta-list">
+
+                            <div>
+                                <span>Default price</span>
+
+                                <strong>
+                                    @FormatMoney(
+                                        objService.DefaultPrice)
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Linked jobs</span>
+
+                                <strong>
+                                    @objService.JobLinks.Count
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Status</span>
+
+                                @if (objService.Entity.ArchivedUtc.HasValue)
+                                {
+                                    <strong class="text-warning">
+                                        Archived
+                                    </strong>
+                                }
+                                else
+                                {
+                                    <strong class="text-success">
+                                        Active
+                                    </strong>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="crm-card">
+
+                    <div class="service-card-body">
+
+                        <h4 class="service-side-heading">
+                            Record details
+                        </h4>
+
+                        <div class="service-meta-list">
+
+                            <div>
+                                <span>Created</span>
+
+                                <strong>
+                                    @FormatNullableDate(
+                                        objService.Entity.CreatedUtc)
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Updated</span>
+
+                                <strong>
+                                    @FormatNullableDate(
+                                        objService.Entity.UpdatedUtc)
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Archived</span>
+
+                                <strong>
+                                    @FormatNullableDate(
+                                        objService.Entity.ArchivedUtc)
+                                </strong>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </div>
+    }
+
+</section>
+
+@code {
+    [Parameter]
+    public Guid ServiceId { get; set; }
+
+    private CrmService? objService;
+
+    private Boolean blnLoading =
+        true;
+
+    private Boolean blnSaving;
+
+    private Boolean blnConfirmArchive;
+
+    private Boolean blnConfirmDelete;
+
+    private String strPageTitle =
+        "Service";
+
+    private String? strSuccessMessage;
+
+    private String? strErrorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadServiceAsync();
+    }
+
+    private RenderFragment GetHeaderActions()
+    {
+        return @<a href="/services"
+               class="btn btn-soft-secondary">
+
+            <span class="material-symbols-outlined">
+                arrow_back
+            </span>
+
+            Back to services
+
+        </a>;
+    }
+
+    private async Task LoadServiceAsync()
+    {
+        blnLoading =
+            true;
+
+        strSuccessMessage =
+            null;
+
+        strErrorMessage =
+            null;
+
+        blnConfirmArchive =
+            false;
+
+        blnConfirmDelete =
+            false;
+
+        HeaderState.SetHeader(
+            "Service",
+            "Loading service...",
+            GetHeaderActions());
+
+        try
+        {
+            objService =
+                await ServiceService.GetServiceByIdAsync(
+                    ServiceId);
+
+            if (objService == null)
+            {
+                strPageTitle =
+                    "Service not found";
+
+                HeaderState.SetHeader(
+                    "Service not found",
+                    "The selected service could not be loaded",
+                    GetHeaderActions());
+
+                return;
+            }
+
+            strPageTitle =
+                objService.Name;
+
+            HeaderState.SetHeader(
+                objService.Name,
+                "Service details",
+                GetHeaderActions());
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Failed to load service: " +
+                objError.Message;
+
+            HeaderState.SetHeader(
+                "Service",
+                "Unable to load service",
+                GetHeaderActions());
+        }
+        finally
+        {
+            blnLoading =
+                false;
+        }
+    }
+
+    private void ShowArchiveConfirmation()
+    {
+        blnConfirmArchive =
+            true;
+
+        blnConfirmDelete =
+            false;
+
+        strSuccessMessage =
+            null;
+
+        strErrorMessage =
+            null;
+    }
+
+    private void ShowDeleteConfirmation()
+    {
+        blnConfirmDelete =
+            true;
+
+        blnConfirmArchive =
+            false;
+
+        strSuccessMessage =
+            null;
+
+        strErrorMessage =
+            null;
+    }
+
+    private void CancelActions()
+    {
+        blnConfirmArchive =
+            false;
+
+        blnConfirmDelete =
+            false;
+    }
+
+    private async Task ArchiveServiceAsync()
+    {
+        await RunServiceActionAsync(
+            async objUserId =>
+                await ServiceService.ArchiveServiceAsync(
+                    ServiceId,
+                    objUserId),
+            "Service archived");
+    }
+
+    private async Task RestoreServiceAsync()
+    {
+        await RunServiceActionAsync(
+            async objUserId =>
+                await ServiceService.RestoreServiceAsync(
+                    ServiceId,
+                    objUserId),
+            "Service restored");
+    }
+
+    private async Task DeleteServiceAsync()
+    {
+        if (blnSaving)
+        {
+            return;
+        }
+
+        blnSaving =
+            true;
+
+        strErrorMessage =
+            null;
+
+        strSuccessMessage =
+            null;
+
+        try
+        {
+            Guid? objCurrentUserId =
+                await CurrentUserState.GetCurrentUserIdAsync();
+
+            Boolean blnDeleted =
+                await ServiceService.DeleteServiceAsync(
+                    ServiceId,
+                    objCurrentUserId);
+
+            if (!blnDeleted)
+            {
+                strErrorMessage =
+                    "The service could not be deleted. " +
+                    "It may already have been deleted.";
+
+                return;
+            }
+
+            Navigation.NavigateTo(
+                "/services");
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Failed to delete service: " +
+                objError.Message;
+        }
+        finally
+        {
+            blnSaving =
+                false;
+
+            blnConfirmDelete =
+                false;
+        }
+    }
+
+    private async Task RunServiceActionAsync(
+        Func<Guid?, Task<Boolean>> objAction,
+        String strSuccessMessageText)
+    {
+        if (blnSaving)
+        {
+            return;
+        }
+
+        blnSaving =
+            true;
+
+        strErrorMessage =
+            null;
+
+        strSuccessMessage =
+            null;
+
+        blnConfirmArchive =
+            false;
+
+        blnConfirmDelete =
+            false;
+
+        try
+        {
+            Guid? objCurrentUserId =
+                await CurrentUserState.GetCurrentUserIdAsync();
+
+            Boolean blnSuccess =
+                await objAction(
+                    objCurrentUserId);
+
+            if (!blnSuccess)
+            {
+                strErrorMessage =
+                    "The service could not be updated. " +
+                    "It may have been deleted or no longer exists.";
+
+                return;
+            }
+
+            await LoadServiceAsync();
+
+            strSuccessMessage =
+                strSuccessMessageText;
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Failed to update service: " +
+                objError.Message;
+        }
+        finally
+        {
+            blnSaving =
+                false;
+        }
+    }
+
+    private static String GetJobUrl(
+        Guid objJobId)
+    {
+        return $"/jobs/{objJobId}";
+    }
+
+    private static String GetCompanyUrl(
+        Guid objCompanyId)
+    {
+        return $"/companies/{objCompanyId}";
+    }
+
+    private static String FormatMoney(
+        Decimal? dcmValue)
+    {
+        return dcmValue.HasValue
+            ? dcmValue.Value.ToString("C")
+            : "-";
+    }
+
+    private static String FormatJobCount(
+        Int32 intCount)
+    {
+        return intCount == 1
+            ? "1 linked job"
+            : $"{intCount} linked jobs";
+    }
+
+    private static String FormatDate(
+        DateTime? dtmValue)
+    {
+        return dtmValue.HasValue
+            ? dtmValue.Value
+                .ToLocalTime()
+                .ToString("dd MMM yyyy")
+            : "-";
+    }
+
+    private static String FormatNullableDate(
+        DateTime? dtmValue)
+    {
+        return FormatDate(
+            dtmValue);
+    }
+}

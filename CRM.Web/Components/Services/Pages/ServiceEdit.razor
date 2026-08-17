@@ -1,0 +1,613 @@
+﻿@page "/services/add"
+@page "/services/{ServiceId:guid}/edit"
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using CRM.Core.Services.Abstractions
+@using CRM.Web.State
+@using CRM.Web.Users.Abstraction
+@using CrmService = CRM.Core.Services.Domain.Service
+
+@inject IServiceService ServiceService
+@inject ICurrentUserState CurrentUserState
+@inject NavigationManager Navigation
+@inject PageHeaderState HeaderState
+
+<SeoHead Title="@strPageTitle" />
+
+<section class="service-edit-page">
+
+    <div class="service-edit-toolbar">
+
+        <button type="button"
+                class="btn btn-soft-secondary"
+                @onclick="GoBack">
+
+            <span class="material-symbols-outlined">
+                arrow_back
+            </span>
+
+            @(blnEditMode
+                ? "Back to service"
+                : "Back to services")
+
+        </button>
+
+    </div>
+
+    @if (!String.IsNullOrWhiteSpace(
+        strErrorMessage))
+    {
+        <div class="alert alert-danger service-edit-alert"
+             role="alert">
+
+            <span class="material-symbols-outlined">
+                error
+            </span>
+
+            <div class="alert-content">
+
+                <strong class="alert-title">
+                    Unable to save service
+                </strong>
+
+                <p>
+                    @strErrorMessage
+                </p>
+
+            </div>
+
+        </div>
+    }
+
+    @if (blnLoading)
+    {
+        <div class="crm-card">
+
+            <div class="crm-loading">
+
+                <span class="spinner-border spinner-border-sm"></span>
+
+                Loading service...
+
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <EditForm Model="objService"
+                  OnValidSubmit="SaveServiceAsync"
+                  FormName="ServiceEditForm">
+
+            <DataAnnotationsValidator />
+
+            <div class="service-edit-layout">
+
+                <div class="service-edit-main">
+
+                    <div class="crm-card service-edit-card">
+
+                        <div class="crm-card-header">
+
+                            <div>
+                                <h3>
+                                    Service details
+                                </h3>
+
+                                <p>
+                                    Define the type of work that can be added to jobs.
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <div class="service-edit-card-body">
+
+                            <div class="row g-3">
+
+                                <div class="col-12 col-lg-8">
+
+                                    <label class="form-label"
+                                           for="serviceName">
+                                        Name
+                                    </label>
+
+                                    <InputText id="serviceName"
+                                               class="form-control"
+                                               @bind-Value="objService.Name"
+                                               placeholder="e.g. Gutter Cleaning" />
+
+                                </div>
+
+                                <div class="col-12 col-lg-4">
+
+                                    <label class="form-label"
+                                           for="serviceDefaultPrice">
+                                        Default price
+                                    </label>
+
+                                    <div class="input-group">
+
+                                        <span class="input-group-text">
+                                            £
+                                        </span>
+
+                                        <InputNumber id="serviceDefaultPrice"
+                                                     class="form-control"
+                                                     @bind-Value="objService.DefaultPrice"
+                                                     step="0.01" />
+
+                                    </div>
+
+                                    <div class="form-text">
+                                        Optional. Jobs can still use a different value.
+                                    </div>
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <label class="form-label"
+                                           for="serviceDescription">
+                                        Description
+                                    </label>
+
+                                    <InputTextArea id="serviceDescription"
+                                                   class="form-control service-description-input"
+                                                   rows="5"
+                                                   @bind-Value="objService.Description"
+                                                   placeholder="Describe what is included in this service..." />
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <label class="form-label"
+                                           for="serviceNotes">
+                                        Internal notes
+                                    </label>
+
+                                    <InputTextArea id="serviceNotes"
+                                                   class="form-control service-notes-input"
+                                                   rows="5"
+                                                   @bind-Value="objService.Notes"
+                                                   placeholder="Internal notes about pricing, exclusions or delivery..." />
+
+                                    <div class="form-text">
+                                        These notes are for CRM users and are not intended for customers.
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <aside class="service-edit-side">
+
+                    <div class="crm-card service-preview-card">
+
+                        <div class="service-preview-icon">
+
+                            <span class="material-symbols-outlined">
+                                home_repair_service
+                            </span>
+
+                        </div>
+
+                        <h3>
+                            @(String.IsNullOrWhiteSpace(
+                                objService.Name)
+                                ? "New service"
+                                : objService.Name)
+                        </h3>
+
+                        @if (!String.IsNullOrWhiteSpace(
+                            objService.Description))
+                        {
+                            <p>
+                                @GetDescriptionPreview(
+                                    objService.Description)
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="service-preview-muted">
+                                Add a description to explain what this service covers.
+                            </p>
+                        }
+
+                        <div class="service-preview-meta">
+
+                            <div>
+                                <span>Default price</span>
+
+                                <strong>
+                                    @FormatMoney(
+                                        objService.DefaultPrice)
+                                </strong>
+                            </div>
+
+                            @if (blnEditMode)
+                            {
+                                <div>
+                                    <span>Linked jobs</span>
+
+                                    <strong>
+                                        @objService.JobLinks.Count
+                                    </strong>
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+
+                    <div class="crm-card service-save-card">
+
+                        <div class="service-save-icon">
+
+                            <span class="material-symbols-outlined">
+                                save
+                            </span>
+
+                        </div>
+
+                        <h3>
+                            @(blnEditMode
+                                ? "Save changes"
+                                : "Create service")
+                        </h3>
+
+                        <p>
+                            @(blnEditMode
+                                ? "Save the updated service details."
+                                : "Create this service so it can be assigned to jobs.")
+                        </p>
+
+                        <div class="service-save-actions">
+
+                            <button type="submit"
+                                    class="btn btn-primary"
+                                    disabled="@blnSaving">
+
+                                @if (blnSaving)
+                                {
+                                    <span class="spinner-border spinner-border-sm"></span>
+
+                                    <span>
+                                        Saving...
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="material-symbols-outlined">
+                                        save
+                                    </span>
+
+                                    <span>
+                                        @(blnEditMode
+                                            ? "Save changes"
+                                            : "Create service")
+                                    </span>
+                                }
+
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-soft-secondary"
+                                    disabled="@blnSaving"
+                                    @onclick="GoBack">
+
+                                Cancel
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    @if (blnEditMode &&
+                         objService.Entity != null)
+                    {
+                        <div class="crm-card">
+
+                            <div class="service-edit-card-body">
+
+                                <h4 class="service-side-heading">
+                                    Record details
+                                </h4>
+
+                                <div class="service-meta-list">
+
+                                    <div>
+                                        <span>Created</span>
+
+                                        <strong>
+                                            @FormatNullableDate(
+                                                objService.Entity.CreatedUtc)
+                                        </strong>
+                                    </div>
+
+                                    <div>
+                                        <span>Updated</span>
+
+                                        <strong>
+                                            @FormatNullableDate(
+                                                objService.Entity.UpdatedUtc)
+                                        </strong>
+                                    </div>
+
+                                    <div>
+                                        <span>Status</span>
+
+                                        @if (objService.Entity.DeletedUtc.HasValue)
+                                        {
+                                            <strong class="text-danger">
+                                                Deleted
+                                            </strong>
+                                        }
+                                        else if (objService.Entity.ArchivedUtc.HasValue)
+                                        {
+                                            <strong class="text-warning">
+                                                Archived
+                                            </strong>
+                                        }
+                                        else
+                                        {
+                                            <strong class="text-success">
+                                                Active
+                                            </strong>
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </aside>
+
+            </div>
+
+        </EditForm>
+    }
+
+</section>
+
+@code {
+    [Parameter]
+    public Guid? ServiceId { get; set; }
+
+    private CrmService objService =
+        new();
+
+    private Boolean blnLoading =
+        true;
+
+    private Boolean blnSaving;
+
+    private String strPageTitle =
+        "Add service";
+
+    private String? strErrorMessage;
+
+    private Boolean blnEditMode =>
+        ServiceId.HasValue &&
+        ServiceId.Value != Guid.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadPageAsync();
+    }
+
+    private async Task LoadPageAsync()
+    {
+        blnLoading =
+            true;
+
+        strErrorMessage =
+            null;
+
+        try
+        {
+            if (blnEditMode)
+            {
+                CrmService? objExistingService =
+                    await ServiceService.GetServiceByIdAsync(
+                        ServiceId!.Value);
+
+                if (objExistingService == null)
+                {
+                    strErrorMessage =
+                        "The service could not be found.";
+
+                    HeaderState.SetHeader(
+                        "Service not found",
+                        "The selected service could not be loaded");
+
+                    return;
+                }
+
+                objService =
+                    objExistingService;
+
+                strPageTitle =
+                    "Edit " +
+                    objService.Name;
+
+                HeaderState.SetHeader(
+                    "Edit service",
+                    objService.Name);
+
+                return;
+            }
+
+            objService =
+                new CrmService();
+
+            strPageTitle =
+                "Add service";
+
+            HeaderState.SetHeader(
+                "Add service",
+                "Create a service that can be assigned to jobs");
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Failed to load service: " +
+                objError.Message;
+        }
+        finally
+        {
+            blnLoading =
+                false;
+        }
+    }
+
+    private async Task SaveServiceAsync()
+    {
+        if (blnSaving)
+        {
+            return;
+        }
+
+        strErrorMessage =
+            null;
+
+        if (String.IsNullOrWhiteSpace(
+            objService.Name))
+        {
+            strErrorMessage =
+                "Service name is required.";
+
+            return;
+        }
+
+        if (objService.DefaultPrice.HasValue &&
+            objService.DefaultPrice.Value < 0m)
+        {
+            strErrorMessage =
+                "Default price cannot be negative.";
+
+            return;
+        }
+
+        blnSaving =
+            true;
+
+        try
+        {
+            Guid? objCurrentUserId =
+                await CurrentUserState.GetCurrentUserIdAsync();
+
+            CrmService objSavedService;
+
+            if (blnEditMode)
+            {
+                CrmService? objUpdatedService =
+                    await ServiceService.UpdateServiceAsync(
+                        objService,
+                        objCurrentUserId);
+
+                if (objUpdatedService == null)
+                {
+                    strErrorMessage =
+                        "The service could not be updated. " +
+                        "It may have been deleted or no longer exists.";
+
+                    return;
+                }
+
+                objSavedService =
+                    objUpdatedService;
+            }
+            else
+            {
+                objSavedService =
+                    await ServiceService.AddServiceAsync(
+                        objService,
+                        objCurrentUserId);
+            }
+
+            Navigation.NavigateTo(
+                $"/services/{objSavedService.Id}");
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Failed to save service: " +
+                objError.Message;
+        }
+        finally
+        {
+            blnSaving =
+                false;
+        }
+    }
+
+    private void GoBack()
+    {
+        if (blnEditMode &&
+            ServiceId.HasValue)
+        {
+            Navigation.NavigateTo(
+                $"/services/{ServiceId.Value}");
+
+            return;
+        }
+
+        Navigation.NavigateTo(
+            "/services");
+    }
+
+    private static String FormatMoney(
+        Decimal? dcmValue)
+    {
+        return dcmValue.HasValue
+            ? dcmValue.Value.ToString("C")
+            : "Not set";
+    }
+
+    private static String FormatNullableDate(
+        DateTime? dtmValue)
+    {
+        return dtmValue.HasValue
+            ? dtmValue.Value
+                .ToLocalTime()
+                .ToString("dd MMM yyyy")
+            : "-";
+    }
+
+    private static String GetDescriptionPreview(
+        String strDescription)
+    {
+        String strValue =
+            strDescription.Trim();
+
+        const Int32 intMaximumLength =
+            180;
+
+        if (strValue.Length <= intMaximumLength)
+        {
+            return strValue;
+        }
+
+        return strValue
+            .Substring(
+                0,
+                intMaximumLength)
+            .TrimEnd() +
+            "…";
+    }
+}

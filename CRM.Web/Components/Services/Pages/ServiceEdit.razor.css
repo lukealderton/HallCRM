@@ -1,0 +1,462 @@
+﻿.service-edit-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* ---------------------------------
+   Toolbar
+---------------------------------- */
+
+.service-edit-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+    .service-edit-toolbar .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+    .service-edit-toolbar
+    .material-symbols-outlined {
+        font-size: 19px;
+    }
+
+/* ---------------------------------
+   Layout
+---------------------------------- */
+
+.service-edit-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 1rem;
+    align-items: start;
+}
+
+.service-edit-main,
+.service-edit-side {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.service-edit-side {
+    position: sticky;
+    top: 138px;
+}
+
+/* ---------------------------------
+   Form card
+---------------------------------- */
+
+.service-edit-card {
+    overflow: hidden;
+}
+
+.service-edit-card-body {
+    min-width: 0;
+    padding: 1.25rem;
+}
+
+.service-edit-page .form-label {
+    margin-bottom: .35rem;
+    color: #334155;
+    font-size: .8rem;
+    font-weight: 750;
+}
+
+.service-edit-page .form-control,
+.service-edit-page .form-select,
+.service-edit-page .input-group-text {
+    min-height: 42px;
+}
+
+.service-edit-page .input-group-text {
+    color: #64748b;
+    background: #f8fafc;
+}
+
+.service-edit-page textarea.form-control {
+    resize: vertical;
+}
+
+.service-description-input {
+    min-height: 130px;
+}
+
+.service-notes-input {
+    min-height: 130px;
+}
+
+.service-edit-page .form-text {
+    color: #64748b;
+    font-size: .72rem;
+    line-height: 1.4;
+}
+
+/* ---------------------------------
+   Preview
+---------------------------------- */
+
+.service-preview-card {
+    padding: 1.15rem;
+    text-align: center;
+}
+
+.service-preview-icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto .8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    background: #eef4ff;
+    border-radius: .9rem;
+}
+
+    .service-preview-icon
+    .material-symbols-outlined {
+        font-size: 27px;
+    }
+
+.service-preview-card h3 {
+    margin: 0;
+    color: #111827;
+    font-size: 1.05rem;
+    font-weight: 850;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.service-preview-card > p {
+    margin: .4rem 0 0;
+    color: #64748b;
+    font-size: .76rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.service-preview-muted {
+    color: #94a3b8 !important;
+}
+
+.service-preview-meta {
+    margin-top: 1rem;
+    text-align: left;
+}
+
+    .service-preview-meta > div {
+        padding: .65rem 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        border-top: 1px solid #edf0f4;
+    }
+
+    .service-preview-meta span {
+        color: #64748b;
+        font-size: .75rem;
+    }
+
+    .service-preview-meta strong {
+        min-width: 0;
+        max-width: 60%;
+        color: #111827;
+        font-size: .78rem;
+        font-weight: 800;
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+
+/* ---------------------------------
+   Save
+---------------------------------- */
+
+.service-save-card {
+    padding: 1.15rem;
+    text-align: center;
+}
+
+.service-save-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto .75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    background: #eef4ff;
+    border-radius: .8rem;
+}
+
+    .service-save-icon
+    .material-symbols-outlined {
+        font-size: 25px;
+    }
+
+.service-save-card h3 {
+    margin: 0;
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 850;
+}
+
+.service-save-card > p {
+    margin: .3rem 0 0;
+    color: #64748b;
+    font-size: .76rem;
+    line-height: 1.45;
+}
+
+.service-save-actions {
+    margin-top: .9rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+    .service-save-actions .btn {
+        width: 100%;
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .4rem;
+    }
+
+    .service-save-actions
+    .material-symbols-outlined {
+        font-size: 19px;
+    }
+
+/* ---------------------------------
+   Metadata
+---------------------------------- */
+
+.service-side-heading {
+    margin: 0 0 1rem;
+    color: #111827;
+    font-size: .95rem;
+    font-weight: 850;
+}
+
+.service-meta-list {
+    display: flex;
+    flex-direction: column;
+}
+
+    .service-meta-list > div {
+        padding: .65rem 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid #edf0f4;
+    }
+
+        .service-meta-list > div:first-child {
+            padding-top: 0;
+        }
+
+        .service-meta-list > div:last-child {
+            padding-bottom: 0;
+            border-bottom: 0;
+        }
+
+    .service-meta-list span {
+        color: #64748b;
+        font-size: .78rem;
+    }
+
+    .service-meta-list strong {
+        min-width: 0;
+        max-width: 65%;
+        color: #111827;
+        font-size: .78rem;
+        font-weight: 800;
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+
+/* ---------------------------------
+   Alert
+---------------------------------- */
+
+.service-edit-alert {
+    min-width: 0;
+    align-items: flex-start;
+}
+
+    .service-edit-alert .alert-content {
+        min-width: 0;
+    }
+
+    .service-edit-alert p {
+        overflow-wrap: anywhere;
+    }
+
+/* ---------------------------------
+   Tablet
+---------------------------------- */
+
+@media (max-width: 1199.98px) {
+
+    .service-edit-layout {
+        grid-template-columns: minmax(0, 1fr) 270px;
+    }
+}
+
+@media (max-width: 991.98px) {
+
+    .service-edit-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .service-edit-side {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
+
+        .service-edit-side > .crm-card:last-child {
+            grid-column: 1 / -1;
+        }
+}
+
+/* ---------------------------------
+   Mobile
+---------------------------------- */
+
+@media (max-width: 767.98px) {
+
+    .service-edit-page {
+        gap: .8rem;
+    }
+
+    .service-edit-toolbar {
+        width: 100%;
+    }
+
+        .service-edit-toolbar .btn {
+            width: 100%;
+            min-height: 44px;
+            justify-content: center;
+        }
+
+    .service-edit-layout {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: .8rem;
+    }
+
+    .service-edit-main,
+    .service-edit-side {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: .8rem;
+    }
+
+    .service-edit-card-body {
+        padding: .9rem;
+    }
+
+    .service-edit-page .form-control,
+    .service-edit-page .form-select,
+    .service-edit-page .input-group-text {
+        min-height: 44px;
+    }
+
+    .service-description-input,
+    .service-notes-input {
+        min-height: 120px;
+    }
+
+    /* Preview */
+
+    .service-preview-card {
+        padding: .9rem;
+    }
+
+    .service-preview-icon {
+        width: 46px;
+        height: 46px;
+        margin-bottom: .65rem;
+    }
+
+        .service-preview-icon
+        .material-symbols-outlined {
+            font-size: 24px;
+        }
+
+    .service-preview-card h3 {
+        font-size: .95rem;
+    }
+
+    .service-preview-card > p {
+        font-size: .72rem;
+    }
+
+    /* Save goes last */
+
+    .service-save-card {
+        order: 99;
+        padding: .9rem;
+    }
+
+    .service-save-icon {
+        width: 44px;
+        height: 44px;
+        margin-bottom: .6rem;
+    }
+
+        .service-save-icon
+        .material-symbols-outlined {
+            font-size: 23px;
+        }
+
+    .service-save-actions .btn {
+        min-height: 44px;
+    }
+
+    /* Meta */
+
+    .service-meta-list span,
+    .service-meta-list strong {
+        font-size: .75rem;
+    }
+}
+
+/* ---------------------------------
+   Small phones
+---------------------------------- */
+
+@media (max-width: 575.98px) {
+
+    .service-edit-card-body,
+    .service-preview-card,
+    .service-save-card {
+        padding: .8rem;
+    }
+
+    .service-meta-list > div,
+    .service-preview-meta > div {
+        flex-direction: column;
+        gap: .15rem;
+    }
+
+    .service-meta-list strong,
+    .service-preview-meta strong {
+        max-width: none;
+        text-align: left;
+    }
+}
