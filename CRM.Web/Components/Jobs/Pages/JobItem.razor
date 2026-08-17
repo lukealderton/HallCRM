@@ -18,24 +18,42 @@
 
     @if (!String.IsNullOrWhiteSpace(strSuccessMessage))
     {
-        <div class="alert alert-success job-alert" role="alert">
-            <span class="material-symbols-outlined">check_circle</span>
+        <div class="alert alert-success job-alert"
+             role="alert">
+
+            <span class="material-symbols-outlined">
+                check_circle
+            </span>
 
             <div class="alert-content">
-                <strong class="alert-title">@strSuccessMessage</strong>
-                <p>The job record has been updated.</p>
+                <strong class="alert-title">
+                    @strSuccessMessage
+                </strong>
+
+                <p>
+                    The job record has been updated.
+                </p>
             </div>
         </div>
     }
 
     @if (!String.IsNullOrWhiteSpace(strErrorMessage))
     {
-        <div class="alert alert-danger job-alert" role="alert">
-            <span class="material-symbols-outlined">error</span>
+        <div class="alert alert-danger job-alert"
+             role="alert">
+
+            <span class="material-symbols-outlined">
+                error
+            </span>
 
             <div class="alert-content">
-                <strong class="alert-title">Unable to update job</strong>
-                <p>@strErrorMessage</p>
+                <strong class="alert-title">
+                    Unable to update job
+                </strong>
+
+                <p>
+                    @strErrorMessage
+                </p>
             </div>
         </div>
     }
@@ -43,14 +61,24 @@
     @if (blnConfirmArchive)
     {
         <div class="alert alert-warning job-alert">
-            <span class="material-symbols-outlined">archive</span>
+
+            <span class="material-symbols-outlined">
+                archive
+            </span>
 
             <div class="alert-content">
-                <strong class="alert-title">Archive this job?</strong>
-                <p>Archived jobs are hidden from normal pipeline views but can be restored later.</p>
+                <strong class="alert-title">
+                    Archive this job?
+                </strong>
+
+                <p>
+                    Archived jobs are hidden from normal pipeline views
+                    but can be restored later.
+                </p>
             </div>
 
             <div class="alert-actions">
+
                 <button class="btn btn-soft-danger btn-sm"
                         type="button"
                         @onclick="ArchiveJobAsync"
@@ -63,6 +91,7 @@
                         @onclick="CancelActions">
                     Cancel
                 </button>
+
             </div>
         </div>
     }
@@ -70,14 +99,24 @@
     @if (blnConfirmDelete)
     {
         <div class="alert alert-danger job-alert">
-            <span class="material-symbols-outlined">delete</span>
+
+            <span class="material-symbols-outlined">
+                delete
+            </span>
 
             <div class="alert-content">
-                <strong class="alert-title">Delete this job?</strong>
-                <p>This will mark the job as deleted. It will no longer appear in normal job lists.</p>
+                <strong class="alert-title">
+                    Delete this job?
+                </strong>
+
+                <p>
+                    This will mark the job as deleted.
+                    It will no longer appear in normal job lists.
+                </p>
             </div>
 
             <div class="alert-actions">
+
                 <button class="btn btn-soft-danger btn-sm"
                         type="button"
                         @onclick="DeleteJobAsync"
@@ -90,6 +129,7 @@
                         @onclick="CancelActions">
                     Cancel
                 </button>
+
             </div>
         </div>
     }
@@ -98,33 +138,51 @@
     {
         <div class="crm-card">
             <div class="crm-loading">
+
                 <span class="spinner-border spinner-border-sm"></span>
+
                 Loading job...
+
             </div>
         </div>
     }
     else if (objJob == null)
     {
-        <div class="alert alert-danger job-alert" role="alert">
-            <span class="material-symbols-outlined">search_off</span>
+        <div class="alert alert-danger job-alert"
+             role="alert">
+
+            <span class="material-symbols-outlined">
+                search_off
+            </span>
 
             <div class="alert-content">
-                <strong class="alert-title">Job not found</strong>
-                <p>This job may have been deleted or moved.</p>
+                <strong class="alert-title">
+                    Job not found
+                </strong>
+
+                <p>
+                    This job may have been deleted or moved.
+                </p>
             </div>
         </div>
     }
     else
     {
         <div class="job-profile-card crm-card">
+
             <div class="job-profile-main">
+
                 <div class="job-avatar">
                     @GetJobInitial(objJob)
                 </div>
 
                 <div>
+
                     <div class="job-title-row">
-                        <h2>@objJob.Name</h2>
+
+                        <h2>
+                            @objJob.Name
+                        </h2>
 
                         <span class="@GetStageBadgeClass(objJob.Stage)">
                             @objJob.Stage.GetDisplay().Name
@@ -142,6 +200,7 @@
                                 Active
                             </span>
                         }
+
                     </div>
 
                     <p class="job-subtitle">
@@ -149,22 +208,49 @@
                     </p>
 
                     <div class="job-meta-row">
+
                         <span>
-                            <span class="material-symbols-outlined">payments</span>
+                            <span class="material-symbols-outlined">
+                                payments
+                            </span>
+
                             @FormatMoney(objJob.Value)
                         </span>
 
                         <span>
-                            <span class="material-symbols-outlined">percent</span>
-                            @FormatProbability(objJob.ProbabilityPercent)
+                            <span class="material-symbols-outlined">
+                                percent
+                            </span>
+
+                            @FormatProbability(
+                                objJob.ProbabilityPercent)
                         </span>
 
                         <span>
-                            <span class="material-symbols-outlined">event</span>
-                            @FormatDate(objJob.ExpectedCloseDateUtc)
+                            <span class="material-symbols-outlined">
+                                event
+                            </span>
+
+                            @FormatDate(
+                                objJob.ExpectedCloseDateUtc)
                         </span>
+
+                        @if (objJob.ServiceLinks.Count > 0)
+                        {
+                            <span>
+                                <span class="material-symbols-outlined">
+                                    home_repair_service
+                                </span>
+
+                                @FormatServiceCount(
+                                    objJob.ServiceLinks.Count)
+                            </span>
+                        }
+
                     </div>
+
                 </div>
+
             </div>
 
             <div class="job-profile-actions">
@@ -172,7 +258,11 @@
                 <button type="button"
                         class="btn btn-primary"
                         @onclick="GoToEdit">
-                    <span class="material-symbols-outlined">edit</span>
+
+                    <span class="material-symbols-outlined">
+                        edit
+                    </span>
+
                     Edit job
                 </button>
 
@@ -182,7 +272,11 @@
                             class="btn btn-soft-primary"
                             disabled="@blnSaving"
                             @onclick="RestoreJobAsync">
-                        <span class="material-symbols-outlined">unarchive</span>
+
+                        <span class="material-symbols-outlined">
+                            unarchive
+                        </span>
+
                         Restore
                     </button>
                 }
@@ -192,7 +286,11 @@
                             class="btn btn-soft-secondary"
                             disabled="@blnSaving"
                             @onclick="ShowArchiveConfirmation">
-                        <span class="material-symbols-outlined">archive</span>
+
+                        <span class="material-symbols-outlined">
+                            archive
+                        </span>
+
                         Archive
                     </button>
                 }
@@ -201,11 +299,16 @@
                         class="btn btn-soft-danger"
                         disabled="@blnSaving"
                         @onclick="ShowDeleteConfirmation">
-                    <span class="material-symbols-outlined">delete</span>
+
+                    <span class="material-symbols-outlined">
+                        delete
+                    </span>
+
                     Delete
                 </button>
 
             </div>
+
         </div>
 
         <div class="job-layout">
@@ -213,66 +316,216 @@
             <div class="job-main-column">
 
                 <div class="crm-card">
+
                     <div class="crm-card-header">
                         <div>
                             <h3>Job details</h3>
-                            <p>Value, probability, source and expected close date.</p>
+
+                            <p>
+                                Value, probability, source and expected close date.
+                            </p>
                         </div>
                     </div>
 
                     <div class="job-card-body">
+
                         <div class="job-details-grid">
 
                             <div class="job-detail-item">
-                                <span class="material-symbols-outlined">payments</span>
+
+                                <span class="material-symbols-outlined">
+                                    payments
+                                </span>
 
                                 <div>
                                     <small>Value</small>
-                                    <strong>@FormatMoney(objJob.Value)</strong>
+
+                                    <strong>
+                                        @FormatMoney(objJob.Value)
+                                    </strong>
                                 </div>
+
                             </div>
 
                             <div class="job-detail-item">
-                                <span class="material-symbols-outlined">percent</span>
+
+                                <span class="material-symbols-outlined">
+                                    percent
+                                </span>
 
                                 <div>
                                     <small>Probability</small>
-                                    <strong>@FormatProbability(objJob.ProbabilityPercent)</strong>
+
+                                    <strong>
+                                        @FormatProbability(
+                                            objJob.ProbabilityPercent)
+                                    </strong>
                                 </div>
+
                             </div>
 
                             <div class="job-detail-item">
-                                <span class="material-symbols-outlined">event</span>
+
+                                <span class="material-symbols-outlined">
+                                    event
+                                </span>
 
                                 <div>
                                     <small>Expected close</small>
-                                    <strong>@FormatDate(objJob.ExpectedCloseDateUtc)</strong>
+
+                                    <strong>
+                                        @FormatDate(
+                                            objJob.ExpectedCloseDateUtc)
+                                    </strong>
                                 </div>
+
                             </div>
 
                             <div class="job-detail-item">
-                                <span class="material-symbols-outlined">campaign</span>
+
+                                <span class="material-symbols-outlined">
+                                    campaign
+                                </span>
 
                                 <div>
                                     <small>Source</small>
-                                    <strong>@DisplayValue(objJob.Source)</strong>
+
+                                    <strong>
+                                        @DisplayValue(objJob.Source)
+                                    </strong>
                                 </div>
+
                             </div>
 
                         </div>
+
                     </div>
+
                 </div>
 
                 <div class="crm-card">
+
+                    <div class="crm-card-header">
+
+                        <div>
+                            <h3>Services</h3>
+
+                            <p>
+                                Work and services included in this job.
+                            </p>
+                        </div>
+
+                        <a href="@($"/jobs/{JobId}/edit")"
+                           class="btn btn-soft-secondary btn-sm">
+
+                            <span class="material-symbols-outlined">
+                                edit
+                            </span>
+
+                            Manage
+                        </a>
+
+                    </div>
+
+                    <div class="job-card-body">
+
+                        @if (objJob.ServiceLinks.Count == 0)
+                        {
+                            <div class="job-services-empty">
+
+                                <span class="material-symbols-outlined">
+                                    home_repair_service
+                                </span>
+
+                                <div>
+                                    <strong>
+                                        No services linked
+                                    </strong>
+
+                                    <span>
+                                        Add services to record the work
+                                        included in this job.
+                                    </span>
+                                </div>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="job-services-list">
+
+                                @foreach (JobServiceLink objLink
+                                    in objJob.ServiceLinks
+                                        .OrderBy(objLink =>
+                                            objLink.Service.Name))
+                                {
+                                    <div class="job-service-card">
+
+                                        <div class="job-service-icon">
+
+                                            <span class="material-symbols-outlined">
+                                                home_repair_service
+                                            </span>
+
+                                        </div>
+
+                                        <div class="job-service-content">
+
+                                            <strong>
+                                                @objLink.Service.Name
+                                            </strong>
+
+                                            @if (!String.IsNullOrWhiteSpace(
+                                                objLink.Service.Description))
+                                            {
+                                                <span>
+                                                    @objLink.Service.Description
+                                                </span>
+                                            }
+
+                                        </div>
+
+                                        @if (objLink.Service.DefaultPrice.HasValue)
+                                        {
+                                            <div class="job-service-price">
+
+                                                <small>
+                                                    Default
+                                                </small>
+
+                                                <strong>
+                                                    @objLink.Service.DefaultPrice.Value.ToString("C")
+                                                </strong>
+
+                                            </div>
+                                        }
+
+                                    </div>
+                                }
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="crm-card">
+
                     <div class="crm-card-header">
                         <div>
                             <h3>Description</h3>
-                            <p>Summary and context for this job.</p>
+
+                            <p>
+                                Summary and context for this job.
+                            </p>
                         </div>
                     </div>
 
                     <div class="job-card-body">
-                        @if (!String.IsNullOrWhiteSpace(objJob.Description))
+
+                        @if (!String.IsNullOrWhiteSpace(
+                            objJob.Description))
                         {
                             <p class="job-description">
                                 @objJob.Description
@@ -281,6 +534,7 @@
                         else
                         {
                             <div class="job-muted-panel">
+
                                 <span class="material-symbols-outlined">
                                     notes
                                 </span>
@@ -288,9 +542,12 @@
                                 <span>
                                     No description has been added yet.
                                 </span>
+
                             </div>
                         }
+
                     </div>
+
                 </div>
 
                 <EntityActivities JobId="@JobId"
@@ -308,7 +565,9 @@
             <aside class="job-side-column">
 
                 <div class="crm-card">
+
                     <div class="job-card-body">
+
                         <h4 class="job-side-heading">
                             Quick actions
                         </h4>
@@ -317,30 +576,38 @@
 
                             <a href="@($"/activities/add?jobId={JobId}")"
                                class="btn btn-soft-primary w-100">
+
                                 <span class="material-symbols-outlined">
                                     add_task
                                 </span>
+
                                 Add activity
                             </a>
 
                             @if (objJob.Company != null)
                             {
-                                <a href="@GetCompanyUrl(objJob.Company.Id)"
+                                <a href="@GetCompanyUrl(
+                                                                       objJob.Company.Id)"
                                    class="btn btn-soft-secondary w-100">
+
                                     <span class="material-symbols-outlined">
                                         business
                                     </span>
+
                                     Open company
                                 </a>
                             }
 
                             @if (objJob.Contact != null)
                             {
-                                <a href="@GetContactUrl(objJob.Contact.Id)"
+                                <a href="@GetContactUrl(
+                                                                       objJob.Contact.Id)"
                                    class="btn btn-soft-secondary w-100">
+
                                     <span class="material-symbols-outlined">
                                         person
                                     </span>
+
                                     Open contact
                                 </a>
                             }
@@ -348,18 +615,24 @@
                             <button type="button"
                                     class="btn btn-soft-secondary w-100"
                                     @onclick="GoToEdit">
+
                                 <span class="material-symbols-outlined">
                                     edit
                                 </span>
+
                                 Edit details
                             </button>
 
                         </div>
+
                     </div>
+
                 </div>
 
                 <div class="crm-card">
+
                     <div class="job-card-body">
+
                         <h4 class="job-side-heading">
                             Overview
                         </h4>
@@ -372,7 +645,8 @@
                                 @if (objJob.Company != null)
                                 {
                                     <strong>
-                                        <a href="@GetCompanyUrl(objJob.Company.Id)">
+                                        <a href="@GetCompanyUrl(
+                                                                                       objJob.Company.Id)">
                                             @objJob.Company.Name
                                         </a>
                                     </strong>
@@ -389,7 +663,8 @@
                                 @if (objJob.Contact != null)
                                 {
                                     <strong>
-                                        <a href="@GetContactUrl(objJob.Contact.Id)">
+                                        <a href="@GetContactUrl(
+                                                                                       objJob.Contact.Id)">
                                             @objJob.Contact.Entity.DisplayName
                                         </a>
                                     </strong>
@@ -402,24 +677,38 @@
 
                             <div>
                                 <span>Stage</span>
+
                                 <strong>
                                     @objJob.Stage.GetDisplay().Name
                                 </strong>
                             </div>
 
                             <div>
+                                <span>Services</span>
+
+                                <strong>
+                                    @GetServicesSummary(objJob)
+                                </strong>
+                            </div>
+
+                            <div>
                                 <span>Source</span>
+
                                 <strong>
                                     @DisplayValue(objJob.Source)
                                 </strong>
                             </div>
 
                         </div>
+
                     </div>
+
                 </div>
 
                 <div class="crm-card">
+
                     <div class="job-card-body">
+
                         <h4 class="job-side-heading">
                             Record details
                         </h4>
@@ -428,32 +717,42 @@
 
                             <div>
                                 <span>Created</span>
+
                                 <strong>
-                                    @FormatNullableDate(objJob.Entity.CreatedUtc)
+                                    @FormatNullableDate(
+                                        objJob.Entity.CreatedUtc)
                                 </strong>
                             </div>
 
                             <div>
                                 <span>Updated</span>
+
                                 <strong>
-                                    @FormatNullableDate(objJob.Entity.UpdatedUtc)
+                                    @FormatNullableDate(
+                                        objJob.Entity.UpdatedUtc)
                                 </strong>
                             </div>
 
                             <div>
                                 <span>Archived</span>
+
                                 <strong>
-                                    @FormatNullableDate(objJob.Entity.ArchivedUtc)
+                                    @FormatNullableDate(
+                                        objJob.Entity.ArchivedUtc)
                                 </strong>
                             </div>
 
                         </div>
+
                     </div>
+
                 </div>
 
             </aside>
+
         </div>
     }
+
 </section>
 
 @code {
@@ -462,13 +761,20 @@
 
     private Job? objJob;
 
-    private String strPageTitle = "Job";
+    private String strPageTitle =
+        "Job";
+
     private String? strSuccessMessage;
+
     private String? strErrorMessage;
 
-    private Boolean blnLoading = true;
+    private Boolean blnLoading =
+        true;
+
     private Boolean blnSaving;
+
     private Boolean blnConfirmArchive;
+
     private Boolean blnConfirmDelete;
 
     protected override async Task OnParametersSetAsync()
@@ -479,19 +785,33 @@
     private RenderFragment GetHeaderActions()
     {
         return @<a href="/jobs"
-                   class="btn btn-soft-secondary">
-            <span class="material-symbols-outlined">arrow_back</span>
+               class="btn btn-soft-secondary">
+
+            <span class="material-symbols-outlined">
+                arrow_back
+            </span>
+
             Back to jobs
+
         </a>;
     }
 
     private async Task LoadJobAsync()
     {
-        blnLoading = true;
-        strErrorMessage = null;
-        strSuccessMessage = null;
-        blnConfirmArchive = false;
-        blnConfirmDelete = false;
+        blnLoading =
+            true;
+
+        strErrorMessage =
+            null;
+
+        strSuccessMessage =
+            null;
+
+        blnConfirmArchive =
+            false;
+
+        blnConfirmDelete =
+            false;
 
         HeaderState.SetHeader(
             "Job",
@@ -522,7 +842,8 @@
 
             HeaderState.SetHeader(
                 objJob.Name,
-                objJob.Company?.Name ?? "Job details",
+                objJob.Company?.Name ??
+                    "Job details",
                 GetHeaderActions());
         }
         catch (Exception objError)
@@ -538,7 +859,8 @@
         }
         finally
         {
-            blnLoading = false;
+            blnLoading =
+                false;
         }
     }
 
@@ -550,45 +872,71 @@
 
     private void ShowArchiveConfirmation()
     {
-        blnConfirmArchive = true;
-        blnConfirmDelete = false;
-        strSuccessMessage = null;
-        strErrorMessage = null;
+        blnConfirmArchive =
+            true;
+
+        blnConfirmDelete =
+            false;
+
+        strSuccessMessage =
+            null;
+
+        strErrorMessage =
+            null;
     }
 
     private void ShowDeleteConfirmation()
     {
-        blnConfirmDelete = true;
-        blnConfirmArchive = false;
-        strSuccessMessage = null;
-        strErrorMessage = null;
+        blnConfirmDelete =
+            true;
+
+        blnConfirmArchive =
+            false;
+
+        strSuccessMessage =
+            null;
+
+        strErrorMessage =
+            null;
     }
 
     private void CancelActions()
     {
-        blnConfirmArchive = false;
-        blnConfirmDelete = false;
+        blnConfirmArchive =
+            false;
+
+        blnConfirmDelete =
+            false;
     }
 
     private async Task ArchiveJobAsync()
     {
         await RunJobActionAsync(
-            () => JobService.ArchiveJobAsync(JobId),
+            () =>
+                JobService.ArchiveJobAsync(
+                    JobId),
             "Job archived");
     }
 
     private async Task RestoreJobAsync()
     {
         await RunJobActionAsync(
-            () => JobService.RestoreJobAsync(JobId),
+            () =>
+                JobService.RestoreJobAsync(
+                    JobId),
             "Job restored");
     }
 
     private async Task DeleteJobAsync()
     {
-        blnSaving = true;
-        strErrorMessage = null;
-        strSuccessMessage = null;
+        blnSaving =
+            true;
+
+        strErrorMessage =
+            null;
+
+        strSuccessMessage =
+            null;
 
         try
         {
@@ -605,7 +953,8 @@
                 return;
             }
 
-            Navigation.NavigateTo("/jobs");
+            Navigation.NavigateTo(
+                "/jobs");
         }
         catch (Exception objError)
         {
@@ -615,8 +964,11 @@
         }
         finally
         {
-            blnSaving = false;
-            blnConfirmDelete = false;
+            blnSaving =
+                false;
+
+            blnConfirmDelete =
+                false;
         }
     }
 
@@ -624,11 +976,20 @@
         Func<Task<Boolean>> objAction,
         String strSuccessMessageText)
     {
-        blnSaving = true;
-        strErrorMessage = null;
-        strSuccessMessage = null;
-        blnConfirmArchive = false;
-        blnConfirmDelete = false;
+        blnSaving =
+            true;
+
+        strErrorMessage =
+            null;
+
+        strSuccessMessage =
+            null;
+
+        blnConfirmArchive =
+            false;
+
+        blnConfirmDelete =
+            false;
 
         try
         {
@@ -657,7 +1018,8 @@
         }
         finally
         {
-            blnSaving = false;
+            blnSaving =
+                false;
         }
     }
 
@@ -676,7 +1038,8 @@
     private static String GetJobInitial(
         Job objJob)
     {
-        if (String.IsNullOrWhiteSpace(objJob.Name))
+        if (String.IsNullOrWhiteSpace(
+            objJob.Name))
         {
             return "?";
         }
@@ -695,21 +1058,56 @@
             JobStage.New =>
                 "job-stage job-stage-new",
 
-            JobStage.Lost =>
-                "job-stage job-stage-lost",
-
             JobStage.Quoted =>
                 "job-stage job-stage-quoted",
 
             JobStage.ToDo =>
                 "job-stage job-stage-todo",
 
+            JobStage.InProgress =>
+                "job-stage job-stage-in-progress",
+
+            JobStage.Invoiced =>
+                "job-stage job-stage-invoiced",
+
             JobStage.Paid =>
                 "job-stage job-stage-paid",
+
+            JobStage.Lost =>
+                "job-stage job-stage-lost",
 
             _ =>
                 "job-stage"
         };
+    }
+
+    private static String GetServicesSummary(
+        Job objJob)
+    {
+        Int32 intCount =
+            objJob.ServiceLinks.Count;
+
+        if (intCount == 0)
+        {
+            return "-";
+        }
+
+        if (intCount == 1)
+        {
+            return objJob.ServiceLinks
+                .First()
+                .Service.Name;
+        }
+
+        return $"{intCount} services";
+    }
+
+    private static String FormatServiceCount(
+        Int32 intCount)
+    {
+        return intCount == 1
+            ? "1 service"
+            : $"{intCount} services";
     }
 
     private static String FormatMoney(
@@ -732,7 +1130,9 @@
         DateTime? dteDate)
     {
         return dteDate.HasValue
-            ? dteDate.Value.ToLocalTime().ToString("dd MMM yyyy")
+            ? dteDate.Value
+                .ToLocalTime()
+                .ToString("dd MMM yyyy")
             : "-";
     }
 
@@ -740,14 +1140,17 @@
         DateTime? dteDate)
     {
         return dteDate.HasValue
-            ? dteDate.Value.ToLocalTime().ToString("dd MMM yyyy")
+            ? dteDate.Value
+                .ToLocalTime()
+                .ToString("dd MMM yyyy")
             : "-";
     }
 
     private static String DisplayValue(
         String? strValue)
     {
-        return String.IsNullOrWhiteSpace(strValue)
+        return String.IsNullOrWhiteSpace(
+            strValue)
             ? "-"
             : strValue;
     }

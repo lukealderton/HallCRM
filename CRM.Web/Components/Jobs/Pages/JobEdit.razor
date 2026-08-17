@@ -1,5 +1,6 @@
 ﻿@page "/jobs/add"
 @page "/jobs/{JobId:guid}/edit"
+
 @attribute [Authorize]
 @rendermode InteractiveServer
 
@@ -9,165 +10,472 @@
 @using CRM.Core.Contacts.Domain
 @using CRM.Core.Jobs.Abstractions
 @using CRM.Core.Jobs.Domain
+@using CRM.Core.Services.Abstractions
 @using CRM.Web.State
+@using CrmService = CRM.Core.Services.Domain.Service
 
 @inject IJobService JobService
 @inject ICompanyService CompanyService
 @inject IContactService ContactService
+@inject IServiceService ServiceService
 @inject NavigationManager Navigation
 @inject PageHeaderState HeaderState
 
 <SeoHead Title="@strPageTitle" />
 
 <section class="job-edit-page">
+
     <div class="job-toolbar">
-        <button type="button" class="btn crm-btn-secondary" @onclick="GoBack">
-            <span class="material-symbols-outlined">arrow_back</span>
-            @(blnEditMode ? "Back to job" : "Back to jobs")
+        <button type="button"
+                class="btn crm-btn-secondary"
+                @onclick="GoBack">
+
+            <span class="material-symbols-outlined">
+                arrow_back
+            </span>
+
+            @(blnEditMode
+                ? "Back to job"
+                : "Back to jobs")
         </button>
     </div>
 
-    @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+    @if (!String.IsNullOrWhiteSpace(
+        strErrorMessage))
     {
-        <div class="alert alert-danger crm-alert" role="alert">
-            <span class="material-symbols-outlined">error</span>
-            <div>@strErrorMessage</div>
+        <div class="alert alert-danger crm-alert"
+             role="alert">
+
+            <span class="material-symbols-outlined">
+                error
+            </span>
+
+            <div>
+                @strErrorMessage
+            </div>
         </div>
     }
 
     @if (blnLoading)
     {
         <div class="crm-card job-empty-state">
-            <span class="material-symbols-outlined">hourglass_empty</span>
-            <h2>Loading job</h2>
-            <p>Please wait while the form is prepared.</p>
+
+            <span class="material-symbols-outlined">
+                hourglass_empty
+            </span>
+
+            <h2>
+                Loading job
+            </h2>
+
+            <p>
+                Please wait while the form is prepared.
+            </p>
         </div>
     }
     else
     {
-        <EditForm Model="objJob" OnValidSubmit="SaveJobAsync" FormName="JobEditForm">
+        <EditForm Model="objJob"
+                  OnValidSubmit="SaveJobAsync"
+                  FormName="JobEditForm">
+
             <DataAnnotationsValidator />
 
             <div class="job-layout">
+
                 <div class="job-main-column">
+
                     <div class="crm-card job-form-card">
-                        <h2>@(blnEditMode ? "Edit job" : "New job")</h2>
-                        <p>Track the deal, company, contact and pipeline stage.</p>
+
+                        <h2>
+                            @(blnEditMode
+                                ? "Edit job"
+                                : "New job")
+                        </h2>
+
+                        <p>
+                            Track the work, company, contact and pipeline stage.
+                        </p>
 
                         <div class="row g-3 mt-1">
+
                             <div class="col-md-8">
-                                <label class="form-label" for="name">Name</label>
-                                <InputText id="name" class="form-control" @bind-Value="objJob.Name" />
+
+                                <label class="form-label"
+                                       for="name">
+                                    Name
+                                </label>
+
+                                <InputText id="name"
+                                           class="form-control"
+                                           @bind-Value="objJob.Name" />
+
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label" for="stage">Stage</label>
-                                <InputSelect id="stage" class="form-select" TValue="JobStage" @bind-Value="objJob.Stage">
-                                    @foreach (JobStage enmStage in Enum.GetValues<JobStage>())
+
+                                <label class="form-label"
+                                       for="stage">
+                                    Stage
+                                </label>
+
+                                <InputSelect id="stage"
+                                             class="form-select"
+                                             TValue="JobStage"
+                                             @bind-Value="objJob.Stage">
+
+                                    @foreach (JobStage enmStage
+                                        in Enum.GetValues<JobStage>())
                                     {
-                                        <option value="@enmStage">@enmStage.GetDisplay().Name</option>
+                                        <option value="@enmStage">
+                                            @enmStage.GetDisplay().Name
+                                        </option>
                                     }
+
                                 </InputSelect>
+
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label" for="company">Company</label>
-                                <select id="company" class="form-select" @bind="strSelectedCompanyId">
-                                    <option value="">No company linked</option>
 
-                                    @foreach (Company objCompany in colCompanies)
+                                <label class="form-label"
+                                       for="company">
+                                    Company
+                                </label>
+
+                                <select id="company"
+                                        class="form-select"
+                                        @bind="strSelectedCompanyId">
+
+                                    <option value="">
+                                        No company linked
+                                    </option>
+
+                                    @foreach (Company objCompany
+                                        in colCompanies)
                                     {
-                                        <option value="@objCompany.Id.ToString()">@objCompany.Name</option>
+                                        <option value="@objCompany.Id.ToString()">
+                                            @objCompany.Name
+                                        </option>
                                     }
+
                                 </select>
+
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label" for="contact">Contact</label>
-                                <select id="contact" class="form-select" @bind="strSelectedContactId">
-                                    <option value="">No contact linked</option>
 
-                                    @foreach (Contact objContact in colContacts)
+                                <label class="form-label"
+                                       for="contact">
+                                    Contact
+                                </label>
+
+                                <select id="contact"
+                                        class="form-select"
+                                        @bind="strSelectedContactId">
+
+                                    <option value="">
+                                        No contact linked
+                                    </option>
+
+                                    @foreach (Contact objContact
+                                        in colContacts)
                                     {
-                                        <option value="@objContact.Id.ToString()">@objContact.Entity.DisplayName</option>
+                                        <option value="@objContact.Id.ToString()">
+                                            @objContact.Entity.DisplayName
+                                        </option>
                                     }
+
                                 </select>
-                            </div>
 
-                            <div class="col-md-4">
-                                <label class="form-label" for="value">Value</label>
-                                <InputNumber id="value" class="form-control" @bind-Value="objJob.Value" />
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label" for="probability">Probability %</label>
-                                <InputNumber id="probability" class="form-control" @bind-Value="objJob.ProbabilityPercent" />
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label" for="closeDate">Expected close date</label>
-                                <InputDate id="closeDate" class="form-control" @bind-Value="objJob.ExpectedCloseDateUtc" />
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label" for="source">Source</label>
-                                <InputText id="source" class="form-control" @bind-Value="objJob.Source" />
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label" for="description">Description</label>
-                                <InputTextArea id="description" class="form-control job-textarea" @bind-Value="objJob.Description" />
+
+                                <div class="job-services-field">
+
+                                    <div class="job-services-heading">
+
+                                        <div>
+                                            <label class="form-label mb-0">
+                                                Services
+                                            </label>
+
+                                            <small>
+                                                Select the work included in this job.
+                                            </small>
+                                        </div>
+
+                                        @if (colSelectedServiceIds.Count > 0)
+                                        {
+                                            <span class="job-services-count">
+                                                @colSelectedServiceIds.Count selected
+                                            </span>
+                                        }
+
+                                    </div>
+
+                                    @if (colServices.Count == 0)
+                                    {
+                                        <div class="job-services-empty">
+
+                                            <span class="material-symbols-outlined">
+                                                home_repair_service
+                                            </span>
+
+                                            <div>
+                                                <strong>
+                                                    No services available
+                                                </strong>
+
+                                                <span>
+                                                    Add services before assigning them to jobs.
+                                                </span>
+                                            </div>
+
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="job-services-grid">
+
+                                            @foreach (CrmService objService
+                                                in colServices)
+                                            {
+                                                Boolean blnSelected =
+                                                    colSelectedServiceIds.Contains(
+                                                        objService.Id);
+
+                                                <label class="job-service-option @(blnSelected ? "is-selected" : String.Empty)">
+
+                                                    <input type="checkbox"
+                                                           checked="@blnSelected"
+                                                           @onchange="objArgs => SetServiceSelected(
+                                                                                                                   objService.Id,
+                                                                                                                   objArgs.Value is true)" />
+
+<span class="job-service-check">
+
+                                                        <span class="material-symbols-outlined">
+                                                            @(blnSelected
+                                                                ? "check"
+                                                                : "add")
+                                                        </span>
+
+                                                    </span>
+
+                                                    <span class="job-service-content">
+
+                                                        <strong>
+                                                            @objService.Name
+                                                        </strong>
+
+                                                        @if (!String.IsNullOrWhiteSpace(
+                                                            objService.Description))
+                                                        {
+                                                            <small>
+                                                                @objService.Description
+                                                            </small>
+                                                        }
+
+                                                        @if (objService.DefaultPrice.HasValue)
+                                                        {
+                                                            <span>
+                                                                @objService.DefaultPrice.Value.ToString("C")
+                                                            </span>
+                                                        }
+
+                                                    </span>
+
+                                                </label>
+                                            }
+
+                                        </div>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label class="form-label"
+                                       for="value">
+                                    Value
+                                </label>
+
+                                <InputNumber id="value"
+                                             class="form-control"
+                                             @bind-Value="objJob.Value" />
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label class="form-label"
+                                       for="probability">
+                                    Probability %
+                                </label>
+
+                                <InputNumber id="probability"
+                                             class="form-control"
+                                             @bind-Value="objJob.ProbabilityPercent" />
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label class="form-label"
+                                       for="closeDate">
+                                    Expected close date
+                                </label>
+
+                                <InputDate id="closeDate"
+                                           class="form-control"
+                                           @bind-Value="objJob.ExpectedCloseDateUtc" />
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label class="form-label"
+                                       for="source">
+                                    Source
+                                </label>
+
+                                <InputText id="source"
+                                           class="form-control"
+                                           @bind-Value="objJob.Source" />
+
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label" for="notes">Notes</label>
-                                <InputTextArea id="notes" class="form-control job-textarea" @bind-Value="objJob.Notes" />
+
+                                <label class="form-label"
+                                       for="description">
+                                    Description
+                                </label>
+
+                                <InputTextArea id="description"
+                                               class="form-control job-textarea"
+                                               @bind-Value="objJob.Description" />
+
                             </div>
+
+                            <div class="col-12">
+
+                                <label class="form-label"
+                                       for="notes">
+                                    Notes
+                                </label>
+
+                                <InputTextArea id="notes"
+                                               class="form-control job-textarea"
+                                               @bind-Value="objJob.Notes" />
+
+                            </div>
+
                         </div>
                     </div>
 
-                    <div class="job-save-bar">
-                        <button type="button" class="btn crm-btn-secondary" disabled="@blnSaving" @onclick="GoBack">
-                            Cancel
-                        </button>
-
-                        <button type="submit" class="btn crm-btn-primary" disabled="@blnSaving">
-                            <span class="material-symbols-outlined">save</span>
-                            @(blnSaving ? "Saving..." : "Save job")
-                        </button>
-                    </div>
                 </div>
 
                 <aside class="job-side-column">
+
                     <div class="crm-card job-summary-card">
-                        <h3>Preview</h3>
+
+                        <h3>
+                            Preview
+                        </h3>
 
                         <dl>
+
                             <div>
                                 <dt>Stage</dt>
-                                <dd>@objJob.Stage.GetDisplay().Name</dd>
+
+                                <dd>
+                                    @objJob.Stage.GetDisplay().Name
+                                </dd>
                             </div>
 
                             <div>
                                 <dt>Value</dt>
-                                <dd>@FormatMoney(objJob.Value)</dd>
+
+                                <dd>
+                                    @FormatMoney(
+                                        objJob.Value)
+                                </dd>
                             </div>
 
                             <div>
                                 <dt>Probability</dt>
-                                <dd>@FormatProbability(objJob.ProbabilityPercent)</dd>
+
+                                <dd>
+                                    @FormatProbability(
+                                        objJob.ProbabilityPercent)
+                                </dd>
                             </div>
 
                             <div>
                                 <dt>Close</dt>
-                                <dd>@FormatDate(objJob.ExpectedCloseDateUtc)</dd>
+
+                                <dd>
+                                    @FormatDate(
+                                        objJob.ExpectedCloseDateUtc)
+                                </dd>
                             </div>
+
+                            <div>
+                                <dt>Services</dt>
+
+                                <dd>
+                                    @GetServicesSummary()
+                                </dd>
+                            </div>
+
                         </dl>
+
                     </div>
+
                 </aside>
+
             </div>
+
+            <div class="job-save-bar">
+
+                <button type="button"
+                        class="btn crm-btn-secondary"
+                        disabled="@blnSaving"
+                        @onclick="GoBack">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="btn crm-btn-primary"
+                        disabled="@blnSaving">
+
+                    @if (blnSaving)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                    }
+                    else
+                    {
+                        <span class="material-symbols-outlined">
+                            save
+                        </span>
+                    }
+
+                    @(blnSaving
+                        ? "Saving..."
+                        : "Save job")
+
+                </button>
+
+            </div>
+
         </EditForm>
     }
+
 </section>
 
 @code {
@@ -181,35 +489,59 @@
     public Guid? ContactId { get; set; }
 
     private Job objJob = new();
+
     private List<Company> colCompanies = [];
     private List<Contact> colContacts = [];
+    private List<CrmService> colServices = [];
 
-    private String strPageTitle = "New job";
+    private HashSet<Guid> colSelectedServiceIds =
+        [];
+
+    private String strPageTitle =
+        "New job";
+
     private String? strErrorMessage;
-    private Boolean blnLoading = true;
+
+    private Boolean blnLoading =
+        true;
+
     private Boolean blnSaving;
 
-    private Boolean blnEditMode => JobId.HasValue && JobId.Value != Guid.Empty;
+    private Boolean blnEditMode =>
+        JobId.HasValue &&
+        JobId.Value != Guid.Empty;
 
     private String strSelectedCompanyId
     {
-        get => objJob.CompanyId?.ToString() ?? String.Empty;
+        get =>
+            objJob.CompanyId?.ToString() ??
+            String.Empty;
+
         set
         {
-            objJob.CompanyId = Guid.TryParse(value, out Guid objCompanyId)
-                ? objCompanyId
-                : null;
+            objJob.CompanyId =
+                Guid.TryParse(
+                    value,
+                    out Guid objCompanyId)
+                    ? objCompanyId
+                    : null;
         }
     }
 
     private String strSelectedContactId
     {
-        get => objJob.ContactId?.ToString() ?? String.Empty;
+        get =>
+            objJob.ContactId?.ToString() ??
+            String.Empty;
+
         set
         {
-            objJob.ContactId = Guid.TryParse(value, out Guid objContactId)
-                ? objContactId
-                : null;
+            objJob.ContactId =
+                Guid.TryParse(
+                    value,
+                    out Guid objContactId)
+                    ? objContactId
+                    : null;
         }
     }
 
@@ -220,113 +552,269 @@
 
     private async Task LoadPageAsync()
     {
-        blnLoading = true;
-        strErrorMessage = null;
+        blnLoading =
+            true;
+
+        strErrorMessage =
+            null;
 
         try
         {
-            colCompanies = await CompanyService.GetCompaniesAsync();
-            colContacts = await ContactService.GetContactsAsync();
+            Task<List<Company>> objCompaniesTask =
+                CompanyService.GetCompaniesAsync();
+
+            Task<List<Contact>> objContactsTask =
+                ContactService.GetContactsAsync();
+
+            Task<List<CrmService>> objServicesTask =
+                ServiceService.GetServicesAsync();
+
+            await Task.WhenAll(
+                objCompaniesTask,
+                objContactsTask,
+                objServicesTask);
+
+            colCompanies =
+                (await objCompaniesTask)
+                    .OrderBy(objCompany =>
+                        objCompany.Name)
+                    .ToList();
+
+            colContacts =
+                (await objContactsTask)
+                    .OrderBy(objContact =>
+                        objContact.Entity.DisplayName)
+                    .ToList();
+
+            colServices =
+                (await objServicesTask)
+                    .OrderBy(objService =>
+                        objService.Name)
+                    .ToList();
 
             if (blnEditMode)
             {
-                Job? objExistingJob = await JobService.GetJobByIdAsync(JobId!.Value);
+                Job? objExistingJob =
+                    await JobService.GetJobByIdAsync(
+                        JobId!.Value);
 
                 if (objExistingJob == null)
                 {
-                    strErrorMessage = "Job not found.";
-                    HeaderState.SetHeader("Job not found", "The selected job could not be loaded");
+                    strErrorMessage =
+                        "Job not found.";
+
+                    HeaderState.SetHeader(
+                        "Job not found",
+                        "The selected job could not be loaded");
+
                     return;
                 }
 
-                objJob = objExistingJob;
-                strPageTitle = "Edit " + objJob.Name;
-                HeaderState.SetHeader("Edit job", objJob.Name);
+                objJob =
+                    objExistingJob;
+
+                colSelectedServiceIds =
+                    objJob.ServiceLinks
+                        .Select(objLink =>
+                            objLink.ServiceId)
+                        .ToHashSet();
+
+                strPageTitle =
+                    "Edit " +
+                    objJob.Name;
+
+                HeaderState.SetHeader(
+                    "Edit job",
+                    objJob.Name);
             }
             else
             {
-                objJob = new Job
-                {
-                    CompanyId = CompanyId,
-                    ContactId = ContactId,
-                    Stage = JobStage.New
-                };
+                objJob =
+                    new Job
+                    {
+                        CompanyId =
+                            CompanyId,
 
-                strPageTitle = "New job";
-                HeaderState.SetHeader("New job", "Create a new sales job");
+                        ContactId =
+                            ContactId,
+
+                        Stage =
+                            JobStage.New
+                    };
+
+                colSelectedServiceIds =
+                    [];
+
+                strPageTitle =
+                    "New job";
+
+                HeaderState.SetHeader(
+                    "New job",
+                    "Create a new job");
             }
         }
         catch (Exception objError)
         {
-            strErrorMessage = "Failed to load job form: " + objError.Message;
+            strErrorMessage =
+                "Failed to load job form: " +
+                objError.Message;
         }
         finally
         {
-            blnLoading = false;
+            blnLoading =
+                false;
         }
     }
 
     private async Task SaveJobAsync()
     {
-        blnSaving = true;
-        strErrorMessage = null;
+        blnSaving =
+            true;
+
+        strErrorMessage =
+            null;
 
         try
         {
+            objJob.ServiceLinks =
+                colSelectedServiceIds
+                    .Select(objServiceId =>
+                        new JobServiceLink
+                        {
+                            JobId =
+                                objJob.Id,
+
+                            ServiceId =
+                                objServiceId
+                        })
+                    .ToList();
+
             Job objSavedJob;
 
             if (blnEditMode)
             {
-                Job? objUpdatedJob = await JobService.UpdateJobAsync(objJob);
+                Job? objUpdatedJob =
+                    await JobService.UpdateJobAsync(
+                        objJob);
 
                 if (objUpdatedJob == null)
                 {
-                    strErrorMessage = "The job could not be updated.";
+                    strErrorMessage =
+                        "The job could not be updated.";
+
                     return;
                 }
 
-                objSavedJob = objUpdatedJob;
+                objSavedJob =
+                    objUpdatedJob;
             }
             else
             {
-                objSavedJob = await JobService.AddJobAsync(objJob);
+                objSavedJob =
+                    await JobService.AddJobAsync(
+                        objJob);
             }
 
-            Navigation.NavigateTo($"/jobs/{objSavedJob.Id}");
+            Navigation.NavigateTo(
+                $"/jobs/{objSavedJob.Id}");
         }
         catch (Exception objError)
         {
-            strErrorMessage = "Failed to save job: " + objError.Message;
+            strErrorMessage =
+                "Failed to save job: " +
+                objError.Message;
         }
         finally
         {
-            blnSaving = false;
+            blnSaving =
+                false;
         }
+    }
+
+    private void SetServiceSelected(
+        Guid objServiceId,
+        Boolean blnSelected)
+    {
+        if (blnSelected)
+        {
+            colSelectedServiceIds.Add(
+                objServiceId);
+
+            return;
+        }
+
+        colSelectedServiceIds.Remove(
+            objServiceId);
+    }
+
+    private String GetServicesSummary()
+    {
+        if (colSelectedServiceIds.Count == 0)
+        {
+            return "None";
+        }
+
+        List<String> colSelectedNames =
+            colServices
+                .Where(objService =>
+                    colSelectedServiceIds.Contains(
+                        objService.Id))
+                .Select(objService =>
+                    objService.Name)
+                .ToList();
+
+        if (colSelectedNames.Count == 0)
+        {
+            return $"{colSelectedServiceIds.Count} selected";
+        }
+
+        if (colSelectedNames.Count <= 2)
+        {
+            return String.Join(
+                ", ",
+                colSelectedNames);
+        }
+
+        return $"{colSelectedNames.Count} services";
     }
 
     private void GoBack()
     {
         if (blnEditMode)
         {
-            Navigation.NavigateTo($"/jobs/{JobId}");
+            Navigation.NavigateTo(
+                $"/jobs/{JobId}");
+
             return;
         }
 
-        Navigation.NavigateTo("/jobs");
+        Navigation.NavigateTo(
+            "/jobs");
     }
 
-    private static String FormatMoney(Decimal? dcmValue)
+    private static String FormatMoney(
+        Decimal? dcmValue)
     {
-        return dcmValue.HasValue ? dcmValue.Value.ToString("C0") : "Not set";
+        return dcmValue.HasValue
+            ? dcmValue.Value.ToString("C0")
+            : "Not set";
     }
 
-    private static String FormatProbability(Int32? intProbability)
+    private static String FormatProbability(
+        Int32? intProbability)
     {
-        return intProbability.HasValue ? $"{intProbability.Value}%" : "Not set";
+        return intProbability.HasValue
+            ? $"{intProbability.Value}%"
+            : "Not set";
     }
 
-    private static String FormatDate(DateTime? dteDate)
+    private static String FormatDate(
+        DateTime? dteDate)
     {
-        return dteDate.HasValue ? dteDate.Value.ToLocalTime().ToString("dd MMM yyyy") : "Not set";
+        return dteDate.HasValue
+            ? dteDate.Value
+                .ToLocalTime()
+                .ToString("dd MMM yyyy")
+            : "Not set";
     }
 }
