@@ -6,6 +6,7 @@ using CRM.Core.Invoices.Domain;
 using CRM.Core.Jobs.Domain;
 using CRM.Core.Logging.Domain;
 using CRM.Core.Notes.Domain;
+using CRM.Core.Payments.Domain;
 using CRM.Core.Services.Domain;
 using CRM.Core.Tickets.Domain;
 using CRM.Core.Users.Domain;
@@ -18,6 +19,7 @@ using CRM.Infrastructure.Invoices.Configurations;
 using CRM.Infrastructure.Jobs.Configurations;
 using CRM.Infrastructure.Logging.Configurations;
 using CRM.Infrastructure.Notes.Configurations;
+using CRM.Infrastructure.Payments.Configurations;
 using CRM.Infrastructure.Services.Configurations;
 using CRM.Infrastructure.Tickets.Configurations;
 using CRM.Infrastructure.Users.Configurations;
@@ -61,8 +63,9 @@ namespace CRM.Infrastructure.Data
         public DbSet<Service> Services => Set<Service>();
 
         public DbSet<Invoice> Invoices => Set<Invoice>();
-
         public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
+
+        public DbSet<Payment> Payments => Set<Payment>();
 
         protected override void OnModelCreating(ModelBuilder objModelBuilder)
         {
@@ -98,6 +101,8 @@ namespace CRM.Infrastructure.Data
 
             objModelBuilder.ApplyConfiguration(new InvoiceConfiguration());
             objModelBuilder.ApplyConfiguration(new InvoiceLineConfiguration());
+
+            objModelBuilder.ApplyConfiguration(new PaymentConfiguration());
         }
     }
 }

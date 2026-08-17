@@ -2,6 +2,7 @@
 using CRM.Core.Contacts.Domain;
 using CRM.Core.Entities.Domain;
 using CRM.Core.Jobs.Domain;
+using CRM.Core.Payments.Domain;
 
 namespace CRM.Core.Invoices.Domain
 {
@@ -44,8 +45,7 @@ namespace CRM.Core.Invoices.Domain
 
         public String? Notes { get; set; }
 
-        public ICollection<InvoiceLine> Lines { get; set; } =
-            new List<InvoiceLine>();
+        public ICollection<InvoiceLine> Lines { get; set; } = [];
 
         public Decimal Subtotal =>
             Lines.Sum(
@@ -54,5 +54,23 @@ namespace CRM.Core.Invoices.Domain
 
         public Decimal Total =>
             Subtotal;
+
+        public ICollection<Payment> Payments { get; set; } = [];
+
+        public Decimal AmountPaid =>
+            Payments
+                .Where(objPayment =>
+                    !objPayment.Entity.DeletedUtc.HasValue)
+                .Sum(objPayment =>
+                    objPayment.Amount);
+
+        public Decimal Outstanding =>
+            Math.Max(
+                0m,
+                Total - AmountPaid);
+
+        public Boolean IsPaid =>
+            Total > 0m &&
+            Outstanding <= 0m;
     }
 }

@@ -61,5 +61,19 @@ namespace CRM.Core.Invoices.Abstractions
             DateTime dteDueDateUtc,
             Guid? objUserId = null,
             CancellationToken objToken = default);
+
+        /// <summary>
+        /// Sets the status of an invoice to the specified value.
+        /// </summary>
+        /// <param name="objInvoiceId"></param>
+        /// <param name="enmStatus"></param>
+        /// <param name="objUserId"></param>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Boolean> SetInvoiceStatusAsync(
+            Guid objInvoiceId,
+            InvoiceStatus enmStatus,
+            Guid? objUserId = null,
+            CancellationToken objToken = default);
     }
 }

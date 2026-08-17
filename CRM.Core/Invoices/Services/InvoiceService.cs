@@ -680,6 +680,59 @@ namespace CRM.Core.Invoices.Services
                 objToken);
         }
 
+        ///<inheritdoc/>
+        public async Task<Boolean> RefreshPaymentStatusAsync(
+            Guid objInvoiceId,
+            Decimal dcmAmountPaid,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
+        {
+            Invoice? objInvoice =
+                await GetInvoiceByIdAsync(
+                    objInvoiceId,
+                    objToken);
+
+            if (objInvoice == null ||
+                objInvoice.Status ==
+                InvoiceStatus.Draft ||
+                objInvoice.Status ==
+                InvoiceStatus.Void)
+            {
+                return false;
+            }
+
+            InvoiceStatus enmStatus;
+
+            if (dcmAmountPaid <= 0m)
+            {
+                enmStatus =
+                    InvoiceStatus.Issued;
+            }
+            else if (dcmAmountPaid >=
+                     objInvoice.Total)
+            {
+                enmStatus =
+                    InvoiceStatus.Paid;
+            }
+            else
+            {
+                enmStatus =
+                    InvoiceStatus.PartPaid;
+            }
+
+            if (objInvoice.Status ==
+                enmStatus)
+            {
+                return true;
+            }
+
+            return await _invoiceRepository.SetInvoiceStatusAsync(
+                objInvoiceId,
+                enmStatus,
+                objUserId,
+                objToken);
+        }
+
         private async Task<Invoice?> GetEditableInvoiceAsync(
             Guid objInvoiceId,
             CancellationToken objToken)

@@ -9,6 +9,7 @@ using CRM.Core.Logging.Abstraction;
 using CRM.Core.Mailing.Abstraction;
 using CRM.Core.Notes.Abstractions;
 using CRM.Core.Notifications.Abstractions;
+using CRM.Core.Payments.Abstractions;
 using CRM.Core.Services.Abstractions;
 using CRM.Core.Services.Domain;
 using CRM.Core.Tickets.Abstractions;
@@ -27,6 +28,7 @@ using CRM.Infrastructure.Logging.Repositories;
 using CRM.Infrastructure.Mailing.Services;
 using CRM.Infrastructure.Notes.Repositories;
 using CRM.Infrastructure.Notifications.Services;
+using CRM.Infrastructure.Payments.Repositories;
 using CRM.Infrastructure.Services.Repositories;
 using CRM.Infrastructure.Tickets.Repositories;
 using CRM.Infrastructure.Users.Repositories;
@@ -81,6 +83,8 @@ namespace CRM.Infrastructure
 
             colServices.AddScoped<IInvoiceRepository, InvoiceRepository>();
             colServices.AddScoped<IInvoiceDocumentService, InvoiceDocumentService>();
+
+            colServices.AddScoped<IPaymentRepository, PaymentRepository>();
 
             return colServices;
         }

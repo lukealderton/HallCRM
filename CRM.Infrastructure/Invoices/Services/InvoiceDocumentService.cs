@@ -587,7 +587,7 @@ namespace CRM.Infrastructure.Invoices.Services
         private static IEnumerable<String> GetAddressLines(
             Invoice objInvoice)
         {
-            String[] colValues =
+            String?[] colValues =
             [
                 objInvoice.AddressLine1,
                 objInvoice.AddressLine2,

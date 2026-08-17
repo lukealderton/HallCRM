@@ -18,6 +18,8 @@ namespace CRM.Core.Entities.Domain
         Service = 6,
         [Display(Name = "Invoice")]
         Invoice = 7,
+        [Display(Name = "Payment")]
+        Payment = 8,
 
         [Display(Name = "Custom Record")]
         CustomRecord = 100

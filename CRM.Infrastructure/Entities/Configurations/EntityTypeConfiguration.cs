@@ -108,6 +108,15 @@ namespace CRM.Infrastructure.Entities.Configurations
                 },
                 new CrmEntityType
                 {
+                    Id = (Int32)PredefinedEntityType.Payment,
+                    Name = "Payment",
+                    Alias = "payment",
+                    IsSystem = true,
+                    IsCustom = false,
+                    CreatedUtc = objSeedDate
+                },
+                new CrmEntityType
+                {
                     Id = (Int32)PredefinedEntityType.CustomRecord,
                     Name = "Custom Record",
                     Alias = "custom-record",

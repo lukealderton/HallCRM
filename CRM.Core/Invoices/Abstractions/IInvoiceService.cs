@@ -86,5 +86,19 @@ namespace CRM.Core.Invoices.Abstractions
             DateTime? dteDueDateUtc = null,
             Guid? objUserId = null,
             CancellationToken objToken = default);
+
+        /// <summary>
+        /// Refreshes the payment status of an invoice based on the amount paid, updating its status to 'Paid', 'Partially Paid', or 'Unpaid' as appropriate.
+        /// </summary>
+        /// <param name="objInvoiceId"></param>
+        /// <param name="dcmAmountPaid"></param>
+        /// <param name="objUserId"></param>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Boolean> RefreshPaymentStatusAsync(
+            Guid objInvoiceId,
+            Decimal dcmAmountPaid,
+            Guid? objUserId = null,
+            CancellationToken objToken = default);
     }
 }

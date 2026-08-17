@@ -14,7 +14,10 @@ using CRM.Core.Logging.Abstraction;
 using CRM.Core.Logging.Services;
 using CRM.Core.Notes.Abstractions;
 using CRM.Core.Notes.Services;
+using CRM.Core.Payments.Abstractions;
+using CRM.Core.Payments.Services;
 using CRM.Core.Services.Abstractions;
+using CRM.Core.Services.Domain;
 using CRM.Core.Services.Services;
 using CRM.Core.Tickets.Abstractions;
 using CRM.Core.Tickets.Services;
@@ -48,6 +51,8 @@ namespace CRM.Core
             colServices.AddScoped<IServiceService, ServiceService>();
 
             colServices.AddScoped<IInvoiceService, InvoiceService>();
+
+            colServices.AddScoped<IPaymentService, PaymentService>();
 
             return colServices;
         }

@@ -542,5 +542,48 @@ namespace CRM.Infrastructure.Invoices.Repositories
                         objInvoiceId,
                     objToken);
         }
+
+        ///<inheritdoc/>
+        public async Task<Boolean> SetInvoiceStatusAsync(
+            Guid objInvoiceId,
+            InvoiceStatus enmStatus,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objContext =
+                await _dbContextFactory.CreateDbContextAsync(
+                    objToken);
+
+            Invoice? objInvoice =
+                await objContext
+                    .Set<Invoice>()
+                    .Include(objInvoice =>
+                        objInvoice.Entity)
+                    .FirstOrDefaultAsync(
+                        objInvoice =>
+                            objInvoice.Id ==
+                            objInvoiceId,
+                        objToken);
+
+            if (objInvoice == null ||
+                objInvoice.Entity.DeletedUtc.HasValue)
+            {
+                return false;
+            }
+
+            objInvoice.Status =
+                enmStatus;
+
+            objInvoice.Entity.UpdatedUtc =
+                DateTime.UtcNow;
+
+            objInvoice.Entity.UpdatedByUserId =
+                objUserId;
+
+            await objContext.SaveChangesAsync(
+                objToken);
+
+            return true;
+        }
     }
 }
