@@ -63,7 +63,7 @@
                                 <InputSelect class="form-select" @bind-Value="_objTicket.Type">
                                     @foreach (TicketType enmType in Enum.GetValues<TicketType>())
                                     {
-                                        <option value="@enmType">@GetEnumLabel(enmType.ToString())</option>
+                                        <option value="@enmType">@enmType.GetDisplay().Name</option>
                                     }
                                 </InputSelect>
                             </div>
@@ -73,7 +73,7 @@
                                 <InputSelect class="form-select" @bind-Value="_objTicket.Status">
                                     @foreach (TicketStatus enmStatus in Enum.GetValues<TicketStatus>())
                                     {
-                                        <option value="@enmStatus">@GetStatusLabel(enmStatus)</option>
+                                        <option value="@enmStatus">@enmStatus.GetDisplay().Name</option>
                                     }
                                 </InputSelect>
                             </div>
@@ -83,7 +83,7 @@
                                 <InputSelect class="form-select" @bind-Value="_objTicket.Priority">
                                     @foreach (TicketPriority enmPriority in Enum.GetValues<TicketPriority>())
                                     {
-                                        <option value="@enmPriority">@enmPriority</option>
+                                        <option value="@enmPriority">@enmPriority.GetDisplay().Name</option>
                                     }
                                 </InputSelect>
                             </div>
@@ -314,25 +314,5 @@
         }
 
         NavigationManager.NavigateTo($"/tickets/{TicketId}");
-    }
-
-    private static String GetStatusLabel(TicketStatus enmStatus)
-    {
-        return enmStatus switch
-        {
-            TicketStatus.InProgress => "In Progress",
-            TicketStatus.WaitingOnClient => "Waiting on Client",
-            TicketStatus.WaitingOnInternal => "Waiting on Internal",
-            TicketStatus.ReadyToInvoice => "Ready to Invoice",
-            _ => GetEnumLabel(enmStatus.ToString())
-        };
-    }
-
-    private static String GetEnumLabel(String strValue)
-    {
-        return String.Concat(strValue.Select((chrValue, intIndex) =>
-            intIndex > 0 && Char.IsUpper(chrValue)
-                ? " " + chrValue
-                : chrValue.ToString()));
     }
 }

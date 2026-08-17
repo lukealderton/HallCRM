@@ -21,6 +21,7 @@
 
                 <div>
                     <strong>Company filter active</strong>
+
                     <span>
                         Showing notes linked to this company.
                     </span>
@@ -41,8 +42,10 @@
     }
 
     <div class="notes-toolbar crm-card">
+
         <div class="notes-search">
             <div class="input-group">
+
                 <span class="input-group-text">
                     <span class="material-symbols-outlined">
                         search
@@ -54,10 +57,12 @@
                        placeholder="Search notes or records..."
                        @bind="strSearch"
                        @bind:event="oninput" />
+
             </div>
         </div>
 
         <div class="notes-toolbar-actions">
+
             <button class="btn btn-primary"
                     type="button"
                     @onclick="SearchNotesAsync">
@@ -68,109 +73,129 @@
 
                 Search
             </button>
+
         </div>
+
     </div>
 
-    <div class="notes-summary row g-3">
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="notes-summary-card notes-summary-card-primary">
-                <span class="material-symbols-outlined">
-                    sticky_note_2
+    <div class="notes-summary">
+
+        <div class="notes-summary-card notes-summary-card-primary">
+
+            <span class="material-symbols-outlined">
+                sticky_note_2
+            </span>
+
+            <div>
+                <small>
+                    Notes shown
+                </small>
+
+                <strong>
+                    @intTotalNotes
+                </strong>
+
+                <span class="notes-summary-note">
+                    @if (CompanyId.HasValue)
+                    {
+                        <text>
+                            Notes linked to this company
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Latest 100 matching notes
+                        </text>
+                    }
                 </span>
-
-                <div>
-                    <small>Notes shown</small>
-
-                    <strong>
-                        @intTotalNotes
-                    </strong>
-
-                    <span class="notes-summary-note">
-                        @if (CompanyId.HasValue)
-                        {
-                            <text>Notes linked to this company</text>
-                        }
-                        else
-                        {
-                            <text>Latest 100 matching notes</text>
-                        }
-                    </span>
-                </div>
             </div>
+
         </div>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="notes-summary-card notes-summary-card-success">
-                <span class="material-symbols-outlined">
-                    link
+        <div class="notes-summary-card notes-summary-card-success">
+
+            <span class="material-symbols-outlined">
+                link
+            </span>
+
+            <div>
+                <small>
+                    Linked to records
+                </small>
+
+                <strong>
+                    @intLinkedNotes
+                </strong>
+
+                <span class="notes-summary-note">
+                    @intLinkedPercentage% attached to CRM records
                 </span>
-
-                <div>
-                    <small>Linked to records</small>
-
-                    <strong>
-                        @intLinkedNotes
-                    </strong>
-
-                    <span class="notes-summary-note">
-                        @intLinkedPercentage% attached to CRM records
-                    </span>
-                </div>
             </div>
+
         </div>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="notes-summary-card notes-summary-card-warning">
-                <span class="material-symbols-outlined">
-                    calendar_month
+        <div class="notes-summary-card notes-summary-card-warning">
+
+            <span class="material-symbols-outlined">
+                calendar_month
+            </span>
+
+            <div>
+                <small>
+                    Added this week
+                </small>
+
+                <strong>
+                    @intRecentNotes
+                </strong>
+
+                <span class="notes-summary-note">
+                    Since
+                    @dteRecentCutoffUtc
+                    .ToLocalTime()
+                    .ToString("dd MMM")
                 </span>
-
-                <div>
-                    <small>Added this week</small>
-
-                    <strong>
-                        @intRecentNotes
-                    </strong>
-
-                    <span class="notes-summary-note">
-                        Since @dteRecentCutoffUtc
-                        .ToLocalTime()
-                        .ToString("dd MMM")
-                    </span>
-                </div>
             </div>
+
         </div>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="notes-summary-card notes-summary-card-info">
-                <span class="material-symbols-outlined">
-                    category
+        <div class="notes-summary-card notes-summary-card-info">
+
+            <span class="material-symbols-outlined">
+                category
+            </span>
+
+            <div>
+                <small>
+                    Record types
+                </small>
+
+                <strong>
+                    @intRecordTypeCount
+                </strong>
+
+                <span class="notes-summary-note">
+                    Companies, contacts or jobs
                 </span>
-
-                <div>
-                    <small>Record types</small>
-
-                    <strong>
-                        @intRecordTypeCount
-                    </strong>
-
-                    <span class="notes-summary-note">
-                        Companies, contacts or jobs
-                    </span>
-                </div>
             </div>
+
         </div>
+
     </div>
 
     @if (blnShowErrorAlert &&
          !String.IsNullOrWhiteSpace(strErrorMessage))
     {
-        <div class="alert alert-danger notes-alert">
+        <div class="alert alert-danger notes-alert"
+             role="alert">
+
             <span class="material-symbols-outlined">
                 error
             </span>
 
             <div class="alert-content">
+
                 <strong class="alert-title">
                     Unable to load notes
                 </strong>
@@ -178,9 +203,11 @@
                 <p>
                     @strErrorMessage
                 </p>
+
             </div>
 
             <div class="alert-actions">
+
                 <button class="btn btn-soft-danger btn-sm"
                         type="button"
                         @onclick="LoadNotesAsync">
@@ -194,18 +221,24 @@
 
                 <button class="btn btn-soft-danger btn-sm notes-alert-close"
                         type="button"
+                        aria-label="Dismiss"
                         @onclick="DismissErrorAlert">
 
                     <span class="material-symbols-outlined">
                         close
                     </span>
+
                 </button>
+
             </div>
+
         </div>
     }
 
     <div class="crm-card">
+
         <div class="crm-card-header">
+
             <div>
                 <h3>
                     @(CompanyId.HasValue
@@ -231,24 +264,33 @@
                     Clear filters
                 </button>
             }
+
         </div>
 
         <div class="notes-list-body">
+
             @if (blnLoading)
             {
                 <div class="crm-loading">
-                    <span class="spinner-border spinner-border-sm"></span>
+
+                    <span class="spinner-border spinner-border-sm">
+                    </span>
+
                     Loading notes...
+
                 </div>
             }
             else if (!colNotes.Any())
             {
                 <div class="crm-empty-state">
+
                     <span class="material-symbols-outlined">
                         notes
                     </span>
 
-                    <h4>No notes found</h4>
+                    <h4>
+                        No notes found
+                    </h4>
 
                     <p>
                         @if (CompanyId.HasValue)
@@ -265,23 +307,31 @@
                             </text>
                         }
                     </p>
+
                 </div>
             }
             else
             {
                 <div class="notes-list">
+
                     @foreach (Note objNote in colNotes)
                     {
                         <article class="notes-list-item">
+
                             <div class="notes-list-icon @GetEntityIconClass(objNote)">
+
                                 <span class="material-symbols-outlined">
                                     @GetEntityIcon(objNote)
                                 </span>
+
                             </div>
 
                             <div class="notes-list-content">
+
                                 <div class="notes-list-header">
+
                                     <div>
+
                                         @if (!String.IsNullOrWhiteSpace(GetEntityUrl(objNote)))
                                         {
                                             <a class="notes-record-link"
@@ -297,6 +347,7 @@
                                         }
 
                                         <div class="notes-record-meta">
+
                                             <span class="@GetEntityBadgeClass(objNote)">
                                                 @GetEntityType(objNote)
                                             </span>
@@ -304,7 +355,9 @@
                                             <small>
                                                 @FormatDate(objNote.CreatedUtc)
                                             </small>
+
                                         </div>
+
                                     </div>
 
                                     @if (objNote.EntityId != Guid.Empty &&
@@ -321,18 +374,25 @@
                                             Open record
                                         </button>
                                     }
+
                                 </div>
 
                                 <p>
                                     @objNote.Body
                                 </p>
+
                             </div>
+
                         </article>
                     }
+
                 </div>
             }
+
         </div>
+
     </div>
+
 </div>
 
 @code {
@@ -503,13 +563,8 @@
 
     private void ClearCompanyFilter()
     {
-        String strUrl =
-            String.IsNullOrWhiteSpace(strSearch)
-                ? "/notes"
-                : $"/notes";
-
         objNavigationManager.NavigateTo(
-            strUrl,
+            "/notes",
             replace: true);
     }
 

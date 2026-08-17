@@ -1,30 +1,40 @@
 ﻿.ticket-edit-page {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.ticket-save-panel .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .35rem;
-}
+/* ---------------------------------
+   Layout
+---------------------------------- */
 
 .ticket-edit-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 24rem;
     gap: 1rem;
+    align-items: start;
 }
 
 .ticket-edit-main,
 .ticket-edit-side {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
+.ticket-edit-side {
+    position: sticky;
+    top: 138px;
+}
+
+/* ---------------------------------
+   Form cards
+---------------------------------- */
+
 .ticket-form-card {
+    min-width: 0;
     padding: 1.1rem;
 }
 
@@ -32,12 +42,16 @@
     margin-bottom: .9rem;
 }
 
-.ticket-form-section-header h3 {
-    margin: 0;
-    color: #172033;
-    font-size: 1.05rem;
-    font-weight: 900;
-}
+    .ticket-form-section-header h3 {
+        margin: 0;
+        color: #172033;
+        font-size: 1.05rem;
+        font-weight: 900;
+    }
+
+/* ---------------------------------
+   Form layout
+---------------------------------- */
 
 .ticket-form-grid {
     display: grid;
@@ -45,12 +59,48 @@
     gap: .9rem;
 }
 
+    .ticket-form-grid > div {
+        min-width: 0;
+    }
+
+.ticket-edit-page .form-label {
+    color: #334155;
+    font-size: .84rem;
+    font-weight: 700;
+}
+
+.ticket-edit-page .form-control,
+.ticket-edit-page .form-select {
+    min-width: 0;
+}
+
+.ticket-edit-page textarea.form-control {
+    resize: vertical;
+}
+
+/* ---------------------------------
+   Checks / switches
+---------------------------------- */
+
 .ticket-form-checks {
+    margin-bottom: 1rem;
     display: flex;
     flex-direction: column;
     gap: .6rem;
-    margin-bottom: 1rem;
 }
+
+    .ticket-form-checks .form-check {
+        margin: 0;
+    }
+
+    .ticket-form-checks .form-check-label {
+        color: #475569;
+        font-size: .84rem;
+    }
+
+/* ---------------------------------
+   Save panel
+---------------------------------- */
 
 .ticket-save-panel {
     display: flex;
@@ -58,47 +108,214 @@
     gap: .6rem;
 }
 
-.ticket-save-panel .btn {
-    width: 100%;
+    .ticket-save-panel .btn {
+        width: 100%;
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .35rem;
+    }
+
+    .ticket-save-panel .material-symbols-outlined {
+        font-size: 19px;
+    }
+
+/* ---------------------------------
+   Error
+---------------------------------- */
+
+.ticket-edit-page .crm-alert {
+    min-width: 0;
 }
 
+.ticket-edit-page .crm-alert {
+    overflow-wrap: anywhere;
+}
+
+/* ---------------------------------
+   Loading
+---------------------------------- */
+
 .ticket-edit-state {
+    min-height: 20rem;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: .4rem;
-    min-height: 20rem;
-    padding: 2rem;
     text-align: center;
 }
 
-.ticket-edit-state .material-symbols-outlined {
-    color: #94a3b8;
-    font-size: 3rem;
-}
+    .ticket-edit-state .material-symbols-outlined {
+        color: #94a3b8;
+        font-size: 3rem;
+    }
 
-.ticket-edit-state p {
-    margin: 0;
-    color: #64748b;
-}
+    .ticket-edit-state p {
+        margin: 0;
+        color: #64748b;
+    }
+
+/* ---------------------------------
+   Tablet
+---------------------------------- */
 
 @media (max-width: 1100px) {
+
     .ticket-edit-grid {
         grid-template-columns: 1fr;
     }
+
+    .ticket-edit-side {
+        position: static;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
+
+    .ticket-save-panel {
+        grid-column: 1 / -1;
+    }
 }
 
-@media (max-width: 768px) {
-    .ticket-edit-toolbar {
-        flex-direction: column;
+/* ---------------------------------
+   Mobile
+---------------------------------- */
+
+@media (max-width: 767.98px) {
+
+    .ticket-edit-page {
+        gap: .8rem;
     }
 
-    .ticket-edit-toolbar .btn {
+    /* Layout */
+
+    .ticket-edit-grid {
         width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: .8rem;
     }
+
+    .ticket-edit-main,
+    .ticket-edit-side {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: .8rem;
+    }
+
+    .ticket-edit-side {
+        position: static;
+    }
+
+    /* Cards */
+
+    .ticket-form-card {
+        width: 100%;
+        padding: .9rem;
+    }
+
+    .ticket-form-section-header {
+        margin-bottom: .75rem;
+    }
+
+        .ticket-form-section-header h3 {
+            font-size: .98rem;
+        }
+
+    /* Form fields */
 
     .ticket-form-grid {
         grid-template-columns: 1fr;
+        gap: .8rem;
+    }
+
+    .ticket-edit-page .form-control,
+    .ticket-edit-page .form-select {
+        min-height: 44px;
+    }
+
+    .ticket-edit-page textarea.form-control {
+        min-height: 110px;
+    }
+
+    .ticket-edit-page textarea[rows="7"] {
+        min-height: 150px;
+    }
+
+    .ticket-edit-page textarea[rows="5"] {
+        min-height: 120px;
+    }
+
+    .ticket-edit-page .mb-3 {
+        margin-bottom: .8rem !important;
+    }
+
+    /* Switches */
+
+    .ticket-form-checks {
+        margin-bottom: .8rem;
+        gap: .55rem;
+    }
+
+        .ticket-form-checks .form-check {
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+    /* Save */
+
+    .ticket-save-panel {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+    }
+
+        .ticket-save-panel .btn {
+            width: 100%;
+            min-height: 44px;
+        }
+
+    /*
+        Save first, destructive action second.
+        This is already the Razor order.
+    */
+
+    /* Loading */
+
+    .ticket-edit-state {
+        min-height: 14rem;
+        padding: 1.25rem;
+    }
+}
+
+/* ---------------------------------
+   Small phones
+---------------------------------- */
+
+@media (max-width: 575.98px) {
+
+    .ticket-form-card {
+        padding: .8rem;
+    }
+
+    .ticket-form-section-header h3 {
+        font-size: .95rem;
+    }
+
+    .ticket-edit-page .form-label {
+        margin-bottom: .35rem;
+        font-size: .78rem;
+    }
+
+    .ticket-edit-page .form-control,
+    .ticket-edit-page .form-select {
+        font-size: .9rem;
     }
 }

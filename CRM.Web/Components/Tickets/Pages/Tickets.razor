@@ -40,17 +40,26 @@
     }
 
     <div class="crm-card tickets-filter-card">
+
         <div class="tickets-filter-grid">
 
-            <div>
+            <div class="tickets-search-filter">
                 <label class="form-label">
                     Search
                 </label>
 
-                <input class="form-control"
-                       placeholder="Search tickets"
-                       @bind="_strSearch"
-                       @bind:event="oninput" />
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <span class="material-symbols-outlined">
+                            search
+                        </span>
+                    </span>
+
+                    <input class="form-control"
+                           placeholder="Search tickets..."
+                           @bind="_strSearch"
+                           @bind:event="oninput" />
+                </div>
             </div>
 
             <div>
@@ -68,9 +77,10 @@
                     @foreach (TicketStatus enmStatus in Enum.GetValues<TicketStatus>())
                     {
                         <option value="@enmStatus">
-                            @GetStatusLabel(enmStatus)
+                            @enmStatus.GetDisplay().Name
                         </option>
                     }
+
                 </select>
             </div>
 
@@ -89,9 +99,10 @@
                     @foreach (TicketType enmType in Enum.GetValues<TicketType>())
                     {
                         <option value="@enmType">
-                            @GetEnumLabel(enmType.ToString())
+                            @enmType.GetDisplay().Name
                         </option>
                     }
+
                 </select>
             </div>
 
@@ -110,9 +121,10 @@
                     @foreach (TicketPriority enmPriority in Enum.GetValues<TicketPriority>())
                     {
                         <option value="@enmPriority">
-                            @enmPriority
+                            @enmPriority.GetDisplay().Name
                         </option>
                     }
+
                 </select>
             </div>
 
@@ -154,14 +166,21 @@
             </div>
 
         </div>
+
     </div>
 
     <div class="crm-card tickets-table-card">
 
         <div class="tickets-table-header">
+
             <div>
-                <h3>Ticket records</h3>
-                <p>@GetResultSummary()</p>
+                <h3>
+                    Ticket records
+                </h3>
+
+                <p>
+                    @GetResultSummary()
+                </p>
             </div>
 
             <div class="tickets-table-header-actions">
@@ -192,6 +211,7 @@
                 </button>
 
             </div>
+
         </div>
 
         @if (_blnLoading)
@@ -246,124 +266,304 @@
         }
         else
         {
-            <div class="table-responsive">
-                <table class="table tickets-table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Ticket</th>
-                            <th>Company</th>
-                            <th>Status</th>
-                            <th>Priority</th>
-                            <th>Type</th>
-                            <th>Chargeable</th>
-                            <th>Invoiced</th>
-                            <th>Value</th>
-                            <th>Time</th>
-                            <th>Created</th>
-                        </tr>
-                    </thead>
+            <div class="tickets-desktop-view">
 
-                    <tbody>
-                        @foreach (Ticket objTicket in _colTickets)
-                        {
-                            <tr @onclick="() => OpenTicket(objTicket.Id)">
-                                <td>
-                                    <div class="tickets-title-cell">
+                <div class="table-responsive">
+                    <table class="table tickets-table align-middle">
 
-                                        <span class="tickets-avatar">
-                                            @GetInitials(objTicket.Title)
-                                        </span>
-
-                                        <div>
-                                            <strong>
-                                                @objTicket.Title
-                                            </strong>
-
-                                            @if (!String.IsNullOrWhiteSpace(objTicket.Description))
-                                            {
-                                                <small>
-                                                    @objTicket.Description
-                                                </small>
-                                            }
-                                        </div>
-                                    </div>
-                                </td>
-
-                                <td>
-                                    @if (objTicket.Company != null)
-                                    {
-                                        <a href="@($"/companies/{objTicket.Company.Id}")"
-                                           class="tickets-company-link"
-                                           @onclick:stopPropagation="true">
-
-                                            @objTicket.Company.Name
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">
-                                            -
-                                        </span>
-                                    }
-                                </td>
-
-                                <td>
-                                    <span class="ticket-status-pill @GetStatusClass(objTicket.Status)">
-                                        @GetStatusLabel(objTicket.Status)
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <span class="ticket-priority-pill @GetPriorityClass(objTicket.Priority)">
-                                        @objTicket.Priority
-                                    </span>
-                                </td>
-
-                                <td>
-                                    @GetEnumLabel(objTicket.Type.ToString())
-                                </td>
-
-                                <td>
-                                    <span class="ticket-bool-icon @(objTicket.IsChargeable ? "is-yes" : "is-no")">
-
-                                        <span class="material-symbols-outlined">
-                                            @(objTicket.IsChargeable
-                                                ? "check_circle"
-                                                : "cancel")
-                                        </span>
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <span class="ticket-bool-icon @(objTicket.IsInvoiced ? "is-yes" : "is-no")">
-
-                                        <span class="material-symbols-outlined">
-                                            @(objTicket.IsInvoiced
-                                                ? "check_circle"
-                                                : "cancel")
-                                        </span>
-                                    </span>
-                                </td>
-
-                                <td>
-                                    @FormatMoney(
-                                        GetBestValue(objTicket))
-                                </td>
-
-                                <td>
-                                    @FormatMinutes(
-                                        objTicket.ActualMinutes)
-                                </td>
-
-                                <td>
-                                    @objTicket.Entity.CreatedUtc
-                                    .ToLocalTime()
-                                    .ToString("dd/MM/yy")
-                                </td>
+                        <thead>
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Company</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Type</th>
+                                <th>Chargeable</th>
+                                <th>Invoiced</th>
+                                <th>Value</th>
+                                <th>Time</th>
+                                <th>Created</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (Ticket objTicket in _colTickets)
+                            {
+                                <tr @onclick="() => OpenTicket(objTicket.Id)">
+
+                                    <td>
+                                        <div class="tickets-title-cell">
+
+                                            <span class="tickets-avatar">
+                                                @GetInitials(objTicket.Title)
+                                            </span>
+
+                                            <div>
+                                                <strong>
+                                                    @objTicket.Title
+                                                </strong>
+
+                                                @if (!String.IsNullOrWhiteSpace(objTicket.Description))
+                                                {
+                                                    <small>
+                                                        @objTicket.Description
+                                                    </small>
+                                                }
+                                            </div>
+
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        @if (objTicket.Company != null)
+                                        {
+                                            <a href="@($"/companies/{objTicket.Company.Id}")"
+                                               class="tickets-company-link"
+                                               @onclick:stopPropagation="true">
+                                                @objTicket.Company.Name
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <span class="ticket-status-pill @GetStatusClass(objTicket.Status)">
+                                            @objTicket.Status.GetDisplay().Name
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="ticket-priority-pill @GetPriorityClass(objTicket.Priority)">
+                                            @objTicket.Priority.GetDisplay().Name
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        @objTicket.Type.GetDisplay().Name
+                                    </td>
+
+                                    <td>
+                                        <span class="ticket-bool-icon @(objTicket.IsChargeable ? "is-yes" : "is-no")">
+                                            <span class="material-symbols-outlined">
+                                                @(objTicket.IsChargeable
+                                                    ? "check_circle"
+                                                    : "cancel")
+                                            </span>
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="ticket-bool-icon @(objTicket.IsInvoiced ? "is-yes" : "is-no")">
+                                            <span class="material-symbols-outlined">
+                                                @(objTicket.IsInvoiced
+                                                    ? "check_circle"
+                                                    : "cancel")
+                                            </span>
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        @FormatMoney(GetBestValue(objTicket))
+                                    </td>
+
+                                    <td>
+                                        @FormatMinutes(objTicket.ActualMinutes)
+                                    </td>
+
+                                    <td>
+                                        @objTicket.Entity.CreatedUtc
+                                        .ToLocalTime()
+                                        .ToString("dd/MM/yy")
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+
+            <div class="tickets-mobile-list">
+
+                @foreach (Ticket objTicket in _colTickets)
+                {
+                    <article class="tickets-mobile-card"
+                             @onclick="() => OpenTicket(objTicket.Id)">
+
+                        <div class="tickets-mobile-main">
+
+                            <span class="tickets-avatar tickets-mobile-avatar">
+                                @GetInitials(objTicket.Title)
+                            </span>
+
+                            <div class="tickets-mobile-heading">
+
+                                <div class="tickets-mobile-title-row">
+
+                                    <strong class="tickets-mobile-title">
+                                        @objTicket.Title
+                                    </strong>
+
+                                    <span class="ticket-status-pill @GetStatusClass(objTicket.Status)">
+                                        @objTicket.Status.GetDisplay().Name
+                                    </span>
+
+                                </div>
+
+                                @if (objTicket.Company != null)
+                                {
+                                    <a href="@($"/companies/{objTicket.Company.Id}")"
+                                       class="tickets-mobile-company"
+                                       @onclick:stopPropagation="true">
+
+                                        <span class="material-symbols-outlined">
+                                            apartment
+                                        </span>
+
+                                        @objTicket.Company.Name
+                                    </a>
+                                }
+                                else
+                                {
+                                    <div class="tickets-mobile-company tickets-mobile-muted">
+                                        <span class="material-symbols-outlined">
+                                            apartment
+                                        </span>
+
+                                        No company linked
+                                    </div>
+                                }
+
+                                @if (!String.IsNullOrWhiteSpace(objTicket.Description))
+                                {
+                                    <p class="tickets-mobile-description">
+                                        @objTicket.Description
+                                    </p>
+                                }
+
+                            </div>
+
+                            <span class="material-symbols-outlined tickets-mobile-chevron">
+                                chevron_right
+                            </span>
+
+                        </div>
+
+                        <div class="tickets-mobile-details">
+
+                            <div class="tickets-mobile-detail">
+                                <span class="material-symbols-outlined">
+                                    priority_high
+                                </span>
+
+                                <div>
+                                    <small>Priority</small>
+
+                                    <span class="ticket-priority-pill @GetPriorityClass(objTicket.Priority)">
+                                        @objTicket.Priority.GetDisplay().Name
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="tickets-mobile-detail">
+                                <span class="material-symbols-outlined">
+                                    category
+                                </span>
+
+                                <div>
+                                    <small>Type</small>
+                                    <strong>
+                                        @objTicket.Type.GetDisplay().Name
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <div class="tickets-mobile-detail">
+                                <span class="material-symbols-outlined">
+                                    payments
+                                </span>
+
+                                <div>
+                                    <small>Value</small>
+                                    <strong>
+                                        @FormatMoney(GetBestValue(objTicket))
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <div class="tickets-mobile-detail">
+                                <span class="material-symbols-outlined">
+                                    schedule
+                                </span>
+
+                                <div>
+                                    <small>Time</small>
+                                    <strong>
+                                        @FormatMinutes(objTicket.ActualMinutes)
+                                    </strong>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="tickets-mobile-flags">
+
+                            <span class="tickets-mobile-flag @(objTicket.IsChargeable ? "is-yes" : "is-no")">
+                                <span class="material-symbols-outlined">
+                                    @(objTicket.IsChargeable
+                                        ? "check_circle"
+                                        : "cancel")
+                                </span>
+
+                                Chargeable
+                            </span>
+
+                            <span class="tickets-mobile-flag @(objTicket.IsInvoiced ? "is-yes" : "is-no")">
+                                <span class="material-symbols-outlined">
+                                    @(objTicket.IsInvoiced
+                                        ? "check_circle"
+                                        : "cancel")
+                                </span>
+
+                                Invoiced
+                            </span>
+
+                            <span class="tickets-mobile-created">
+                                @objTicket.Entity.CreatedUtc
+                                .ToLocalTime()
+                                .ToString("dd MMM yyyy")
+                            </span>
+
+                        </div>
+
+                        <div class="tickets-mobile-actions">
+
+                            <button type="button"
+                                    class="btn btn-soft-primary"
+                                    @onclick="() => OpenTicket(objTicket.Id)"
+                                    @onclick:stopPropagation="true">
+
+                                <span class="material-symbols-outlined">
+                                    visibility
+                                </span>
+
+                                View ticket
+                            </button>
+
+                        </div>
+
+                    </article>
+                }
+
             </div>
 
             <div class="tickets-table-footer">
@@ -374,6 +574,7 @@
         }
 
     </div>
+
 </div>
 
 @code {
@@ -393,7 +594,6 @@
 
     private Boolean _blnHideInvoiced = true;
     private Boolean _blnIncludeArchived;
-
     private Boolean _blnLoading = true;
 
     private TicketSearchResult _objResult =
@@ -527,15 +727,9 @@
     private async Task ClearFiltersAsync()
     {
         _strSearch = null;
-
-        _strStatus =
-            String.Empty;
-
-        _strType =
-            String.Empty;
-
-        _strPriority =
-            String.Empty;
+        _strStatus = String.Empty;
+        _strType = String.Empty;
+        _strPriority = String.Empty;
 
         _blnHideInvoiced = true;
         _blnIncludeArchived = false;
@@ -572,7 +766,7 @@
             out TicketStatus enmStatus))
         {
             colFilters.Add(
-                $"status {GetStatusLabel(enmStatus)}");
+                $"status {enmStatus.GetDisplay().Name}");
         }
 
         if (Enum.TryParse(
@@ -580,7 +774,7 @@
             out TicketType enmType))
         {
             colFilters.Add(
-                $"type {GetEnumLabel(enmType.ToString())}");
+                $"type {enmType.GetDisplay().Name}");
         }
 
         if (Enum.TryParse(
@@ -588,7 +782,7 @@
             out TicketPriority enmPriority))
         {
             colFilters.Add(
-                $"priority {enmPriority}");
+                $"priority {enmPriority.GetDisplay().Name}");
         }
 
         if (_blnHideInvoiced)
@@ -639,8 +833,7 @@
             return "-";
         }
 
-        return
-            decValue.Value.ToString("C");
+        return decValue.Value.ToString("C");
     }
 
     private static String FormatMinutes(
@@ -701,41 +894,6 @@
         return
             $"{colParts[0][0]}{colParts[1][0]}"
                 .ToUpperInvariant();
-    }
-
-    private static String GetStatusLabel(
-        TicketStatus enmStatus)
-    {
-        return enmStatus switch
-        {
-            TicketStatus.InProgress =>
-                "In Progress",
-
-            TicketStatus.WaitingOnClient =>
-                "Waiting on Client",
-
-            TicketStatus.WaitingOnInternal =>
-                "Waiting on Internal",
-
-            TicketStatus.ReadyToInvoice =>
-                "Ready to Invoice",
-
-            _ =>
-                GetEnumLabel(
-                    enmStatus.ToString())
-        };
-    }
-
-    private static String GetEnumLabel(
-        String strValue)
-    {
-        return String.Concat(
-            strValue.Select(
-                (chrValue, intIndex) =>
-                    intIndex > 0 &&
-                    Char.IsUpper(chrValue)
-                        ? " " + chrValue
-                        : chrValue.ToString()));
     }
 
     private static String GetStatusClass(

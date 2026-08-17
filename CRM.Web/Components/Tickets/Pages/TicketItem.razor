@@ -29,11 +29,11 @@
         <div class="crm-card ticket-overview-card">
             <div class="ticket-overview-status">
                 <span class="ticket-status-pill @GetStatusClass(_objTicket.Status)">
-                    @GetStatusLabel(_objTicket.Status)
+                    @_objTicket.Status.GetDisplay().Name
                 </span>
 
                 <span class="ticket-priority-pill @GetPriorityClass(_objTicket.Priority)">
-                    @_objTicket.Priority
+                    @_objTicket.Priority.GetDisplay().Name
                 </span>
             </div>
 
@@ -58,7 +58,7 @@
 
                 <span>
                     <span class="material-symbols-outlined">category</span>
-                    @GetEnumLabel(_objTicket.Type.ToString())
+                    @_objTicket.Type.GetDisplay().Name
                 </span>
             </div>
         </div>
@@ -146,17 +146,17 @@
                                     <span class="ticket-timeline-icon material-symbols-outlined">swap_horiz</span>
                                     <div>
                                         <div class="ticket-timeline-meta">
-                                            <strong>@GetStatusLabel(objHistory.NewStatus)</strong>
+                                            <strong>@objHistory.NewStatus.GetDisplay().Name</strong>
                                             <span>@objHistory.ChangedUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                                         </div>
 
                                         @if (objHistory.PreviousStatus.HasValue)
                                         {
-                                            <p>Changed from @GetStatusLabel(objHistory.PreviousStatus.Value) to @GetStatusLabel(objHistory.NewStatus).</p>
+                                            <p>Changed from @objHistory.PreviousStatus.Value.GetDisplay().Name to @(objHistory.NewStatus.GetDisplay().Name).</p>
                                         }
                                         else
                                         {
-                                            <p>Ticket created as @GetStatusLabel(objHistory.NewStatus).</p>
+                                            <p>Ticket created as @(objHistory.NewStatus.GetDisplay().Name).</p>
                                         }
                                     </div>
                                 </div>
@@ -398,7 +398,7 @@
 
         if (blnSuccess)
         {
-            _strMessage = $"Status changed to {GetStatusLabel(enmStatus)}.";
+            _strMessage = $"Status changed to {enmStatus.GetDisplay().Name}.";
             await LoadTicketAsync();
         }
     }
@@ -447,26 +447,6 @@
         }
 
         return $"{intHours}h {intRemainingMinutes}m";
-    }
-
-    private static String GetStatusLabel(TicketStatus enmStatus)
-    {
-        return enmStatus switch
-        {
-            TicketStatus.InProgress => "In Progress",
-            TicketStatus.WaitingOnClient => "Waiting on Client",
-            TicketStatus.WaitingOnInternal => "Waiting on Internal",
-            TicketStatus.ReadyToInvoice => "Ready to Invoice",
-            _ => GetEnumLabel(enmStatus.ToString())
-        };
-    }
-
-    private static String GetEnumLabel(String strValue)
-    {
-        return String.Concat(strValue.Select((chrValue, intIndex) =>
-            intIndex > 0 && Char.IsUpper(chrValue)
-                ? " " + chrValue
-                : chrValue.ToString()));
     }
 
     private static String GetStatusClass(TicketStatus enmStatus)
