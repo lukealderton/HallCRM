@@ -19,6 +19,7 @@ using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Entities.Repositories;
 using CRM.Infrastructure.Geocoding.Services;
 using CRM.Infrastructure.Jobs.Repositories;
+using CRM.Infrastructure.Jobs.Services;
 using CRM.Infrastructure.Logging.Repositories;
 using CRM.Infrastructure.Mailing.Services;
 using CRM.Infrastructure.Notes.Repositories;
@@ -72,6 +73,8 @@ namespace CRM.Infrastructure
             colServices.AddScoped<IActivityRepository, ActivityRepository>();
 
             colServices.AddScoped<IServiceRepository, ServiceRepository>();
+
+            colServices.AddScoped<IJobSheetService, JobSheetService>();
 
             return colServices;
         }

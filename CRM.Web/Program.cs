@@ -1,6 +1,7 @@
 using CRM.Core;
 using CRM.Core.Common.Abstraction;
 using CRM.Core.Common.Configuration;
+using CRM.Core.Jobs.Abstractions;
 using CRM.Infrastructure;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Identity;
@@ -12,6 +13,7 @@ using CRM.Web.Users.Abstraction;
 using CRM.Web.Users.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using QuestPDF.Infrastructure;
 
 WebApplicationBuilder objBuilder = WebApplication.CreateBuilder(args);
 
@@ -92,6 +94,27 @@ objApp.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 objApp.MapAdditionalIdentityEndpoints();
+
+QuestPDF.Settings.License = LicenseType.Community;
+
+objApp.MapGet(
+    "/jobs/{jobId:guid}/job-sheet.pdf",
+    async (
+        Guid jobId,
+        IJobSheetService objJobSheetService,
+        CancellationToken objToken) =>
+    {
+        Byte[] bytPdf =
+            await objJobSheetService.GenerateJobSheetAsync(
+                jobId,
+                objToken);
+
+        return Results.File(
+            bytPdf,
+            "application/pdf",
+            $"job-{jobId:N}.pdf");
+    })
+    .RequireAuthorization();
 
 //await CreateTemporaryAdminUserAsync(objApp);
 
