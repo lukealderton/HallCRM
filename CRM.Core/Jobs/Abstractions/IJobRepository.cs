@@ -7,23 +7,14 @@ namespace CRM.Core.Jobs.Abstractions
         /// <summary>
         /// Gets a job by its unique identifier.
         /// </summary>
-        /// <param name="objJobId"></param>
-        /// <param name="blnTracking"></param>
-        /// <param name="objToken"></param>
-        /// <returns></returns>
-        Task<Job?> GetJobByIdAsync(Guid objJobId, Boolean blnTracking = false, CancellationToken objToken = default);
+        Task<Job?> GetJobByIdAsync(
+            Guid objJobId,
+            Boolean blnTracking = false,
+            CancellationToken objToken = default);
 
         /// <summary>
         /// Gets a list of jobs based on the provided search criteria.
         /// </summary>
-        /// <param name="strSearch"></param>
-        /// <param name="enmStage"></param>
-        /// <param name="objCompanyId"></param>
-        /// <param name="blnIncludeArchived"></param>
-        /// <param name="blnIncludeDeleted"></param>
-        /// <param name="blnOverdueOnly"></param>
-        /// <param name="objToken"></param>
-        /// <returns></returns>
         Task<List<Job>> GetJobsAsync(
             String? strSearch = null,
             JobStage? enmStage = null,
@@ -36,9 +27,6 @@ namespace CRM.Core.Jobs.Abstractions
         /// <summary>
         /// Adds a new job to the repository.
         /// </summary>
-        /// <param name="objJob"></param>
-        /// <param name="objToken"></param>
-        /// <returns></returns>
         Task AddJobAsync(
             Job objJob,
             CancellationToken objToken = default);
@@ -46,42 +34,39 @@ namespace CRM.Core.Jobs.Abstractions
         /// <summary>
         /// Updates an existing job in the repository.
         /// </summary>
-        /// <param name="objJob"></param>
-        /// <param name="objToken"></param>
-        /// <returns></returns>
         Task UpdateJobAsync(
             Job objJob,
             CancellationToken objToken = default);
 
         /// <summary>
+        /// Sets the services linked to a job.
+        /// </summary>
+        Task SetJobServicesAsync(
+            Guid objJobId,
+            IReadOnlyCollection<Guid> colServiceIds,
+            CancellationToken objToken = default);
+
+        /// <summary>
         /// Counts the total number of open jobs in the repository.
         /// </summary>
-        /// <param name="objToken"></param>
-        /// <returns></returns>
         Task<Int32> CountOpenJobsAsync(
             CancellationToken objToken = default);
 
         /// <summary>
         /// Counts the total value of open jobs in the repository.
         /// </summary>
-        /// <param name="objToken"></param>
-        /// <returns></returns>
         Task<Decimal> GetOpenJobValueAsync(
             CancellationToken objToken = default);
 
         /// <summary>
         /// Gets a summary of jobs grouped by their stages.
         /// </summary>
-        /// <param name="objToken"></param>
-        /// <returns></returns>
         Task<List<JobStageSummary>> GetStageSummaryAsync(
             CancellationToken objToken = default);
 
         /// <summary>
         /// Counts the total number of overdue jobs in the repository.
         /// </summary>
-        /// <param name="objToken"></param>
-        /// <returns></returns>
         Task<Int32> CountOverdueJobsAsync(
             CancellationToken objToken = default);
     }

@@ -1,4 +1,5 @@
 ﻿using CRM.Core.Entities.Domain;
+using CRM.Core.Jobs.Domain;
 
 namespace CRM.Core.Services.Domain
 {
@@ -12,5 +13,7 @@ namespace CRM.Core.Services.Domain
         public Decimal? DefaultPrice { get; set; }
 
         public String? Notes { get; set; }
+
+        public ICollection<JobServiceLink> JobLinks { get; set; } = [];
     }
 }

@@ -8,15 +8,22 @@ namespace CRM.Core.Jobs.Services
     {
         private readonly IJobRepository _jobRepository;
 
-        public JobService(IJobRepository objJobRepository)
+        public JobService(
+            IJobRepository objJobRepository)
         {
-            _jobRepository = objJobRepository;
+            _jobRepository =
+                objJobRepository;
         }
 
         ///<inheritdoc/>
-        public Task<Job?> GetJobByIdAsync(Guid objJobId, CancellationToken objToken = default)
+        public Task<Job?> GetJobByIdAsync(
+            Guid objJobId,
+            CancellationToken objToken = default)
         {
-            return _jobRepository.GetJobByIdAsync(objJobId, false, objToken);
+            return _jobRepository.GetJobByIdAsync(
+                objJobId,
+                false,
+                objToken);
         }
 
         ///<inheritdoc/>
@@ -40,103 +47,259 @@ namespace CRM.Core.Jobs.Services
         }
 
         ///<inheritdoc/>
-        public async Task<Job> AddJobAsync(Job objJob, Guid? objUserId = null, CancellationToken objToken = default)
+        public async Task<Job> AddJobAsync(
+            Job objJob,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
         {
-            if (String.IsNullOrWhiteSpace(objJob.Name))
+            if (String.IsNullOrWhiteSpace(
+                objJob.Name))
             {
-                throw new ArgumentException("Job name is required.", nameof(objJob));
+                throw new ArgumentException(
+                    "Job name is required.",
+                    nameof(objJob));
             }
 
-            Guid objJobId = objJob.Id == Guid.Empty
-                ? Guid.NewGuid()
-                : objJob.Id;
+            Guid[] colServiceIds =
+                objJob.ServiceLinks
+                    .Select(objLink =>
+                        objLink.ServiceId)
+                    .Where(objServiceId =>
+                        objServiceId != Guid.Empty)
+                    .Distinct()
+                    .ToArray();
 
-            DateTime dteNow = DateTime.UtcNow;
-            String strJobName = objJob.Name.Trim();
+            Guid objJobId =
+                objJob.Id == Guid.Empty
+                    ? Guid.NewGuid()
+                    : objJob.Id;
 
-            objJob.Id = objJobId;
-            objJob.Name = strJobName;
-            objJob.Description = CleanString(objJob.Description);
-            objJob.Source = CleanString(objJob.Source);
-            objJob.Notes = CleanString(objJob.Notes);
-            objJob.ProbabilityPercent = CleanProbability(objJob.ProbabilityPercent);
+            DateTime dteNow =
+                DateTime.UtcNow;
 
-            objJob.Entity = new CrmEntity
-            {
-                Id = objJobId,
-                EntityTypeId = (Int32)PredefinedEntityType.Job,
-                DisplayName = strJobName,
-                OwnerUserId = objUserId,
-                CreatedUtc = dteNow,
-                CreatedByUserId = objUserId
-            };
+            String strJobName =
+                objJob.Name.Trim();
 
-            await _jobRepository.AddJobAsync(objJob, objToken);
+            objJob.Id =
+                objJobId;
 
-            return objJob;
+            objJob.Name =
+                strJobName;
+
+            objJob.Description =
+                CleanString(
+                    objJob.Description);
+
+            objJob.Source =
+                CleanString(
+                    objJob.Source);
+
+            objJob.Notes =
+                CleanString(
+                    objJob.Notes);
+
+            objJob.ProbabilityPercent =
+                CleanProbability(
+                    objJob.ProbabilityPercent);
+
+            /*
+             * Links are persisted separately so that
+             * EF doesn't attempt to add Service records.
+             */
+            objJob.ServiceLinks =
+                new List<JobServiceLink>();
+
+            objJob.Entity =
+                new CrmEntity
+                {
+                    Id =
+                        objJobId,
+
+                    EntityTypeId =
+                        (Int32)PredefinedEntityType.Job,
+
+                    DisplayName =
+                        strJobName,
+
+                    OwnerUserId =
+                        objUserId,
+
+                    CreatedUtc =
+                        dteNow,
+
+                    CreatedByUserId =
+                        objUserId
+                };
+
+            await _jobRepository.AddJobAsync(
+                objJob,
+                objToken);
+
+            await _jobRepository.SetJobServicesAsync(
+                objJobId,
+                colServiceIds,
+                objToken);
+
+            /*
+             * Return a fully populated record so callers
+             * immediately have the ServiceLinks.
+             */
+            Job? objCreatedJob =
+                await _jobRepository.GetJobByIdAsync(
+                    objJobId,
+                    false,
+                    objToken);
+
+            return objCreatedJob ??
+                   objJob;
         }
 
         ///<inheritdoc/>
-        public async Task<Job?> UpdateJobAsync(Job objJob, Guid? objUserId = null, CancellationToken objToken = default)
+        public async Task<Job?> UpdateJobAsync(
+            Job objJob,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
         {
             if (objJob.Id == Guid.Empty)
             {
-                throw new ArgumentException("Job id is required.", nameof(objJob));
+                throw new ArgumentException(
+                    "Job id is required.",
+                    nameof(objJob));
             }
 
-            if (String.IsNullOrWhiteSpace(objJob.Name))
+            if (String.IsNullOrWhiteSpace(
+                objJob.Name))
             {
-                throw new ArgumentException("Job name is required.", nameof(objJob));
+                throw new ArgumentException(
+                    "Job name is required.",
+                    nameof(objJob));
             }
 
-            Job? objExistingJob = await _jobRepository.GetJobByIdAsync(objJob.Id, true, objToken);
+            Guid[] colServiceIds =
+                objJob.ServiceLinks
+                    .Select(objLink =>
+                        objLink.ServiceId)
+                    .Where(objServiceId =>
+                        objServiceId != Guid.Empty)
+                    .Distinct()
+                    .ToArray();
 
-            if (objExistingJob == null || objExistingJob.Entity.DeletedUtc.HasValue)
+            Job? objExistingJob =
+                await _jobRepository.GetJobByIdAsync(
+                    objJob.Id,
+                    false,
+                    objToken);
+
+            if (objExistingJob == null ||
+                objExistingJob.Entity.DeletedUtc.HasValue)
             {
                 return null;
             }
 
-            DateTime dteNow = DateTime.UtcNow;
-            String strJobName = objJob.Name.Trim();
+            DateTime dteNow =
+                DateTime.UtcNow;
 
-            objExistingJob.CompanyId = objJob.CompanyId;
-            objExistingJob.ContactId = objJob.ContactId;
-            objExistingJob.Name = strJobName;
-            objExistingJob.Description = CleanString(objJob.Description);
-            objExistingJob.Stage = objJob.Stage;
-            objExistingJob.Value = objJob.Value;
-            objExistingJob.ProbabilityPercent = CleanProbability(objJob.ProbabilityPercent);
-            objExistingJob.ExpectedCloseDateUtc = objJob.ExpectedCloseDateUtc;
-            objExistingJob.Source = CleanString(objJob.Source);
-            objExistingJob.Notes = CleanString(objJob.Notes);
+            String strJobName =
+                objJob.Name.Trim();
 
-            objExistingJob.Entity.DisplayName = strJobName;
-            objExistingJob.Entity.UpdatedUtc = dteNow;
-            objExistingJob.Entity.UpdatedByUserId = objUserId;
+            objExistingJob.CompanyId =
+                objJob.CompanyId;
+
+            objExistingJob.ContactId =
+                objJob.ContactId;
+
+            objExistingJob.Name =
+                strJobName;
+
+            objExistingJob.Description =
+                CleanString(
+                    objJob.Description);
+
+            objExistingJob.Stage =
+                objJob.Stage;
+
+            objExistingJob.Value =
+                objJob.Value;
+
+            objExistingJob.ProbabilityPercent =
+                CleanProbability(
+                    objJob.ProbabilityPercent);
+
+            objExistingJob.ExpectedCloseDateUtc =
+                objJob.ExpectedCloseDateUtc;
+
+            objExistingJob.Source =
+                CleanString(
+                    objJob.Source);
+
+            objExistingJob.Notes =
+                CleanString(
+                    objJob.Notes);
+
+            objExistingJob.Entity.DisplayName =
+                strJobName;
+
+            objExistingJob.Entity.UpdatedUtc =
+                dteNow;
+
+            objExistingJob.Entity.UpdatedByUserId =
+                objUserId;
+
+            /*
+             * Existing links were loaded for reading,
+             * but relationship changes are persisted by
+             * SetJobServicesAsync().
+             */
+            objExistingJob.ServiceLinks =
+                new List<JobServiceLink>();
 
             await _jobRepository.UpdateJobAsync(
                 objExistingJob,
                 objToken);
 
-            return objExistingJob;
+            await _jobRepository.SetJobServicesAsync(
+                objExistingJob.Id,
+                colServiceIds,
+                objToken);
+
+            return await _jobRepository.GetJobByIdAsync(
+                objExistingJob.Id,
+                false,
+                objToken);
         }
 
         ///<inheritdoc/>
-        public async Task<Boolean> ArchiveJobAsync(Guid objJobId, Guid? objUserId = null, CancellationToken objToken = default)
+        public async Task<Boolean> ArchiveJobAsync(
+            Guid objJobId,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
         {
-            Job? objJob = await _jobRepository.GetJobByIdAsync(objJobId, true, objToken);
+            Job? objJob =
+                await _jobRepository.GetJobByIdAsync(
+                    objJobId,
+                    false,
+                    objToken);
 
-            if (objJob == null || objJob.Entity.DeletedUtc.HasValue)
+            if (objJob == null ||
+                objJob.Entity.DeletedUtc.HasValue)
             {
                 return false;
             }
 
-            DateTime dteNow = DateTime.UtcNow;
+            DateTime dteNow =
+                DateTime.UtcNow;
 
-            objJob.Entity.ArchivedUtc = dteNow;
-            objJob.Entity.ArchivedByUserId = objUserId;
-            objJob.Entity.UpdatedUtc = dteNow;
-            objJob.Entity.UpdatedByUserId = objUserId;
+            objJob.Entity.ArchivedUtc =
+                dteNow;
+
+            objJob.Entity.ArchivedByUserId =
+                objUserId;
+
+            objJob.Entity.UpdatedUtc =
+                dteNow;
+
+            objJob.Entity.UpdatedByUserId =
+                objUserId;
 
             await _jobRepository.UpdateJobAsync(
                 objJob,
@@ -146,21 +309,37 @@ namespace CRM.Core.Jobs.Services
         }
 
         ///<inheritdoc/>
-        public async Task<Boolean> RestoreJobAsync(Guid objJobId, Guid? objUserId = null, CancellationToken objToken = default)
+        public async Task<Boolean> RestoreJobAsync(
+            Guid objJobId,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
         {
-            Job? objJob = await _jobRepository.GetJobByIdAsync(objJobId, true, objToken);
+            Job? objJob =
+                await _jobRepository.GetJobByIdAsync(
+                    objJobId,
+                    false,
+                    objToken);
 
-            if (objJob == null || objJob.Entity.DeletedUtc.HasValue)
+            if (objJob == null ||
+                objJob.Entity.DeletedUtc.HasValue)
             {
                 return false;
             }
 
-            DateTime dteNow = DateTime.UtcNow;
+            DateTime dteNow =
+                DateTime.UtcNow;
 
-            objJob.Entity.ArchivedUtc = null;
-            objJob.Entity.ArchivedByUserId = null;
-            objJob.Entity.UpdatedUtc = dteNow;
-            objJob.Entity.UpdatedByUserId = objUserId;
+            objJob.Entity.ArchivedUtc =
+                null;
+
+            objJob.Entity.ArchivedByUserId =
+                null;
+
+            objJob.Entity.UpdatedUtc =
+                dteNow;
+
+            objJob.Entity.UpdatedByUserId =
+                objUserId;
 
             await _jobRepository.UpdateJobAsync(
                 objJob,
@@ -170,21 +349,37 @@ namespace CRM.Core.Jobs.Services
         }
 
         ///<inheritdoc/>
-        public async Task<Boolean> DeleteJobAsync(Guid objJobId, Guid? objUserId = null, CancellationToken objToken = default)
+        public async Task<Boolean> DeleteJobAsync(
+            Guid objJobId,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
         {
-            Job? objJob = await _jobRepository.GetJobByIdAsync(objJobId, true, objToken);
+            Job? objJob =
+                await _jobRepository.GetJobByIdAsync(
+                    objJobId,
+                    false,
+                    objToken);
 
-            if (objJob == null || objJob.Entity.DeletedUtc.HasValue)
+            if (objJob == null ||
+                objJob.Entity.DeletedUtc.HasValue)
             {
                 return false;
             }
 
-            DateTime dteNow = DateTime.UtcNow;
+            DateTime dteNow =
+                DateTime.UtcNow;
 
-            objJob.Entity.DeletedUtc = dteNow;
-            objJob.Entity.DeletedByUserId = objUserId;
-            objJob.Entity.UpdatedUtc = dteNow;
-            objJob.Entity.UpdatedByUserId = objUserId;
+            objJob.Entity.DeletedUtc =
+                dteNow;
+
+            objJob.Entity.DeletedByUserId =
+                objUserId;
+
+            objJob.Entity.UpdatedUtc =
+                dteNow;
+
+            objJob.Entity.UpdatedByUserId =
+                objUserId;
 
             await _jobRepository.UpdateJobAsync(
                 objJob,
@@ -193,14 +388,43 @@ namespace CRM.Core.Jobs.Services
             return true;
         }
 
-        /// <summary>
-        /// Cleans a string value by trimming whitespace and returning null if the string is null or whitespace.
-        /// </summary>
-        /// <param name="strValue"></param>
-        /// <returns></returns>
-        private static String? CleanString(String? strValue)
+        ///<inheritdoc/>
+        public Task<Int32> CountOpenJobsAsync(
+            CancellationToken objToken = default)
         {
-            if (String.IsNullOrWhiteSpace(strValue))
+            return _jobRepository.CountOpenJobsAsync(
+                objToken);
+        }
+
+        ///<inheritdoc/>
+        public Task<Decimal> GetOpenJobValueAsync(
+            CancellationToken objToken = default)
+        {
+            return _jobRepository.GetOpenJobValueAsync(
+                objToken);
+        }
+
+        ///<inheritdoc/>
+        public Task<List<JobStageSummary>> GetStageSummaryAsync(
+            CancellationToken objToken = default)
+        {
+            return _jobRepository.GetStageSummaryAsync(
+                objToken);
+        }
+
+        ///<inheritdoc/>
+        public Task<Int32> CountOverdueJobsAsync(
+            CancellationToken objToken = default)
+        {
+            return _jobRepository.CountOverdueJobsAsync(
+                objToken);
+        }
+
+        private static String? CleanString(
+            String? strValue)
+        {
+            if (String.IsNullOrWhiteSpace(
+                strValue))
             {
                 return null;
             }
@@ -208,12 +432,8 @@ namespace CRM.Core.Jobs.Services
             return strValue.Trim();
         }
 
-        /// <summary>
-        /// Cleans a probability percentage value by ensuring it is within the range of 0 to 100. If the value is null, it returns null. If the value is less than 0, it returns 0. If the value is greater than 100, it returns 100. Otherwise, it returns the original value.
-        /// </summary>
-        /// <param name="intProbabilityPercent"></param>
-        /// <returns></returns>
-        private static Int32? CleanProbability(Int32? intProbabilityPercent)
+        private static Int32? CleanProbability(
+            Int32? intProbabilityPercent)
         {
             if (!intProbabilityPercent.HasValue)
             {
@@ -231,34 +451,6 @@ namespace CRM.Core.Jobs.Services
             }
 
             return intProbabilityPercent.Value;
-        }
-
-        ///<inheritdoc/>
-        public Task<Int32> CountOpenJobsAsync(
-            CancellationToken objToken = default)
-        {
-            return _jobRepository.CountOpenJobsAsync(objToken);
-        }
-
-        ///<inheritdoc/>
-        public Task<Decimal> GetOpenJobValueAsync(
-            CancellationToken objToken = default)
-        {
-            return _jobRepository.GetOpenJobValueAsync(objToken);
-        }
-
-        ///<inheritdoc/>
-        public Task<List<JobStageSummary>> GetStageSummaryAsync(
-            CancellationToken objToken = default)
-        {
-            return _jobRepository.GetStageSummaryAsync(objToken);
-        }
-
-        ///<inheritdoc/>
-        public Task<Int32> CountOverdueJobsAsync(
-            CancellationToken objToken = default)
-        {
-            return _jobRepository.CountOverdueJobsAsync(objToken);
         }
     }
 }

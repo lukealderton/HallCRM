@@ -24,5 +24,7 @@ namespace CRM.Core.Jobs.Domain
 
         public Company? Company { get; set; }
         public Contact? Contact { get; set; }
+
+        public ICollection<JobServiceLink> ServiceLinks { get; set; } = [];
     }
 }
