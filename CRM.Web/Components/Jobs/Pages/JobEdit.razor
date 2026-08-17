@@ -26,6 +26,7 @@
 <section class="job-edit-page">
 
     <div class="job-toolbar">
+
         <button type="button"
                 class="btn crm-btn-secondary"
                 @onclick="GoBack">
@@ -37,11 +38,12 @@
             @(blnEditMode
                 ? "Back to job"
                 : "Back to jobs")
+
         </button>
+
     </div>
 
-    @if (!String.IsNullOrWhiteSpace(
-        strErrorMessage))
+    @if (!String.IsNullOrWhiteSpace(strErrorMessage))
     {
         <div class="alert alert-danger crm-alert"
              role="alert">
@@ -53,6 +55,7 @@
             <div>
                 @strErrorMessage
             </div>
+
         </div>
     }
 
@@ -98,7 +101,7 @@
                                 </h2>
 
                                 <p>
-                                    Track the work, company, contact and pipeline stage.
+                                    Track the work, customer, site and pipeline stage.
                                 </p>
                             </div>
 
@@ -201,106 +204,277 @@
 
                                 <div class="col-12">
 
-                                    <div class="job-form-section">
+                                    <div class="job-form-section-heading">
 
-                                        <div class="job-services-heading">
+                                        <div class="job-form-section-icon">
 
-                                            <div>
-                                                <label class="form-label mb-0">
-                                                    Services
-                                                </label>
-
-                                                <small>
-                                                    Select the work included in this job.
-                                                </small>
-                                            </div>
-
-                                            @if (colSelectedServiceIds.Count > 0)
-                                            {
-                                                <span class="job-services-count">
-                                                    @colSelectedServiceIds.Count selected
-                                                </span>
-                                            }
+                                            <span class="material-symbols-outlined">
+                                                home_repair_service
+                                            </span>
 
                                         </div>
 
-                                        @if (colServices.Count == 0)
+                                        <div>
+                                            <h3>
+                                                Services
+                                            </h3>
+
+                                            <p>
+                                                Select the work included in this job.
+                                            </p>
+                                        </div>
+
+                                        @if (colSelectedServiceIds.Count > 0)
                                         {
-                                            <div class="job-services-empty">
-
-                                                <span class="material-symbols-outlined">
-                                                    home_repair_service
-                                                </span>
-
-                                                <div>
-                                                    <strong>
-                                                        No services available
-                                                    </strong>
-
-                                                    <span>
-                                                        Add services before assigning them to jobs.
-                                                    </span>
-                                                </div>
-
-                                            </div>
+                                            <span class="job-services-count">
+                                                @colSelectedServiceIds.Count selected
+                                            </span>
                                         }
-                                        else
-                                        {
-                                            <div class="job-services-grid">
 
-                                                @foreach (CrmService objService
-                                                    in colServices)
-                                                {
-                                                    Boolean blnSelected =
-                                                        colSelectedServiceIds.Contains(
-                                                            objService.Id);
+                                    </div>
 
-                                                    <label class="job-service-option @(blnSelected ? "is-selected" : String.Empty)">
+                                </div>
 
-                                                        <input type="checkbox"
-                                                               checked="@blnSelected"
-                                                               @onchange="objArgs => SetServiceSelected(
-                                                                                                                           objService.Id,
-                                                                                                                           objArgs.Value is true)" />
+                                <div class="col-12">
+
+                                    @if (colServices.Count == 0)
+                                    {
+                                        <div class="job-services-empty">
+
+                                            <span class="material-symbols-outlined">
+                                                home_repair_service
+                                            </span>
+
+                                            <div>
+                                                <strong>
+                                                    No services available
+                                                </strong>
+
+                                                <span>
+                                                    Add services before assigning them to jobs.
+                                                </span>
+                                            </div>
+
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="job-services-grid">
+
+                                            @foreach (CrmService objService
+                                                in colServices)
+                                            {
+                                                Boolean blnSelected =
+                                                    colSelectedServiceIds.Contains(
+                                                        objService.Id);
+
+                                                <label class="job-service-option @(blnSelected ? "is-selected" : String.Empty)">
+
+                                                    <input type="checkbox"
+                                                           checked="@blnSelected"
+                                                           @onchange="objArgs => SetServiceSelected(
+                                                                                                                   objService.Id,
+                                                                                                                   Convert.ToBoolean(objArgs.Value))" />
 
 <span class="job-service-check">
 
-                                                            <span class="material-symbols-outlined">
-                                                                @(blnSelected
-                                                                    ? "check"
-                                                                    : "add")
+                                                        <span class="material-symbols-outlined">
+                                                            @(blnSelected
+                                                                ? "check"
+                                                                : "add")
+                                                        </span>
+
+                                                    </span>
+
+                                                    <span class="job-service-content">
+
+                                                        <strong>
+                                                            @objService.Name
+                                                        </strong>
+
+                                                        @if (!String.IsNullOrWhiteSpace(
+                                                            objService.Description))
+                                                        {
+                                                            <small>
+                                                                @objService.Description
+                                                            </small>
+                                                        }
+
+                                                        @if (objService.DefaultPrice.HasValue)
+                                                        {
+                                                            <span>
+                                                                @objService.DefaultPrice.Value.ToString("C")
                                                             </span>
+                                                        }
 
-                                                        </span>
+                                                    </span>
 
-                                                        <span class="job-service-content">
+                                                </label>
+                                            }
 
-                                                            <strong>
-                                                                @objService.Name
-                                                            </strong>
+                                        </div>
+                                    }
 
-                                                            @if (!String.IsNullOrWhiteSpace(
-                                                                objService.Description))
-                                                            {
-                                                                <small>
-                                                                    @objService.Description
-                                                                </small>
-                                                            }
+                                </div>
 
-                                                            @if (objService.DefaultPrice.HasValue)
-                                                            {
-                                                                <span>
-                                                                    @objService.DefaultPrice.Value.ToString("C")
-                                                                </span>
-                                                            }
+                                <div class="col-12">
 
-                                                        </span>
+                                    <div class="job-form-section-heading">
 
-                                                    </label>
-                                                }
+                                        <div class="job-form-section-icon">
 
-                                            </div>
-                                        }
+                                            <span class="material-symbols-outlined">
+                                                location_on
+                                            </span>
+
+                                        </div>
+
+                                        <div>
+                                            <h3>
+                                                Site details
+                                            </h3>
+
+                                            <p>
+                                                Where the work will be carried out and how to access the site.
+                                            </p>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-12 col-md-8">
+
+                                    <label class="form-label"
+                                           for="addressLine1">
+                                        Address line 1
+                                    </label>
+
+                                    <InputText id="addressLine1"
+                                               class="form-control"
+                                               @bind-Value="objJob.AddressLine1"
+                                               placeholder="Building number and street" />
+
+                                </div>
+
+                                <div class="col-12 col-md-4">
+
+                                    <label class="form-label"
+                                           for="postcode">
+                                        Postcode
+                                    </label>
+
+                                    <InputText id="postcode"
+                                               class="form-control text-uppercase"
+                                               @bind-Value="objJob.Postcode"
+                                               placeholder="NR3 3EH" />
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <label class="form-label"
+                                           for="addressLine2">
+                                        Address line 2
+                                    </label>
+
+                                    <InputText id="addressLine2"
+                                               class="form-control"
+                                               @bind-Value="objJob.AddressLine2"
+                                               placeholder="Flat, unit, building or locality" />
+
+                                </div>
+
+                                <div class="col-12 col-md-6">
+
+                                    <label class="form-label"
+                                           for="town">
+                                        Town / city
+                                    </label>
+
+                                    <InputText id="town"
+                                               class="form-control"
+                                               @bind-Value="objJob.Town" />
+
+                                </div>
+
+                                <div class="col-12 col-md-6">
+
+                                    <label class="form-label"
+                                           for="county">
+                                        County
+                                    </label>
+
+                                    <InputText id="county"
+                                               class="form-control"
+                                               @bind-Value="objJob.County" />
+
+                                </div>
+
+                                <div class="col-12 col-md-6">
+
+                                    <label class="form-label"
+                                           for="siteContactName">
+                                        Site contact
+                                    </label>
+
+                                    <InputText id="siteContactName"
+                                               class="form-control"
+                                               @bind-Value="objJob.SiteContactName"
+                                               placeholder="Person at the property" />
+
+                                </div>
+
+                                <div class="col-12 col-md-6">
+
+                                    <label class="form-label"
+                                           for="siteContactPhone">
+                                        Site contact phone
+                                    </label>
+
+                                    <InputText id="siteContactPhone"
+                                               class="form-control"
+                                               @bind-Value="objJob.SiteContactPhone"
+                                               inputmode="tel"
+                                               placeholder="Telephone number" />
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <label class="form-label"
+                                           for="accessNotes">
+                                        Access notes
+                                    </label>
+
+                                    <InputTextArea id="accessNotes"
+                                                   class="form-control job-access-notes"
+                                                   @bind-Value="objJob.AccessNotes"
+                                                   placeholder="Keys, gate codes, parking, alarms, access restrictions..." />
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <div class="job-form-section-heading">
+
+                                        <div class="job-form-section-icon">
+
+                                            <span class="material-symbols-outlined">
+                                                payments
+                                            </span>
+
+                                        </div>
+
+                                        <div>
+                                            <h3>
+                                                Commercial details
+                                            </h3>
+
+                                            <p>
+                                                Value, probability, expected close date and source.
+                                            </p>
+                                        </div>
 
                                     </div>
 
@@ -355,6 +529,32 @@
                                     <InputText id="source"
                                                class="form-control"
                                                @bind-Value="objJob.Source" />
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <div class="job-form-section-heading">
+
+                                        <div class="job-form-section-icon">
+
+                                            <span class="material-symbols-outlined">
+                                                description
+                                            </span>
+
+                                        </div>
+
+                                        <div>
+                                            <h3>
+                                                Job information
+                                            </h3>
+
+                                            <p>
+                                                Description and internal job notes.
+                                            </p>
+                                        </div>
+
+                                    </div>
 
                                 </div>
 
@@ -415,11 +615,34 @@
                             </div>
 
                             <div>
+                                <dt>Company</dt>
+
+                                <dd>
+                                    @GetCompanySummary()
+                                </dd>
+                            </div>
+
+                            <div>
+                                <dt>Site</dt>
+
+                                <dd>
+                                    @GetSiteSummary()
+                                </dd>
+                            </div>
+
+                            <div>
+                                <dt>Services</dt>
+
+                                <dd>
+                                    @GetServicesSummary()
+                                </dd>
+                            </div>
+
+                            <div>
                                 <dt>Value</dt>
 
                                 <dd>
-                                    @FormatMoney(
-                                        objJob.Value)
+                                    @FormatMoney(objJob.Value)
                                 </dd>
                             </div>
 
@@ -438,14 +661,6 @@
                                 <dd>
                                     @FormatDate(
                                         objJob.ExpectedCloseDateUtc)
-                                </dd>
-                            </div>
-
-                            <div>
-                                <dt>Services</dt>
-
-                                <dd>
-                                    @GetServicesSummary()
                                 </dd>
                             </div>
 
@@ -674,32 +889,32 @@
                 HeaderState.SetHeader(
                     "Edit job",
                     objJob.Name);
+
+                return;
             }
-            else
-            {
-                objJob =
-                    new Job
-                    {
-                        CompanyId =
-                            CompanyId,
 
-                        ContactId =
-                            ContactId,
+            objJob =
+                new Job
+                {
+                    CompanyId =
+                        CompanyId,
 
-                        Stage =
-                            JobStage.New
-                    };
+                    ContactId =
+                        ContactId,
 
-                colSelectedServiceIds =
-                    [];
+                    Stage =
+                        JobStage.New
+                };
 
-                strPageTitle =
-                    "New job";
+            colSelectedServiceIds =
+                [];
 
-                HeaderState.SetHeader(
-                    "New job",
-                    "Create a new job");
-            }
+            strPageTitle =
+                "New job";
+
+            HeaderState.SetHeader(
+                "New job",
+                "Create a new job");
         }
         catch (Exception objError)
         {
@@ -716,6 +931,11 @@
 
     private async Task SaveJobAsync()
     {
+        if (blnSaving)
+        {
+            return;
+        }
+
         blnSaving =
             true;
 
@@ -793,6 +1013,43 @@
 
         colSelectedServiceIds.Remove(
             objServiceId);
+    }
+
+    private String GetCompanySummary()
+    {
+        if (!objJob.CompanyId.HasValue)
+        {
+            return "None";
+        }
+
+        Company? objCompany =
+            colCompanies.FirstOrDefault(
+                objCompany =>
+                    objCompany.Id ==
+                    objJob.CompanyId.Value);
+
+        return objCompany?.Name ??
+            "Selected";
+    }
+
+    private String GetSiteSummary()
+    {
+        List<String> colParts =
+            new[]
+            {
+                objJob.AddressLine1,
+                objJob.Town,
+                objJob.Postcode
+            }
+            .Where(strValue =>
+                !String.IsNullOrWhiteSpace(strValue))
+            .Select(strValue =>
+                strValue!.Trim())
+            .ToList();
+
+        return colParts.Count == 0
+            ? "Not set"
+            : String.Join(", ", colParts);
     }
 
     private String GetServicesSummary()

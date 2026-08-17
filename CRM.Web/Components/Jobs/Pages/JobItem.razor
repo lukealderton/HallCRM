@@ -26,6 +26,7 @@
             </span>
 
             <div class="alert-content">
+
                 <strong class="alert-title">
                     @strSuccessMessage
                 </strong>
@@ -33,7 +34,9 @@
                 <p>
                     The job record has been updated.
                 </p>
+
             </div>
+
         </div>
     }
 
@@ -47,6 +50,7 @@
             </span>
 
             <div class="alert-content">
+
                 <strong class="alert-title">
                     Unable to update job
                 </strong>
@@ -54,7 +58,9 @@
                 <p>
                     @strErrorMessage
                 </p>
+
             </div>
+
         </div>
     }
 
@@ -67,6 +73,7 @@
             </span>
 
             <div class="alert-content">
+
                 <strong class="alert-title">
                     Archive this job?
                 </strong>
@@ -75,6 +82,7 @@
                     Archived jobs are hidden from normal pipeline views
                     but can be restored later.
                 </p>
+
             </div>
 
             <div class="alert-actions">
@@ -93,6 +101,7 @@
                 </button>
 
             </div>
+
         </div>
     }
 
@@ -105,6 +114,7 @@
             </span>
 
             <div class="alert-content">
+
                 <strong class="alert-title">
                     Delete this job?
                 </strong>
@@ -113,6 +123,7 @@
                     This will mark the job as deleted.
                     It will no longer appear in normal job lists.
                 </p>
+
             </div>
 
             <div class="alert-actions">
@@ -131,12 +142,14 @@
                 </button>
 
             </div>
+
         </div>
     }
 
     @if (blnLoading)
     {
         <div class="crm-card">
+
             <div class="crm-loading">
 
                 <span class="spinner-border spinner-border-sm"></span>
@@ -144,6 +157,7 @@
                 Loading job...
 
             </div>
+
         </div>
     }
     else if (objJob == null)
@@ -156,6 +170,7 @@
             </span>
 
             <div class="alert-content">
+
                 <strong class="alert-title">
                     Job not found
                 </strong>
@@ -163,7 +178,9 @@
                 <p>
                     This job may have been deleted or moved.
                 </p>
+
             </div>
+
         </div>
     }
     else
@@ -209,41 +226,51 @@
 
                     <div class="job-meta-row">
 
+                        @if (HasAddress(objJob))
+                        {
+                            <span>
+
+                                <span class="material-symbols-outlined">
+                                    location_on
+                                </span>
+
+                                @GetCompactSiteAddress(objJob)
+
+                            </span>
+                        }
+
                         <span>
+
                             <span class="material-symbols-outlined">
                                 payments
                             </span>
 
                             @FormatMoney(objJob.Value)
+
                         </span>
 
                         <span>
+
                             <span class="material-symbols-outlined">
                                 percent
                             </span>
 
                             @FormatProbability(
                                 objJob.ProbabilityPercent)
-                        </span>
 
-                        <span>
-                            <span class="material-symbols-outlined">
-                                event
-                            </span>
-
-                            @FormatDate(
-                                objJob.ExpectedCloseDateUtc)
                         </span>
 
                         @if (objJob.ServiceLinks.Count > 0)
                         {
                             <span>
+
                                 <span class="material-symbols-outlined">
                                     home_repair_service
                                 </span>
 
                                 @FormatServiceCount(
                                     objJob.ServiceLinks.Count)
+
                             </span>
                         }
 
@@ -264,6 +291,7 @@
                     </span>
 
                     Edit job
+
                 </button>
 
                 @if (objJob.Entity.ArchivedUtc.HasValue)
@@ -278,6 +306,7 @@
                         </span>
 
                         Restore
+
                     </button>
                 }
                 else
@@ -292,6 +321,7 @@
                         </span>
 
                         Archive
+
                     </button>
                 }
 
@@ -305,6 +335,7 @@
                     </span>
 
                     Delete
+
                 </button>
 
             </div>
@@ -318,13 +349,17 @@
                 <div class="crm-card">
 
                     <div class="crm-card-header">
+
                         <div>
-                            <h3>Job details</h3>
+                            <h3>
+                                Job details
+                            </h3>
 
                             <p>
                                 Value, probability, source and expected close date.
                             </p>
                         </div>
+
                     </div>
 
                     <div class="job-card-body">
@@ -408,22 +443,164 @@
                     <div class="crm-card-header">
 
                         <div>
-                            <h3>Services</h3>
+                            <h3>
+                                Site
+                            </h3>
+
+                            <p>
+                                Location and access information for this job.
+                            </p>
+                        </div>
+
+                        <button type="button"
+                                class="btn btn-soft-secondary btn-sm"
+                                @onclick="GoToEdit">
+
+                            <span class="material-symbols-outlined">
+                                edit
+                            </span>
+
+                            Edit
+
+                        </button>
+
+                    </div>
+
+                    <div class="job-card-body">
+
+                        @if (!HasSiteDetails(objJob))
+                        {
+                            <div class="job-muted-panel">
+
+                                <span class="material-symbols-outlined">
+                                    location_off
+                                </span>
+
+                                <span>
+                                    No site information has been added yet.
+                                </span>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="job-site-layout">
+
+                                <div class="job-site-address">
+
+                                    <div class="job-site-icon">
+
+                                        <span class="material-symbols-outlined">
+                                            location_on
+                                        </span>
+
+                                    </div>
+
+                                    <div>
+
+                                        <small>
+                                            Work address
+                                        </small>
+
+                                        <strong>
+                                            @FormatSiteAddress(objJob)
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                                @if (HasSiteContact(objJob))
+                                {
+                                    <div class="job-site-detail">
+
+                                        <span class="material-symbols-outlined">
+                                            person_pin_circle
+                                        </span>
+
+                                        <div>
+
+                                            <small>
+                                                Site contact
+                                            </small>
+
+                                            <strong>
+                                                @DisplayValue(
+                                                    objJob.SiteContactName)
+                                            </strong>
+
+                                            @if (!String.IsNullOrWhiteSpace(
+                                                objJob.SiteContactPhone))
+                                            {
+                                                <a href="@GetTelephoneUrl(
+                                                                                                       objJob.SiteContactPhone)">
+
+                                                    @objJob.SiteContactPhone
+
+                                                </a>
+                                            }
+
+                                        </div>
+
+                                    </div>
+                                }
+
+                            </div>
+
+                            @if (!String.IsNullOrWhiteSpace(
+                                objJob.AccessNotes))
+                            {
+                                <div class="job-access-panel">
+
+                                    <span class="material-symbols-outlined">
+                                        key
+                                    </span>
+
+                                    <div>
+
+                                        <small>
+                                            Access notes
+                                        </small>
+
+                                        <p>
+                                            @objJob.AccessNotes
+                                        </p>
+
+                                    </div>
+
+                                </div>
+                            }
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="crm-card">
+
+                    <div class="crm-card-header">
+
+                        <div>
+                            <h3>
+                                Services
+                            </h3>
 
                             <p>
                                 Work and services included in this job.
                             </p>
                         </div>
 
-                        <a href="@($"/jobs/{JobId}/edit")"
-                           class="btn btn-soft-secondary btn-sm">
+                        <button type="button"
+                                class="btn btn-soft-secondary btn-sm"
+                                @onclick="GoToEdit">
 
                             <span class="material-symbols-outlined">
                                 edit
                             </span>
 
                             Manage
-                        </a>
+
+                        </button>
 
                     </div>
 
@@ -438,14 +615,15 @@
                                 </span>
 
                                 <div>
+
                                     <strong>
                                         No services linked
                                     </strong>
 
                                     <span>
-                                        Add services to record the work
-                                        included in this job.
+                                        Add services to record the work included in this job.
                                     </span>
+
                                 </div>
 
                             </div>
@@ -513,13 +691,17 @@
                 <div class="crm-card">
 
                     <div class="crm-card-header">
+
                         <div>
-                            <h3>Description</h3>
+                            <h3>
+                                Description
+                            </h3>
 
                             <p>
                                 Summary and context for this job.
                             </p>
                         </div>
+
                     </div>
 
                     <div class="job-card-body">
@@ -582,12 +764,28 @@
                                 </span>
 
                                 Add activity
+
                             </a>
+
+                            @if (!String.IsNullOrWhiteSpace(
+                                objJob.SiteContactPhone))
+                            {
+                                <a href="@GetTelephoneUrl(
+                                                                       objJob.SiteContactPhone)"
+                                   class="btn btn-soft-secondary w-100">
+
+                                    <span class="material-symbols-outlined">
+                                        call
+                                    </span>
+
+                                    Call site contact
+
+                                </a>
+                            }
 
                             @if (objJob.Company != null)
                             {
-                                <a href="@GetCompanyUrl(
-                                                                       objJob.Company.Id)"
+                                <a href="@GetCompanyUrl(objJob.Company.Id)"
                                    class="btn btn-soft-secondary w-100">
 
                                     <span class="material-symbols-outlined">
@@ -595,13 +793,13 @@
                                     </span>
 
                                     Open company
+
                                 </a>
                             }
 
                             @if (objJob.Contact != null)
                             {
-                                <a href="@GetContactUrl(
-                                                                       objJob.Contact.Id)"
+                                <a href="@GetContactUrl(objJob.Contact.Id)"
                                    class="btn btn-soft-secondary w-100">
 
                                     <span class="material-symbols-outlined">
@@ -609,6 +807,7 @@
                                     </span>
 
                                     Open contact
+
                                 </a>
                             }
 
@@ -621,6 +820,7 @@
                                 </span>
 
                                 Edit details
+
                             </button>
 
                         </div>
@@ -645,16 +845,19 @@
                                 @if (objJob.Company != null)
                                 {
                                     <strong>
+
                                         <a href="@GetCompanyUrl(
                                                                                        objJob.Company.Id)">
                                             @objJob.Company.Name
                                         </a>
+
                                     </strong>
                                 }
                                 else
                                 {
                                     <strong>-</strong>
                                 }
+
                             </div>
 
                             <div>
@@ -663,16 +866,27 @@
                                 @if (objJob.Contact != null)
                                 {
                                     <strong>
+
                                         <a href="@GetContactUrl(
                                                                                        objJob.Contact.Id)">
                                             @objJob.Contact.Entity.DisplayName
                                         </a>
+
                                     </strong>
                                 }
                                 else
                                 {
                                     <strong>-</strong>
                                 }
+
+                            </div>
+
+                            <div>
+                                <span>Site</span>
+
+                                <strong>
+                                    @GetCompactSiteAddress(objJob)
+                                </strong>
                             </div>
 
                             <div>
@@ -843,7 +1057,7 @@
             HeaderState.SetHeader(
                 objJob.Name,
                 objJob.Company?.Name ??
-                    "Job details",
+                    GetCompactSiteAddress(objJob),
                 GetHeaderActions());
         }
         catch (Exception objError)
@@ -1023,6 +1237,99 @@
         }
     }
 
+    private static Boolean HasAddress(
+        Job objJob)
+    {
+        return
+            !String.IsNullOrWhiteSpace(
+                objJob.AddressLine1) ||
+            !String.IsNullOrWhiteSpace(
+                objJob.AddressLine2) ||
+            !String.IsNullOrWhiteSpace(
+                objJob.Town) ||
+            !String.IsNullOrWhiteSpace(
+                objJob.County) ||
+            !String.IsNullOrWhiteSpace(
+                objJob.Postcode);
+    }
+
+    private static Boolean HasSiteContact(
+        Job objJob)
+    {
+        return
+            !String.IsNullOrWhiteSpace(
+                objJob.SiteContactName) ||
+            !String.IsNullOrWhiteSpace(
+                objJob.SiteContactPhone);
+    }
+
+    private static Boolean HasSiteDetails(
+        Job objJob)
+    {
+        return
+            HasAddress(objJob) ||
+            HasSiteContact(objJob) ||
+            !String.IsNullOrWhiteSpace(
+                objJob.AccessNotes);
+    }
+
+    private static String FormatSiteAddress(
+        Job objJob)
+    {
+        List<String> colParts =
+            new[]
+            {
+                objJob.AddressLine1,
+                objJob.AddressLine2,
+                objJob.Town,
+                objJob.County,
+                objJob.Postcode
+            }
+            .Where(strValue =>
+                !String.IsNullOrWhiteSpace(
+                    strValue))
+            .Select(strValue =>
+                strValue!.Trim())
+            .ToList();
+
+        return colParts.Count == 0
+            ? "No address added"
+            : String.Join(
+                ", ",
+                colParts);
+    }
+
+    private static String GetCompactSiteAddress(
+        Job objJob)
+    {
+        List<String> colParts =
+            new[]
+            {
+                objJob.AddressLine1,
+                objJob.Town,
+                objJob.Postcode
+            }
+            .Where(strValue =>
+                !String.IsNullOrWhiteSpace(
+                    strValue))
+            .Select(strValue =>
+                strValue!.Trim())
+            .ToList();
+
+        return colParts.Count == 0
+            ? "-"
+            : String.Join(
+                ", ",
+                colParts);
+    }
+
+    private static String GetTelephoneUrl(
+        String strTelephone)
+    {
+        return "tel:" +
+            strTelephone;
+    }
+
     private static String GetCompanyUrl(
         Guid objCompanyId)
     {
@@ -1139,11 +1446,8 @@
     private static String FormatNullableDate(
         DateTime? dteDate)
     {
-        return dteDate.HasValue
-            ? dteDate.Value
-                .ToLocalTime()
-                .ToString("dd MMM yyyy")
-            : "-";
+        return FormatDate(
+            dteDate);
     }
 
     private static String DisplayValue(
