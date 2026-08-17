@@ -65,7 +65,7 @@
                                 <InputSelect id="stage" class="form-select" TValue="JobStage" @bind-Value="objJob.Stage">
                                     @foreach (JobStage enmStage in Enum.GetValues<JobStage>())
                                     {
-                                        <option value="@enmStage">@GetStageName(enmStage)</option>
+                                        <option value="@enmStage">@enmStage.GetDisplay().Name</option>
                                     }
                                 </InputSelect>
                             </div>
@@ -145,7 +145,7 @@
                         <dl>
                             <div>
                                 <dt>Stage</dt>
-                                <dd>@GetStageName(objJob.Stage)</dd>
+                                <dd>@objJob.Stage.GetDisplay().Name</dd>
                             </div>
 
                             <div>
@@ -313,20 +313,6 @@
         }
 
         Navigation.NavigateTo("/jobs");
-    }
-
-    private static String GetStageName(JobStage enmStage)
-    {
-        return enmStage switch
-        {
-            JobStage.New => "New",
-            JobStage.Quoted => "Quoted",
-            JobStage.ToDo => "To Do",
-            JobStage.Invoiced => "Invoiced",
-            JobStage.Paid => "Paid",
-            JobStage.Lost => "Lost",
-            _ => enmStage.ToString()
-        };
     }
 
     private static String FormatMoney(Decimal? dcmValue)

@@ -17,7 +17,9 @@
     @if (CompanyId.HasValue)
     {
         <div class="jobs-context-filter">
+
             <div class="jobs-context-filter-main">
+
                 <span class="material-symbols-outlined">
                     apartment
                 </span>
@@ -29,6 +31,7 @@
                         Showing jobs linked to this company.
                     </span>
                 </div>
+
             </div>
 
             <button type="button"
@@ -41,12 +44,16 @@
 
                 Clear company filter
             </button>
+
         </div>
     }
 
     <div class="crm-card jobs-toolbar">
+
         <div class="jobs-search">
+
             <div class="input-group">
+
                 <span class="input-group-text">
                     <span class="material-symbols-outlined">
                         search
@@ -55,13 +62,16 @@
 
                 <input id="jobSearch"
                        class="form-control"
-                       placeholder="Search jobs, companies or contacts..."
+                       placeholder="Search jobs..."
                        @bind="strSearch"
                        @bind:event="oninput" />
+
             </div>
+
         </div>
 
         <div class="jobs-filters">
+
             <select class="form-select jobs-stage-filter"
                     @bind="strSelectedStage"
                     @bind:after="StageChangedAsync">
@@ -76,11 +86,14 @@
                         @enmStage.GetDisplay().Name
                     </option>
                 }
+
             </select>
 
-            <div class="jobs-filter-divider"></div>
+            <div class="jobs-filter-divider">
+            </div>
 
             <div class="form-check form-switch">
+
                 <input id="includeArchived"
                        class="form-check-input"
                        type="checkbox"
@@ -91,10 +104,13 @@
                        for="includeArchived">
                     Include archived
                 </label>
+
             </div>
+
         </div>
 
         <div class="jobs-toolbar-actions">
+
             <button class="btn btn-primary"
                     type="button"
                     @onclick="SearchAsync">
@@ -105,92 +121,112 @@
 
                 Search
             </button>
+
         </div>
+
     </div>
 
-    <div class="jobs-summary row g-3">
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="jobs-summary-card jobs-summary-card-primary">
-                <span class="material-symbols-outlined">
-                    track_changes
+    <div class="jobs-summary">
+
+        <div class="jobs-summary-card jobs-summary-card-primary">
+
+            <span class="material-symbols-outlined">
+                track_changes
+            </span>
+
+            <div class="jobs-summary-content">
+
+                <small>
+                    Open shown
+                </small>
+
+                <strong>
+                    @intOpenJobs
+                </strong>
+
+                <span class="jobs-summary-note">
+                    @intTotalJobs total result@(GetPlural(intTotalJobs))
                 </span>
 
-                <div>
-                    <small>Open shown</small>
-
-                    <strong>
-                        @intOpenJobs
-                    </strong>
-
-                    <span class="jobs-summary-note">
-                        @intTotalJobs total result@(GetPlural(intTotalJobs))
-                    </span>
-                </div>
             </div>
+
         </div>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="jobs-summary-card jobs-summary-card-success">
-                <span class="material-symbols-outlined">
-                    payments
+        <div class="jobs-summary-card jobs-summary-card-success">
+
+            <span class="material-symbols-outlined">
+                payments
+            </span>
+
+            <div class="jobs-summary-content">
+
+                <small>
+                    Open pipeline
+                </small>
+
+                <strong>
+                    @FormatMoney(dcmOpenPipelineValue)
+                </strong>
+
+                <span class="jobs-summary-note">
+                    Active non-paid/lost value
                 </span>
 
-                <div>
-                    <small>Open pipeline</small>
-
-                    <strong>
-                        @FormatMoney(dcmOpenPipelineValue)
-                    </strong>
-
-                    <span class="jobs-summary-note">
-                        Active non-paid/lost value
-                    </span>
-                </div>
             </div>
+
         </div>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="jobs-summary-card jobs-summary-card-warning">
-                <span class="material-symbols-outlined">
-                    event_upcoming
+        <div class="jobs-summary-card jobs-summary-card-warning">
+
+            <span class="material-symbols-outlined">
+                event_upcoming
+            </span>
+
+            <div class="jobs-summary-content">
+
+                <small>
+                    Closing soon
+                </small>
+
+                <strong>
+                    @intClosingSoonJobs
+                </strong>
+
+                <span class="jobs-summary-note">
+                    Due before
+                    @dteClosingSoonCutoffUtc
+                    .ToLocalTime()
+                    .ToString("dd MMM")
                 </span>
 
-                <div>
-                    <small>Closing soon</small>
-
-                    <strong>
-                        @intClosingSoonJobs
-                    </strong>
-
-                    <span class="jobs-summary-note">
-                        Due before
-                        @dteClosingSoonCutoffUtc
-                        .ToLocalTime()
-                        .ToString("dd MMM")
-                    </span>
-                </div>
             </div>
+
         </div>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="jobs-summary-card jobs-summary-card-info">
-                <span class="material-symbols-outlined">
-                    emoji_events
+        <div class="jobs-summary-card jobs-summary-card-info">
+
+            <span class="material-symbols-outlined">
+                emoji_events
+            </span>
+
+            <div class="jobs-summary-content">
+
+                <small>
+                    Paid shown
+                </small>
+
+                <strong>
+                    @intWonJobs
+                </strong>
+
+                <span class="jobs-summary-note">
+                    @FormatMoney(dcmWonValue) paid value
                 </span>
 
-                <div>
-                    <small>Paid shown</small>
-
-                    <strong>
-                        @intWonJobs
-                    </strong>
-
-                    <span class="jobs-summary-note">
-                        @FormatMoney(dcmWonValue) paid value
-                    </span>
-                </div>
             </div>
+
         </div>
+
     </div>
 
     @if (blnShowErrorAlert &&
@@ -204,6 +240,7 @@
             </span>
 
             <div class="alert-content">
+
                 <strong class="alert-title">
                     Unable to load jobs
                 </strong>
@@ -211,9 +248,11 @@
                 <p>
                     @strErrorMessage
                 </p>
+
             </div>
 
             <div class="alert-actions">
+
                 <button class="btn btn-soft-danger btn-sm"
                         type="button"
                         @onclick="LoadJobsAsync">
@@ -227,21 +266,32 @@
 
                 <button class="btn btn-soft-danger btn-sm jobs-alert-close"
                         type="button"
+                        aria-label="Dismiss"
                         @onclick="DismissErrorAlert">
 
                     <span class="material-symbols-outlined">
                         close
                     </span>
+
                 </button>
+
             </div>
+
         </div>
     }
 
-    <div class="crm-card">
+    <div class="crm-card jobs-results">
+
         <div class="crm-card-header">
+
             <div>
-                <h3>Job records</h3>
-                <p>@strResultSummary</p>
+                <h3>
+                    Job records
+                </h3>
+
+                <p>
+                    @strResultSummary
+                </p>
             </div>
 
             @if (HasActiveFilters)
@@ -257,23 +307,29 @@
                     Clear filters
                 </button>
             }
+
         </div>
 
         @if (blnLoading)
         {
             <div class="crm-loading">
-                <span class="spinner-border spinner-border-sm"></span>
+                <span class="spinner-border spinner-border-sm">
+                </span>
+
                 Loading jobs...
             </div>
         }
         else if (!colJobs.Any())
         {
             <div class="crm-empty-state">
+
                 <span class="material-symbols-outlined">
                     empty_dashboard
                 </span>
 
-                <h4>No jobs found</h4>
+                <h4>
+                    No jobs found
+                </h4>
 
                 <p>
                     @if (CompanyId.HasValue)
@@ -299,146 +355,309 @@
 
                     Add job
                 </a>
+
             </div>
         }
         else
         {
-            <div class="table-responsive">
-                <table class="table table-hover align-middle crm-table jobs-table">
-                    <thead>
-                        <tr>
-                            <th>Job</th>
-                            <th>Company</th>
-                            <th>Contact</th>
-                            <th>Stage</th>
-                            <th>Value</th>
-                            <th>Close date</th>
-                            <th>Status</th>
-                            <th class="text-end">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
+            <div class="jobs-table-view">
 
-                    <tbody>
-                        @foreach (Job objJob in colJobs)
-                        {
-                            <tr class="@GetJobRowClass(objJob)">
-                                <td>
-                                    <div class="jobs-job-cell">
-                                        <div class="jobs-avatar">
-                                            @GetJobInitial(objJob)
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle crm-table jobs-table">
+
+                        <thead>
+                            <tr>
+                                <th>Job</th>
+                                <th>Company</th>
+                                <th>Contact</th>
+                                <th>Stage</th>
+                                <th>Value</th>
+                                <th>Close date</th>
+                                <th>Status</th>
+                                <th class="text-end">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (Job objJob in colJobs)
+                            {
+                                <tr class="@GetJobRowClass(objJob)">
+
+                                    <td>
+                                        <div class="jobs-job-cell">
+
+                                            <div class="jobs-avatar">
+                                                @GetJobInitial(objJob)
+                                            </div>
+
+                                            <div class="jobs-job-name">
+
+                                                <a class="jobs-name-link"
+                                                   href="@GetJobUrl(objJob.Id)">
+                                                    @objJob.Name
+                                                </a>
+
+                                                @if (!String.IsNullOrWhiteSpace(objJob.Source))
+                                                {
+                                                    <small class="d-block text-muted">
+                                                        Source: @objJob.Source
+                                                    </small>
+                                                }
+
+                                            </div>
+
                                         </div>
+                                    </td>
 
-                                        <div>
-                                            <a class="jobs-name-link"
-                                               href="@GetJobUrl(objJob.Id)">
-                                                @objJob.Name
+                                    <td>
+                                        @if (objJob.Company != null)
+                                        {
+                                            <a class="jobs-company-link"
+                                               href="@GetCompanyUrl(objJob.Company.Id)">
+                                                @objJob.Company.Name
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not linked
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (objJob.Contact != null)
+                                        {
+                                            <a class="jobs-contact-link"
+                                               href="@GetContactUrl(objJob.Contact.Id)">
+                                                @objJob.Contact.Entity.DisplayName
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not linked
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <span class="@GetStageBadgeClass(objJob.Stage)">
+                                            @objJob.Stage.GetDisplay().Name
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        @FormatMoney(objJob.Value)
+                                    </td>
+
+                                    <td>
+                                        <span class="@GetCloseDateClass(objJob)">
+                                            @FormatDate(objJob.ExpectedCloseDateUtc)
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        @if (objJob.IsArchived)
+                                        {
+                                            <span class="badge text-bg-secondary">
+                                                Archived
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-success">
+                                                Active
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        <div class="jobs-row-actions">
+
+                                            <a href="@GetJobUrl(objJob.Id)"
+                                               class="btn btn-soft-primary btn-sm">
+
+                                                <span class="material-symbols-outlined">
+                                                    visibility
+                                                </span>
+
+                                                View
                                             </a>
 
-                                            @if (!String.IsNullOrWhiteSpace(objJob.Source))
-                                            {
-                                                <small class="d-block text-muted">
-                                                    Source: @objJob.Source
-                                                </small>
-                                            }
+                                            <a href="@($"/jobs/{objJob.Id}/edit")"
+                                               class="btn btn-soft-secondary btn-sm">
+
+                                                <span class="material-symbols-outlined">
+                                                    edit
+                                                </span>
+
+                                                Edit
+                                            </a>
+
                                         </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="jobs-mobile-list">
+
+                @foreach (Job objJob in colJobs)
+                {
+                    <article class="jobs-mobile-card @GetJobRowClass(objJob)">
+
+                        <a href="@GetJobUrl(objJob.Id)"
+                           class="jobs-mobile-main">
+
+                            <div class="jobs-avatar jobs-mobile-avatar">
+                                @GetJobInitial(objJob)
+                            </div>
+
+                            <div class="jobs-mobile-heading">
+
+                                <div class="jobs-mobile-title-row">
+
+                                    <div class="jobs-mobile-title">
+                                        @objJob.Name
                                     </div>
-                                </td>
 
-                                <td>
-                                    @if (objJob.Company != null)
-                                    {
-                                        <a class="jobs-company-link"
-                                           href="@GetCompanyUrl(objJob.Company.Id)">
-                                            @objJob.Company.Name
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">
-                                            Not linked
-                                        </span>
-                                    }
-                                </td>
-
-                                <td>
-                                    @if (objJob.Contact != null)
-                                    {
-                                        <a class="jobs-contact-link"
-                                           href="@GetContactUrl(objJob.Contact.Id)">
-                                            @objJob.Contact.Entity.DisplayName
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">
-                                            Not linked
-                                        </span>
-                                    }
-                                </td>
-
-                                <td>
                                     <span class="@GetStageBadgeClass(objJob.Stage)">
                                         @objJob.Stage.GetDisplay().Name
                                     </span>
-                                </td>
 
-                                <td>
-                                    @FormatMoney(objJob.Value)
-                                </td>
+                                </div>
 
-                                <td>
-                                    <span class="@GetCloseDateClass(objJob)">
-                                        @FormatDate(objJob.ExpectedCloseDateUtc)
-                                    </span>
-                                </td>
-
-                                <td>
-                                    @if (objJob.IsArchived)
-                                    {
-                                        <span class="badge text-bg-secondary">
-                                            Archived
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge text-bg-success">
-                                            Active
-                                        </span>
-                                    }
-                                </td>
-
-                                <td class="text-end">
-                                    <div class="jobs-row-actions">
-                                        <a href="@GetJobUrl(objJob.Id)"
-                                           class="btn btn-soft-primary btn-sm">
-
-                                            <span class="material-symbols-outlined">
-                                                visibility
-                                            </span>
-
-                                            View
-                                        </a>
-
-                                        <a href="@($"/jobs/{objJob.Id}/edit")"
-                                           class="btn btn-soft-secondary btn-sm">
-
-                                            <span class="material-symbols-outlined">
-                                                edit
-                                            </span>
-
-                                            Edit
-                                        </a>
+                                @if (objJob.Company != null)
+                                {
+                                    <div class="jobs-mobile-company">
+                                        @objJob.Company.Name
                                     </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                                }
+                                else
+                                {
+                                    <div class="jobs-mobile-company jobs-mobile-muted">
+                                        No company linked
+                                    </div>
+                                }
+
+                                @if (!String.IsNullOrWhiteSpace(objJob.Source))
+                                {
+                                    <div class="jobs-mobile-source">
+                                        Source: @objJob.Source
+                                    </div>
+                                }
+
+                            </div>
+
+                            <span class="material-symbols-outlined jobs-mobile-chevron">
+                                chevron_right
+                            </span>
+
+                        </a>
+
+                        <div class="jobs-mobile-details">
+
+                            @if (objJob.Contact != null)
+                            {
+                                <a href="@GetContactUrl(objJob.Contact.Id)"
+                                   class="jobs-mobile-detail">
+
+                                    <span class="material-symbols-outlined">
+                                        person
+                                    </span>
+
+                                    <span>
+                                        @objJob.Contact.Entity.DisplayName
+                                    </span>
+
+                                </a>
+                            }
+
+                            <div class="jobs-mobile-detail">
+
+                                <span class="material-symbols-outlined">
+                                    payments
+                                </span>
+
+                                <span>
+                                    @FormatMoney(objJob.Value)
+                                </span>
+
+                            </div>
+
+                            <div class="jobs-mobile-detail">
+
+                                <span class="material-symbols-outlined">
+                                    event
+                                </span>
+
+                                <span class="@GetCloseDateClass(objJob)">
+                                    @FormatDate(objJob.ExpectedCloseDateUtc)
+                                </span>
+
+                            </div>
+
+                            <div class="jobs-mobile-detail">
+
+                                <span class="material-symbols-outlined">
+                                    @GetJobStatusIcon(objJob)
+                                </span>
+
+                                <span>
+                                    @(objJob.IsArchived ? "Archived" : "Active")
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <div class="jobs-mobile-actions">
+
+                            <a href="@GetJobUrl(objJob.Id)"
+                               class="btn btn-soft-primary">
+
+                                <span class="material-symbols-outlined">
+                                    visibility
+                                </span>
+
+                                View
+                            </a>
+
+                            <a href="@($"/jobs/{objJob.Id}/edit")"
+                               class="btn btn-soft-secondary">
+
+                                <span class="material-symbols-outlined">
+                                    edit
+                                </span>
+
+                                Edit
+                            </a>
+
+                        </div>
+
+                    </article>
+                }
+
             </div>
         }
+
     </div>
+
 </section>
 
 @code {
@@ -834,22 +1053,19 @@
     private static String GetJobUrl(
         Guid objJobId)
     {
-        return
-            $"/jobs/{objJobId}";
+        return $"/jobs/{objJobId}";
     }
 
     private static String GetCompanyUrl(
         Guid objCompanyId)
     {
-        return
-            $"/companies/{objCompanyId}";
+        return $"/companies/{objCompanyId}";
     }
 
     private static String GetContactUrl(
         Guid objContactId)
     {
-        return
-            $"/contacts/{objContactId}";
+        return $"/contacts/{objContactId}";
     }
 
     private static String GetJobInitial(
@@ -891,6 +1107,14 @@
         };
     }
 
+    private static String GetJobStatusIcon(
+        Job objJob)
+    {
+        return objJob.IsArchived
+            ? "archive"
+            : "check_circle";
+    }
+
     private static String GetCloseDateClass(
         Job objJob)
     {
@@ -923,8 +1147,7 @@
     private static String FormatMoney(
         Decimal dcmValue)
     {
-        return
-            dcmValue.ToString("C0");
+        return dcmValue.ToString("C0");
     }
 
     private static String FormatMoney(
@@ -935,8 +1158,7 @@
             return "—";
         }
 
-        return
-            dcmValue.Value.ToString("C0");
+        return dcmValue.Value.ToString("C0");
     }
 
     private static String FormatDate(
