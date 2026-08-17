@@ -1,6 +1,7 @@
 using CRM.Core;
 using CRM.Core.Common.Abstraction;
 using CRM.Core.Common.Configuration;
+using CRM.Core.Invoices.Abstractions;
 using CRM.Core.Jobs.Abstractions;
 using CRM.Infrastructure;
 using CRM.Infrastructure.Data;
@@ -113,6 +114,34 @@ objApp.MapGet(
             bytPdf,
             "application/pdf",
             $"job-{jobId:N}.pdf");
+    })
+    .RequireAuthorization();
+
+objApp.MapGet(
+    "/invoices/{invoiceId:guid}/invoice.pdf",
+    async (
+        Guid invoiceId,
+        IInvoiceDocumentService objInvoiceDocumentService,
+        CancellationToken objToken) =>
+    {
+        try
+        {
+            Byte[] bytPdf =
+                await objInvoiceDocumentService
+                    .GenerateInvoiceAsync(
+                        invoiceId,
+                        objToken);
+
+            return Results.File(
+                bytPdf,
+                "application/pdf",
+                $"invoice-{invoiceId:N}.pdf");
+        }
+        catch (InvalidOperationException objError)
+        {
+            return Results.BadRequest(
+                objError.Message);
+        }
     })
     .RequireAuthorization();
 
