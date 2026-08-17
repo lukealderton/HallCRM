@@ -319,7 +319,7 @@
     min-width: 0;
     padding: .9rem;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: .75rem;
     background: #fbfdff;
     border: 1px solid #e5eaf2;
@@ -348,12 +348,12 @@
     flex: 1 1 auto;
 }
 
-    .job-service-content strong,
+    .job-service-content > strong,
     .job-service-content > span {
         display: block;
     }
 
-    .job-service-content strong {
+    .job-service-content > strong {
         color: #0f172a;
         font-size: .875rem;
         font-weight: 800;
@@ -370,8 +370,30 @@
         -webkit-box-orient: vertical;
     }
 
+.job-service-line-meta {
+    margin-top: .45rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .35rem .7rem;
+}
+
+    .job-service-line-meta > span {
+        color: #64748b;
+        font-size: .7rem;
+    }
+
+    .job-service-line-meta strong {
+        display: inline;
+        margin-left: .15rem;
+        color: #334155;
+        font-size: inherit;
+        font-weight: 800;
+    }
+
 .job-service-price {
     flex: 0 0 auto;
+    min-width: 76px;
     text-align: right;
 }
 
@@ -386,8 +408,34 @@
     }
 
     .job-service-price strong {
-        color: #334155;
-        font-size: .8rem;
+        margin-top: .1rem;
+        color: #0f172a;
+        font-size: .84rem;
+        font-weight: 850;
+    }
+
+.job-services-total {
+    margin-top: .85rem;
+    padding: .75rem .9rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .75rem;
+    background: #f8fafc;
+    border: 1px solid #e5eaf2;
+    border-radius: .8rem;
+}
+
+    .job-services-total span {
+        color: #64748b;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+
+    .job-services-total strong {
+        color: #0f172a;
+        font-size: 1rem;
+        font-weight: 850;
     }
 
 .job-services-empty {
@@ -715,6 +763,14 @@
         padding: .75rem;
     }
 
+    .job-service-price {
+        flex: 0 0 auto;
+    }
+
+    .job-services-total {
+        justify-content: space-between;
+    }
+
     .job-action-list .btn {
         min-height: 44px;
     }
@@ -754,10 +810,30 @@
 
     .job-service-card {
         align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .job-service-content {
+        min-width: calc(100% - 52px);
     }
 
     .job-service-price {
-        margin-left: auto;
+        width: 100%;
+        margin-left: 52px;
+        padding-top: .55rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid #edf0f4;
+        text-align: left;
+    }
+
+        .job-service-price strong {
+            margin-top: 0;
+        }
+
+    .job-services-total {
+        justify-content: space-between;
     }
 
     .job-meta-list div {

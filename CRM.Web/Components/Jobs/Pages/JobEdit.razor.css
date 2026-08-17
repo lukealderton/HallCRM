@@ -96,6 +96,12 @@
     resize: vertical;
 }
 
+.job-edit-page .form-text {
+    color: #64748b;
+    font-size: .7rem;
+    line-height: 1.4;
+}
+
 .job-textarea {
     min-height: 8rem;
 }
@@ -170,39 +176,42 @@
 
 .job-services-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: .65rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
 }
 
 .job-service-option {
     min-width: 0;
-    min-height: 72px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e5eaf2;
+    border-radius: .9rem;
+    transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+
+    .job-service-option:hover {
+        background: #fbfdff;
+        border-color: #bfcee3;
+    }
+
+    .job-service-option.is-selected {
+        background: #fafdff;
+        border-color: #9fc1fb;
+        box-shadow: 0 0 0 1px rgba(37, 99, 235, .05);
+    }
+
+.job-service-selector {
+    min-width: 0;
+    padding: .8rem;
     position: relative;
-    padding: .75rem;
     display: flex;
     align-items: flex-start;
     gap: .7rem;
     cursor: pointer;
     user-select: none;
-    background: #ffffff;
-    border: 1px solid #e5eaf2;
-    border-radius: .85rem;
-    transition: background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
 
-    .job-service-option:hover {
-        background: #f8fbff;
-        border-color: #bfcee3;
-        transform: translateY(-1px);
-    }
-
-    .job-service-option.is-selected {
-        background: #f7faff;
-        border-color: #9fc1fb;
-        box-shadow: 0 0 0 1px rgba(37, 99, 235, .05);
-    }
-
-    .job-service-option > input {
+    .job-service-selector > input {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -211,9 +220,9 @@
     }
 
 .job-service-check {
-    width: 34px;
-    height: 34px;
-    flex: 0 0 34px;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -269,6 +278,120 @@
         font-size: .7rem;
         font-weight: 750;
     }
+
+.job-service-pricing {
+    padding: .75rem .8rem .8rem;
+    display: grid;
+    grid-template-columns: minmax(80px, .65fr) minmax(120px, 1fr) minmax(95px, .7fr);
+    gap: .65rem;
+    align-items: end;
+    background: #f8fbff;
+    border-top: 1px solid #dbe7f8;
+}
+
+    .job-service-pricing > div {
+        min-width: 0;
+    }
+
+    .job-service-pricing .form-label {
+        font-size: .68rem;
+    }
+
+    .job-service-pricing .form-control,
+    .job-service-pricing .input-group-text {
+        min-height: 38px;
+    }
+
+    .job-service-pricing
+    .input-group-text {
+        padding-left: .65rem;
+        padding-right: .65rem;
+        color: #64748b;
+        background: #ffffff;
+    }
+
+.job-service-line-total {
+    min-height: 38px;
+    padding: .4rem .6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #ffffff;
+    border: 1px solid #dce4ef;
+    border-radius: .55rem;
+}
+
+    .job-service-line-total small {
+        color: #64748b;
+        font-size: .62rem;
+        font-weight: 700;
+    }
+
+    .job-service-line-total strong {
+        margin-top: .05rem;
+        color: #0f172a;
+        font-size: .82rem;
+        font-weight: 850;
+    }
+
+.job-services-total {
+    margin-top: .75rem;
+    padding: .8rem .9rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: .85rem;
+}
+
+    .job-services-total > div {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+    }
+
+    .job-services-total
+    .material-symbols-outlined {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #2563eb;
+        background: #eaf2ff;
+        border-radius: .65rem;
+        font-size: 19px;
+    }
+
+    .job-services-total small,
+    .job-services-total strong {
+        display: block;
+    }
+
+    .job-services-total small {
+        color: #64748b;
+        font-size: .68rem;
+        font-weight: 700;
+    }
+
+    .job-services-total strong {
+        color: #0f172a;
+        font-size: 1rem;
+        font-weight: 850;
+    }
+
+.job-services-total-note {
+    max-width: 260px;
+    color: #b45309;
+    font-size: .7rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-align: right;
+}
 
 .job-services-empty {
     min-height: 72px;
@@ -514,10 +637,6 @@
     .job-layout {
         grid-template-columns: minmax(0, 1fr) 270px;
     }
-
-    .job-services-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
 }
 
 /* ---------------------------------
@@ -602,13 +721,40 @@
 
     .job-services-grid {
         grid-template-columns: 1fr;
-        gap: .55rem;
+        gap: .6rem;
     }
 
     .job-service-option {
         width: 100%;
-        min-height: 64px;
-        padding: .7rem;
+    }
+
+    .job-service-selector {
+        padding: .75rem;
+    }
+
+    .job-service-pricing {
+        padding: .7rem .75rem .75rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+        .job-service-pricing .form-control,
+        .job-service-pricing .input-group-text {
+            min-height: 44px;
+        }
+
+    .job-service-line-total {
+        min-height: 44px;
+        grid-column: 1 / -1;
+    }
+
+    .job-services-total {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .job-services-total-note {
+        max-width: none;
+        text-align: left;
     }
 
     .job-summary-card,
@@ -642,6 +788,14 @@
 
     .job-services-count {
         margin-left: 45px;
+    }
+
+    .job-service-pricing {
+        grid-template-columns: 1fr;
+    }
+
+    .job-service-line-total {
+        grid-column: auto;
     }
 
     .job-summary-card dl div {

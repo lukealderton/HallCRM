@@ -19,7 +19,8 @@
 
 <section class="job-item-page">
 
-    @if (!String.IsNullOrWhiteSpace(strSuccessMessage))
+    @if (!String.IsNullOrWhiteSpace(
+        strSuccessMessage))
     {
         <div class="alert alert-success job-alert"
              role="alert">
@@ -43,7 +44,8 @@
         </div>
     }
 
-    @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+    @if (!String.IsNullOrWhiteSpace(
+        strErrorMessage))
     {
         <div class="alert alert-danger job-alert"
              role="alert">
@@ -204,7 +206,8 @@
                             @objJob.Name
                         </h2>
 
-                        <span class="@GetStageBadgeClass(objJob.Stage)">
+                        <span class="@GetStageBadgeClass(
+                                                        objJob.Stage)">
                             @objJob.Stage.GetDisplay().Name
                         </span>
 
@@ -224,7 +227,8 @@
                     </div>
 
                     <p class="job-subtitle">
-                        @(objJob.Company?.Name ?? "No company linked")
+                        @(objJob.Company?.Name ??
+                          "No company linked")
                     </p>
 
                     <div class="job-meta-row">
@@ -247,7 +251,8 @@
                                     location_on
                                 </span>
 
-                                @GetCompactSiteAddress(objJob)
+                                @GetCompactSiteAddress(
+                                    objJob)
 
                             </span>
                         }
@@ -258,7 +263,8 @@
                                 payments
                             </span>
 
-                            @FormatMoney(objJob.Value)
+                            @FormatMoney(
+                                objJob.Value)
 
                         </span>
 
@@ -295,18 +301,6 @@
 
             <div class="job-profile-actions">
 
-                <button type="button"
-                        class="btn btn-primary"
-                        @onclick="GoToEdit">
-
-                    <span class="material-symbols-outlined">
-                        edit
-                    </span>
-
-                    Edit job
-
-                </button>
-
                 <a href="@GetJobSheetUrl()"
                    class="btn btn-soft-primary"
                    target="_blank">
@@ -318,6 +312,18 @@
                     Job sheet
 
                 </a>
+
+                <button type="button"
+                        class="btn btn-primary"
+                        @onclick="GoToEdit">
+
+                    <span class="material-symbols-outlined">
+                        edit
+                    </span>
+
+                    Edit job
+
+                </button>
 
                 @if (objJob.Entity.ArchivedUtc.HasValue)
                 {
@@ -376,6 +382,7 @@
                     <div class="crm-card-header">
 
                         <div>
+
                             <h3>
                                 Job details
                             </h3>
@@ -383,6 +390,7 @@
                             <p>
                                 Value, probability, source and expected close date.
                             </p>
+
                         </div>
 
                     </div>
@@ -398,11 +406,16 @@
                                 </span>
 
                                 <div>
-                                    <small>Value</small>
+
+                                    <small>
+                                        Value
+                                    </small>
 
                                     <strong>
-                                        @FormatMoney(objJob.Value)
+                                        @FormatMoney(
+                                            objJob.Value)
                                     </strong>
+
                                 </div>
 
                             </div>
@@ -414,12 +427,16 @@
                                 </span>
 
                                 <div>
-                                    <small>Probability</small>
+
+                                    <small>
+                                        Probability
+                                    </small>
 
                                     <strong>
                                         @FormatProbability(
                                             objJob.ProbabilityPercent)
                                     </strong>
+
                                 </div>
 
                             </div>
@@ -431,12 +448,16 @@
                                 </span>
 
                                 <div>
-                                    <small>Expected close</small>
+
+                                    <small>
+                                        Expected close
+                                    </small>
 
                                     <strong>
                                         @FormatDate(
                                             objJob.ExpectedCloseDateUtc)
                                     </strong>
+
                                 </div>
 
                             </div>
@@ -448,11 +469,16 @@
                                 </span>
 
                                 <div>
-                                    <small>Source</small>
+
+                                    <small>
+                                        Source
+                                    </small>
 
                                     <strong>
-                                        @DisplayValue(objJob.Source)
+                                        @DisplayValue(
+                                            objJob.Source)
                                     </strong>
+
                                 </div>
 
                             </div>
@@ -468,6 +494,7 @@
                     <div class="crm-card-header">
 
                         <div>
+
                             <h3>
                                 Site
                             </h3>
@@ -475,6 +502,7 @@
                             <p>
                                 Location and access information for this job.
                             </p>
+
                         </div>
 
                         <button type="button"
@@ -493,7 +521,8 @@
 
                     <div class="job-card-body">
 
-                        @if (!HasSiteDetails(objJob))
+                        @if (!HasSiteDetails(
+                            objJob))
                         {
                             <div class="job-muted-panel">
 
@@ -528,14 +557,16 @@
                                         </small>
 
                                         <strong>
-                                            @FormatSiteAddress(objJob)
+                                            @FormatSiteAddress(
+                                                objJob)
                                         </strong>
 
                                     </div>
 
                                 </div>
 
-                                @if (HasSiteContact(objJob))
+                                @if (HasSiteContact(
+                                    objJob))
                                 {
                                     <div class="job-site-detail">
 
@@ -606,13 +637,15 @@
                     <div class="crm-card-header">
 
                         <div>
+
                             <h3>
                                 Services
                             </h3>
 
                             <p>
-                                Work and services included in this job.
+                                Work and agreed pricing included in this job.
                             </p>
+
                         </div>
 
                         <button type="button"
@@ -686,27 +719,63 @@
                                                 </span>
                                             }
 
-                                        </div>
+                                            <div class="job-service-line-meta">
 
-                                        @if (objLink.Service.DefaultPrice.HasValue)
-                                        {
-                                            <div class="job-service-price">
+                                                <span>
+                                                    Qty
+                                                    <strong>
+                                                        @FormatQuantity(
+                                                            objLink.Quantity)
+                                                    </strong>
+                                                </span>
 
-                                                <small>
-                                                    Default
-                                                </small>
-
-                                                <strong>
-                                                    @objLink.Service.DefaultPrice.Value.ToString("C")
-                                                </strong>
+                                                <span>
+                                                    Unit
+                                                    <strong>
+                                                        @FormatUnitPrice(
+                                                            objLink.UnitPrice)
+                                                    </strong>
+                                                </span>
 
                                             </div>
-                                        }
+
+                                        </div>
+
+                                        <div class="job-service-price">
+
+                                            <small>
+                                                Total
+                                            </small>
+
+                                            <strong>
+                                                @FormatLineTotal(
+                                                    objLink)
+                                            </strong>
+
+                                        </div>
 
                                     </div>
                                 }
 
                             </div>
+
+                            @if (HasPricedServices(
+                                objJob))
+                            {
+                                <div class="job-services-total">
+
+                                    <span>
+                                        Services total
+                                    </span>
+
+                                    <strong>
+                                        @FormatMoney(
+                                            GetServicesTotal(
+                                                objJob))
+                                    </strong>
+
+                                </div>
+                            }
                         }
 
                     </div>
@@ -718,6 +787,7 @@
                     <div class="crm-card-header">
 
                         <div>
+
                             <h3>
                                 Description
                             </h3>
@@ -725,6 +795,7 @@
                             <p>
                                 Summary and context for this job.
                             </p>
+
                         </div>
 
                     </div>
@@ -792,6 +863,18 @@
 
                             </a>
 
+                            <a href="@GetJobSheetUrl()"
+                               target="_blank"
+                               class="btn btn-soft-secondary w-100">
+
+                                <span class="material-symbols-outlined">
+                                    print
+                                </span>
+
+                                Open job sheet
+
+                            </a>
+
                             @if (!String.IsNullOrWhiteSpace(
                                 objJob.SiteContactPhone))
                             {
@@ -810,7 +893,8 @@
 
                             @if (objJob.Company != null)
                             {
-                                <a href="@GetCompanyUrl(objJob.Company.Id)"
+                                <a href="@GetCompanyUrl(
+                                                                       objJob.Company.Id)"
                                    class="btn btn-soft-secondary w-100">
 
                                     <span class="material-symbols-outlined">
@@ -824,7 +908,8 @@
 
                             @if (objJob.Contact != null)
                             {
-                                <a href="@GetContactUrl(objJob.Contact.Id)"
+                                <a href="@GetContactUrl(
+                                                                       objJob.Contact.Id)"
                                    class="btn btn-soft-secondary w-100">
 
                                     <span class="material-symbols-outlined">
@@ -865,15 +950,22 @@
                         <div class="job-meta-list">
 
                             <div>
-                                <span>Assigned to</span>
+
+                                <span>
+                                    Assigned to
+                                </span>
 
                                 <strong>
                                     @GetAssigneeText()
                                 </strong>
+
                             </div>
 
                             <div>
-                                <span>Company</span>
+
+                                <span>
+                                    Company
+                                </span>
 
                                 @if (objJob.Company != null)
                                 {
@@ -888,13 +980,18 @@
                                 }
                                 else
                                 {
-                                    <strong>-</strong>
+                                    <strong>
+                                        -
+                                    </strong>
                                 }
 
                             </div>
 
                             <div>
-                                <span>Contact</span>
+
+                                <span>
+                                    Contact
+                                </span>
 
                                 @if (objJob.Contact != null)
                                 {
@@ -909,41 +1006,75 @@
                                 }
                                 else
                                 {
-                                    <strong>-</strong>
+                                    <strong>
+                                        -
+                                    </strong>
                                 }
 
                             </div>
 
                             <div>
-                                <span>Site</span>
+
+                                <span>
+                                    Site
+                                </span>
 
                                 <strong>
-                                    @GetCompactSiteAddress(objJob)
+                                    @GetCompactSiteAddress(
+                                        objJob)
                                 </strong>
+
                             </div>
 
                             <div>
-                                <span>Stage</span>
+
+                                <span>
+                                    Stage
+                                </span>
 
                                 <strong>
                                     @objJob.Stage.GetDisplay().Name
                                 </strong>
+
                             </div>
 
                             <div>
-                                <span>Services</span>
+
+                                <span>
+                                    Services
+                                </span>
 
                                 <strong>
-                                    @GetServicesSummary(objJob)
+                                    @GetServicesSummary(
+                                        objJob)
                                 </strong>
+
                             </div>
 
                             <div>
-                                <span>Source</span>
+
+                                <span>
+                                    Value
+                                </span>
 
                                 <strong>
-                                    @DisplayValue(objJob.Source)
+                                    @FormatMoney(
+                                        objJob.Value)
                                 </strong>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Source
+                                </span>
+
+                                <strong>
+                                    @DisplayValue(
+                                        objJob.Source)
+                                </strong>
+
                             </div>
 
                         </div>
@@ -963,30 +1094,42 @@
                         <div class="job-meta-list">
 
                             <div>
-                                <span>Created</span>
+
+                                <span>
+                                    Created
+                                </span>
 
                                 <strong>
                                     @FormatNullableDate(
                                         objJob.Entity.CreatedUtc)
                                 </strong>
+
                             </div>
 
                             <div>
-                                <span>Updated</span>
+
+                                <span>
+                                    Updated
+                                </span>
 
                                 <strong>
                                     @FormatNullableDate(
                                         objJob.Entity.UpdatedUtc)
                                 </strong>
+
                             </div>
 
                             <div>
-                                <span>Archived</span>
+
+                                <span>
+                                    Archived
+                                </span>
 
                                 <strong>
                                     @FormatNullableDate(
                                         objJob.Entity.ArchivedUtc)
                                 </strong>
+
                             </div>
 
                         </div>
@@ -1102,7 +1245,8 @@
             HeaderState.SetHeader(
                 objJob.Name,
                 objJob.Company?.Name ??
-                    GetCompactSiteAddress(objJob),
+                    GetCompactSiteAddress(
+                        objJob),
                 GetHeaderActions());
         }
         catch (Exception objError)
@@ -1139,6 +1283,12 @@
     {
         Navigation.NavigateTo(
             $"/jobs/{JobId}/edit");
+    }
+
+    private String GetJobSheetUrl()
+    {
+        return
+            $"/jobs/{JobId}/job-sheet.pdf";
     }
 
     private void ShowArchiveConfirmation()
@@ -1324,10 +1474,78 @@
         Job objJob)
     {
         return
-            HasAddress(objJob) ||
-            HasSiteContact(objJob) ||
+            HasAddress(
+                objJob) ||
+            HasSiteContact(
+                objJob) ||
             !String.IsNullOrWhiteSpace(
                 objJob.AccessNotes);
+    }
+
+    private static Boolean HasPricedServices(
+        Job objJob)
+    {
+        return objJob.ServiceLinks.Any(
+            objLink =>
+                objLink.UnitPrice.HasValue);
+    }
+
+    private static Decimal GetServicesTotal(
+        Job objJob)
+    {
+        return objJob.ServiceLinks
+            .Where(objLink =>
+                objLink.UnitPrice.HasValue)
+            .Sum(objLink =>
+                GetLineTotal(
+                    objLink));
+    }
+
+    private static Decimal GetLineTotal(
+        JobServiceLink objLink)
+    {
+        Decimal dcmQuantity =
+            objLink.Quantity <= 0m
+                ? 1m
+                : objLink.Quantity;
+
+        return dcmQuantity *
+            (objLink.UnitPrice ?? 0m);
+    }
+
+    private static String FormatQuantity(
+        Decimal dcmQuantity)
+    {
+        Decimal dcmValue =
+            dcmQuantity <= 0m
+                ? 1m
+                : dcmQuantity;
+
+        return dcmValue.ToString(
+            dcmValue % 1m == 0m
+                ? "0"
+                : "0.##");
+    }
+
+    private static String FormatUnitPrice(
+        Decimal? dcmPrice)
+    {
+        return dcmPrice.HasValue
+            ? dcmPrice.Value.ToString("C")
+            : "Not priced";
+    }
+
+    private static String FormatLineTotal(
+        JobServiceLink objLink)
+    {
+        if (!objLink.UnitPrice.HasValue)
+        {
+            return "Not priced";
+        }
+
+        return GetLineTotal(
+            objLink)
+            .ToString("C");
     }
 
     private static String FormatSiteAddress(
@@ -1466,7 +1684,8 @@
                 .Service.Name;
         }
 
-        return $"{intCount} services";
+        return
+            $"{intCount} services";
     }
 
     private static String FormatServiceCount(
@@ -1478,10 +1697,16 @@
     }
 
     private static String FormatMoney(
+        Decimal dcmValue)
+    {
+        return dcmValue.ToString("C");
+    }
+
+    private static String FormatMoney(
         Decimal? dcmValue)
     {
         return dcmValue.HasValue
-            ? dcmValue.Value.ToString("C0")
+            ? dcmValue.Value.ToString("C")
             : "-";
     }
 
@@ -1517,11 +1742,5 @@
             strValue)
             ? "-"
             : strValue;
-    }
-
-    private String GetJobSheetUrl()
-    {
-        return
-            $"/jobs/{JobId}/job-sheet.pdf";
     }
 }

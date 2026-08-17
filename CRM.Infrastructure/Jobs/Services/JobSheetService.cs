@@ -367,8 +367,8 @@ namespace CRM.Infrastructure.Jobs.Services
         }
 
         private static void ComposeServices(
-            IContainer objContainer,
-            Job objJob)
+    IContainer objContainer,
+    Job objJob)
         {
             objContainer
                 .Border(1)
@@ -397,21 +397,48 @@ namespace CRM.Infrastructure.Jobs.Services
                         return;
                     }
 
-                    foreach (JobServiceLink objLink
-                        in objJob.ServiceLinks
-                            .OrderBy(
-                                objLink =>
-                                    objLink.Service.Name))
-                    {
-                        objColumn.Item()
-                            .PaddingTop(8)
-                            .BorderBottom(1)
-                            .BorderColor(
-                                Colors.Grey.Lighten3)
-                            .PaddingBottom(8)
-                            .Row(objRow =>
+                    objColumn.Item()
+                        .PaddingTop(10)
+                        .Table(objTable =>
+                        {
+                            objTable.ColumnsDefinition(
+                                objColumns =>
+                                {
+                                    objColumns.RelativeColumn(4);
+                                    objColumns.RelativeColumn(1);
+                                    objColumns.RelativeColumn(1.5f);
+                                    objColumns.RelativeColumn(1.5f);
+                                });
+
+                            objTable.Header(objHeader =>
                             {
-                                objRow.RelativeItem()
+                                objHeader.Cell()
+                                    .Element(ServiceTableHeaderCell)
+                                    .Text("Service");
+
+                                objHeader.Cell()
+                                    .Element(ServiceTableHeaderCell)
+                                    .AlignRight()
+                                    .Text("Qty");
+
+                                objHeader.Cell()
+                                    .Element(ServiceTableHeaderCell)
+                                    .AlignRight()
+                                    .Text("Unit");
+
+                                objHeader.Cell()
+                                    .Element(ServiceTableHeaderCell)
+                                    .AlignRight()
+                                    .Text("Total");
+                            });
+
+                            foreach (JobServiceLink objLink
+                                in objJob.ServiceLinks
+                                    .OrderBy(objLink =>
+                                        objLink.Service.Name))
+                            {
+                                objTable.Cell()
+                                    .Element(ServiceTableCell)
                                     .Column(objServiceColumn =>
                                     {
                                         objServiceColumn.Item()
@@ -426,21 +453,69 @@ namespace CRM.Infrastructure.Jobs.Services
                                                 .PaddingTop(2)
                                                 .Text(
                                                     objLink.Service.Description)
-                                                .FontSize(9)
+                                                .FontSize(8)
                                                 .FontColor(
                                                     Colors.Grey.Darken1);
                                         }
                                     });
 
-                                if (objLink.Service.DefaultPrice.HasValue)
-                                {
-                                    objRow.ConstantItem(85)
-                                        .AlignRight()
-                                        .Text(
-                                            objLink.Service.DefaultPrice.Value
-                                                .ToString("C"))
-                                        .SemiBold();
-                                }
+                                objTable.Cell()
+                                    .Element(ServiceTableCell)
+                                    .AlignRight()
+                                    .Text(
+                                        FormatQuantity(
+                                            objLink.Quantity));
+
+                                objTable.Cell()
+                                    .Element(ServiceTableCell)
+                                    .AlignRight()
+                                    .Text(
+                                        objLink.UnitPrice.HasValue
+                                            ? objLink.UnitPrice.Value.ToString("C")
+                                            : "-");
+
+                                objTable.Cell()
+                                    .Element(ServiceTableCell)
+                                    .AlignRight()
+                                    .Text(
+                                        objLink.UnitPrice.HasValue
+                                            ? CalculateLineTotal(objLink).ToString("C")
+                                            : "-")
+                                    .SemiBold();
+                            }
+                        });
+
+                    if (objJob.ServiceLinks.Any(
+                        objLink =>
+                            objLink.UnitPrice.HasValue))
+                    {
+                        Decimal dcmServicesTotal =
+                            objJob.ServiceLinks
+                                .Where(objLink =>
+                                    objLink.UnitPrice.HasValue)
+                                .Sum(
+                                    CalculateLineTotal);
+
+                        objColumn.Item()
+                            .PaddingTop(10)
+                            .AlignRight()
+                            .Row(objRow =>
+                            {
+                                objRow.AutoItem()
+                                    .Text("Services total")
+                                    .FontSize(9)
+                                    .SemiBold()
+                                    .FontColor(
+                                        Colors.Grey.Darken1);
+
+                                objRow.ConstantItem(85)
+                                    .AlignRight()
+                                    .Text(
+                                        dcmServicesTotal.ToString("C"))
+                                    .FontSize(11)
+                                    .Bold()
+                                    .FontColor(
+                                        Colors.Grey.Darken4);
                             });
                     }
                 });
@@ -676,6 +751,55 @@ namespace CRM.Infrastructure.Jobs.Services
                 : String.Join(
                     " • ",
                     colParts);
+        }
+
+        private static IContainer ServiceTableHeaderCell(
+    IContainer objContainer)
+        {
+            return objContainer
+                .PaddingVertical(5)
+                .PaddingHorizontal(4)
+                .Background(
+                    Colors.Grey.Lighten4)
+                .DefaultTextStyle(
+                    objStyle =>
+                        objStyle
+                            .FontSize(8)
+                            .SemiBold()
+                            .FontColor(
+                                Colors.Grey.Darken2));
+        }
+
+        private static IContainer ServiceTableCell(
+            IContainer objContainer)
+        {
+            return objContainer
+                .BorderBottom(1)
+                .BorderColor(
+                    Colors.Grey.Lighten3)
+                .PaddingVertical(7)
+                .PaddingHorizontal(4);
+        }
+
+        private static Decimal CalculateLineTotal(
+            JobServiceLink objLink)
+        {
+            Decimal dcmQuantity =
+                objLink.Quantity <= 0m
+                    ? 1m
+                    : objLink.Quantity;
+
+            return dcmQuantity *
+                (objLink.UnitPrice ?? 0m);
+        }
+
+        private static String FormatQuantity(
+            Decimal dcmQuantity)
+        {
+            return dcmQuantity.ToString(
+                dcmQuantity % 1m == 0m
+                    ? "0"
+                    : "0.##");
         }
     }
 }

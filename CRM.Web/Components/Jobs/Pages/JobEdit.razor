@@ -48,7 +48,8 @@
 
     </div>
 
-    @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+    @if (!String.IsNullOrWhiteSpace(
+        strErrorMessage))
     {
         <div class="alert alert-danger crm-alert"
              role="alert">
@@ -99,6 +100,7 @@
                         <div class="job-form-heading">
 
                             <div>
+
                                 <h2>
                                     @(blnEditMode
                                         ? "Edit job"
@@ -108,6 +110,7 @@
                                 <p>
                                     Track the work, customer, site, assignment and pipeline stage.
                                 </p>
+
                             </div>
 
                         </div>
@@ -220,6 +223,7 @@
                                         </div>
 
                                         <div>
+
                                             <h3>
                                                 Assignment
                                             </h3>
@@ -227,6 +231,7 @@
                                             <p>
                                                 Choose who is responsible for this job.
                                             </p>
+
                                         </div>
 
                                     </div>
@@ -285,19 +290,21 @@
                                         </div>
 
                                         <div>
+
                                             <h3>
                                                 Services
                                             </h3>
 
                                             <p>
-                                                Select the work included in this job.
+                                                Select the work included and set the agreed job pricing.
                                             </p>
+
                                         </div>
 
-                                        @if (colSelectedServiceIds.Count > 0)
+                                        @if (dicServiceLines.Count > 0)
                                         {
                                             <span class="job-services-count">
-                                                @colSelectedServiceIds.Count selected
+                                                @dicServiceLines.Count selected
                                             </span>
                                         }
 
@@ -316,6 +323,7 @@
                                             </span>
 
                                             <div>
+
                                                 <strong>
                                                     No services available
                                                 </strong>
@@ -323,6 +331,7 @@
                                                 <span>
                                                     Add services before assigning them to jobs.
                                                 </span>
+
                                             </div>
 
                                         </div>
@@ -335,54 +344,161 @@
                                                 in colServices)
                                             {
                                                 Boolean blnSelected =
-                                                    colSelectedServiceIds.Contains(
+                                                    dicServiceLines.ContainsKey(
                                                         objService.Id);
 
-                                                <label class="job-service-option @(blnSelected ? "is-selected" : String.Empty)">
+                                                JobServiceLink? objLine =
+                                                    blnSelected
+                                                        ? dicServiceLines[objService.Id]
+                                                        : null;
 
-                                                    <input type="checkbox"
-                                                           checked="@blnSelected"
-                                                           @onchange="objArgs => SetServiceSelected(
-                                                                                                                   objService.Id,
-                                                                                                                   Convert.ToBoolean(objArgs.Value))" />
+                                                <div class="job-service-option @(blnSelected ? "is-selected" : String.Empty)">
 
-<span class="job-service-check">
+                                                    <label class="job-service-selector">
 
-                                                        <span class="material-symbols-outlined">
-                                                            @(blnSelected
-                                                                ? "check"
-                                                                : "add")
+                                                        <input type="checkbox"
+                                                               checked="@blnSelected"
+                                                               @onchange="@((ChangeEventArgs objArgs) =>
+                                                                                                                           SetServiceSelected(
+                                                                                                                               objService.Id,
+                                                                                                                               Convert.ToBoolean(
+                                                                                                                                   objArgs.Value)))" />
+
+                                                        <span class="job-service-check">
+
+                                                            <span class="material-symbols-outlined">
+                                                                @(blnSelected
+                                                                    ? "check"
+                                                                    : "add")
+                                                            </span>
+
                                                         </span>
 
-                                                    </span>
+                                                        <span class="job-service-content">
 
-                                                    <span class="job-service-content">
+                                                            <strong>
+                                                                @objService.Name
+                                                            </strong>
 
-                                                        <strong>
-                                                            @objService.Name
-                                                        </strong>
+                                                            @if (!String.IsNullOrWhiteSpace(
+                                                                objService.Description))
+                                                            {
+                                                                <small>
+                                                                    @objService.Description
+                                                                </small>
+                                                            }
 
-                                                        @if (!String.IsNullOrWhiteSpace(
-                                                            objService.Description))
-                                                        {
-                                                            <small>
-                                                                @objService.Description
-                                                            </small>
-                                                        }
+                                                            @if (!blnSelected &&
+                                                                 objService.DefaultPrice.HasValue)
+                                                            {
+                                                                <span>
+                                                                    Default
+                                                                    @objService.DefaultPrice.Value.ToString("C")
+                                                                </span>
+                                                            }
 
-                                                        @if (objService.DefaultPrice.HasValue)
-                                                        {
-                                                            <span>
-                                                                @objService.DefaultPrice.Value.ToString("C")
-                                                            </span>
-                                                        }
+                                                        </span>
 
-                                                    </span>
+                                                    </label>
 
-                                                </label>
+                                                    @if (objLine != null)
+                                                    {
+                                                        <div class="job-service-pricing">
+
+                                                            <div>
+
+                                                                <label class="form-label"
+                                                                       for="@($"quantity-{objService.Id}")">
+                                                                    Quantity
+                                                                </label>
+
+                                                                <InputNumber id="@($"quantity-{objService.Id}")"
+                                                                             class="form-control"
+                                                                             min="0.01"
+                                                                             step="0.01"
+                                                                             @bind-Value="objLine.Quantity" />
+
+                                                            </div>
+
+                                                            <div>
+
+                                                                <label class="form-label"
+                                                                       for="@($"price-{objService.Id}")">
+                                                                    Unit price
+                                                                </label>
+
+                                                                <div class="input-group">
+
+                                                                    <span class="input-group-text">
+                                                                        £
+                                                                    </span>
+
+                                                                    <InputNumber id="@($"price-{objService.Id}")"
+                                                                                 class="form-control"
+                                                                                 min="0"
+                                                                                 step="0.01"
+                                                                                 @bind-Value="objLine.UnitPrice" />
+
+                                                                </div>
+
+                                                            </div>
+
+                                                            <div class="job-service-line-total">
+
+                                                                <small>
+                                                                    Line total
+                                                                </small>
+
+                                                                <strong>
+                                                                    @FormatMoney(
+                                                                        GetLineTotal(
+                                                                            objLine))
+                                                                </strong>
+
+                                                            </div>
+
+                                                        </div>
+                                                    }
+
+                                                </div>
                                             }
 
                                         </div>
+
+                                        @if (dicServiceLines.Count > 0)
+                                        {
+                                            <div class="job-services-total">
+
+                                                <div>
+
+                                                    <span class="material-symbols-outlined">
+                                                        calculate
+                                                    </span>
+
+                                                    <div>
+
+                                                        <small>
+                                                            Services total
+                                                        </small>
+
+                                                        <strong>
+                                                            @FormatMoney(
+                                                                GetServicesTotal())
+                                                        </strong>
+
+                                                    </div>
+
+                                                </div>
+
+                                                @if (HasUnpricedServiceLines)
+                                                {
+                                                    <span class="job-services-total-note">
+                                                        Some selected services do not have a price yet.
+                                                    </span>
+                                                }
+
+                                            </div>
+                                        }
                                     }
 
                                 </div>
@@ -400,6 +516,7 @@
                                         </div>
 
                                         <div>
+
                                             <h3>
                                                 Site details
                                             </h3>
@@ -407,6 +524,7 @@
                                             <p>
                                                 Where the work will be carried out and how to access the site.
                                             </p>
+
                                         </div>
 
                                     </div>
@@ -537,6 +655,7 @@
                                         </div>
 
                                         <div>
+
                                             <h3>
                                                 Commercial details
                                             </h3>
@@ -544,6 +663,7 @@
                                             <p>
                                                 Value, probability, expected close date and source.
                                             </p>
+
                                         </div>
 
                                     </div>
@@ -559,7 +679,19 @@
 
                                     <InputNumber id="value"
                                                  class="form-control"
+                                                 disabled="@HasPricedServiceLines"
                                                  @bind-Value="objJob.Value" />
+
+                                    @if (HasPricedServiceLines)
+                                    {
+                                        <div class="form-text">
+                                            Calculated from priced service lines:
+                                            <strong>
+                                                @FormatMoney(
+                                                    GetServicesTotal())
+                                            </strong>
+                                        </div>
+                                    }
 
                                 </div>
 
@@ -615,6 +747,7 @@
                                         </div>
 
                                         <div>
+
                                             <h3>
                                                 Job information
                                             </h3>
@@ -622,6 +755,7 @@
                                             <p>
                                                 Description and internal job notes.
                                             </p>
+
                                         </div>
 
                                     </div>
@@ -677,7 +811,9 @@
                         <dl>
 
                             <div>
-                                <dt>Stage</dt>
+                                <dt>
+                                    Stage
+                                </dt>
 
                                 <dd>
                                     @objJob.Stage.GetDisplay().Name
@@ -685,7 +821,9 @@
                             </div>
 
                             <div>
-                                <dt>Assigned to</dt>
+                                <dt>
+                                    Assigned to
+                                </dt>
 
                                 <dd>
                                     @GetAssigneeSummary()
@@ -693,7 +831,9 @@
                             </div>
 
                             <div>
-                                <dt>Company</dt>
+                                <dt>
+                                    Company
+                                </dt>
 
                                 <dd>
                                     @GetCompanySummary()
@@ -701,7 +841,9 @@
                             </div>
 
                             <div>
-                                <dt>Site</dt>
+                                <dt>
+                                    Site
+                                </dt>
 
                                 <dd>
                                     @GetSiteSummary()
@@ -709,7 +851,9 @@
                             </div>
 
                             <div>
-                                <dt>Services</dt>
+                                <dt>
+                                    Services
+                                </dt>
 
                                 <dd>
                                     @GetServicesSummary()
@@ -717,15 +861,20 @@
                             </div>
 
                             <div>
-                                <dt>Value</dt>
+                                <dt>
+                                    Value
+                                </dt>
 
                                 <dd>
-                                    @FormatMoney(objJob.Value)
+                                    @FormatMoney(
+                                        GetEffectiveJobValue())
                                 </dd>
                             </div>
 
                             <div>
-                                <dt>Probability</dt>
+                                <dt>
+                                    Probability
+                                </dt>
 
                                 <dd>
                                     @FormatProbability(
@@ -734,7 +883,9 @@
                             </div>
 
                             <div>
-                                <dt>Close</dt>
+                                <dt>
+                                    Close
+                                </dt>
 
                                 <dd>
                                     @FormatDate(
@@ -838,7 +989,7 @@
     private List<User> colUsers =
         [];
 
-    private HashSet<Guid> colSelectedServiceIds =
+    private Dictionary<Guid, JobServiceLink> dicServiceLines =
         [];
 
     private String strPageTitle =
@@ -863,6 +1014,18 @@
                     objJob.AssignedUserId)
             .OrderBy(objUser =>
                 objUser.DisplayName);
+
+    private Boolean HasPricedServiceLines =>
+        dicServiceLines
+            .Values
+            .Any(objLine =>
+                objLine.UnitPrice.HasValue);
+
+    private Boolean HasUnpricedServiceLines =>
+        dicServiceLines
+            .Values
+            .Any(objLine =>
+                !objLine.UnitPrice.HasValue);
 
     private String strSelectedCompanyId
     {
@@ -977,11 +1140,36 @@
                 objJob =
                     objExistingJob;
 
-                colSelectedServiceIds =
+                dicServiceLines =
                     objJob.ServiceLinks
-                        .Select(objLink =>
+                        .GroupBy(objLink =>
                             objLink.ServiceId)
-                        .ToHashSet();
+                        .ToDictionary(
+                            objGroup =>
+                                objGroup.Key,
+                            objGroup =>
+                            {
+                                JobServiceLink objExistingLink =
+                                    objGroup.First();
+
+                                return new JobServiceLink
+                                {
+                                    JobId =
+                                        objJob.Id,
+
+                                    ServiceId =
+                                        objExistingLink.ServiceId,
+
+                                    Quantity =
+                                        objExistingLink.Quantity,
+
+                                    UnitPrice =
+                                        objExistingLink.UnitPrice,
+
+                                    Service =
+                                        objExistingLink.Service
+                                };
+                            });
 
                 strPageTitle =
                     "Edit " +
@@ -995,7 +1183,8 @@
             }
 
             Guid? objCurrentUserId =
-                await CurrentUserState.GetCurrentUserIdAsync();
+                await CurrentUserState
+                    .GetCurrentUserIdAsync();
 
             objJob =
                 new Job
@@ -1013,7 +1202,7 @@
                         JobStage.New
                 };
 
-            colSelectedServiceIds =
+            dicServiceLines =
                 [];
 
             strPageTitle =
@@ -1052,17 +1241,30 @@
         try
         {
             objJob.ServiceLinks =
-                colSelectedServiceIds
-                    .Select(objServiceId =>
+                dicServiceLines
+                    .Values
+                    .Select(objLine =>
                         new JobServiceLink
                         {
                             JobId =
                                 objJob.Id,
 
                             ServiceId =
-                                objServiceId
+                                objLine.ServiceId,
+
+                            Quantity =
+                                objLine.Quantity,
+
+                            UnitPrice =
+                                objLine.UnitPrice
                         })
                     .ToList();
+
+            if (HasPricedServiceLines)
+            {
+                objJob.Value =
+                    GetServicesTotal();
+            }
 
             Job objSavedJob;
 
@@ -1110,16 +1312,80 @@
         Guid objServiceId,
         Boolean blnSelected)
     {
-        if (blnSelected)
+        if (!blnSelected)
         {
-            colSelectedServiceIds.Add(
+            dicServiceLines.Remove(
                 objServiceId);
 
             return;
         }
 
-        colSelectedServiceIds.Remove(
-            objServiceId);
+        if (dicServiceLines.ContainsKey(
+            objServiceId))
+        {
+            return;
+        }
+
+        CrmService? objService =
+            colServices.FirstOrDefault(
+                objService =>
+                    objService.Id ==
+                    objServiceId);
+
+        if (objService == null)
+        {
+            return;
+        }
+
+        dicServiceLines.Add(
+            objServiceId,
+            new JobServiceLink
+            {
+                JobId =
+                    objJob.Id,
+
+                ServiceId =
+                    objService.Id,
+
+                Service =
+                    objService,
+
+                Quantity =
+                    1m,
+
+                UnitPrice =
+                    objService.DefaultPrice
+            });
+    }
+
+    private Decimal GetServicesTotal()
+    {
+        return dicServiceLines
+            .Values
+            .Where(objLine =>
+                objLine.UnitPrice.HasValue)
+            .Sum(objLine =>
+                GetLineTotal(
+                    objLine));
+    }
+
+    private Decimal? GetEffectiveJobValue()
+    {
+        return HasPricedServiceLines
+            ? GetServicesTotal()
+            : objJob.Value;
+    }
+
+    private static Decimal GetLineTotal(
+        JobServiceLink objLine)
+    {
+        Decimal dcmQuantity =
+            objLine.Quantity <= 0m
+                ? 1m
+                : objLine.Quantity;
+
+        return dcmQuantity *
+            (objLine.UnitPrice ?? 0m);
     }
 
     private String GetAssigneeSummary()
@@ -1181,7 +1447,7 @@
 
     private String GetServicesSummary()
     {
-        if (colSelectedServiceIds.Count == 0)
+        if (dicServiceLines.Count == 0)
         {
             return "None";
         }
@@ -1189,7 +1455,7 @@
         List<String> colSelectedNames =
             colServices
                 .Where(objService =>
-                    colSelectedServiceIds.Contains(
+                    dicServiceLines.ContainsKey(
                         objService.Id))
                 .Select(objService =>
                     objService.Name)
@@ -1197,7 +1463,8 @@
 
         if (colSelectedNames.Count == 0)
         {
-            return $"{colSelectedServiceIds.Count} selected";
+            return
+                $"{dicServiceLines.Count} selected";
         }
 
         if (colSelectedNames.Count == 1)
@@ -1212,7 +1479,8 @@
                 colSelectedNames);
         }
 
-        return $"{colSelectedNames.Count} services";
+        return
+            $"{colSelectedNames.Count} services";
     }
 
     private void GoBack()
@@ -1230,10 +1498,16 @@
     }
 
     private static String FormatMoney(
+        Decimal dcmValue)
+    {
+        return dcmValue.ToString("C");
+    }
+
+    private static String FormatMoney(
         Decimal? dcmValue)
     {
         return dcmValue.HasValue
-            ? dcmValue.Value.ToString("C0")
+            ? dcmValue.Value.ToString("C")
             : "Not set";
     }
 
