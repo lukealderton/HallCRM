@@ -12,6 +12,8 @@ using CRM.Core.Logging.Abstraction;
 using CRM.Core.Logging.Services;
 using CRM.Core.Notes.Abstractions;
 using CRM.Core.Notes.Services;
+using CRM.Core.Services.Abstractions;
+using CRM.Core.Services.Services;
 using CRM.Core.Tickets.Abstractions;
 using CRM.Core.Tickets.Services;
 using CRM.Core.Users.Abstraction.Services;
@@ -40,6 +42,8 @@ namespace CRM.Core
             colServices.AddScoped<ITicketService, TicketService>();
 
             colServices.AddScoped<IActivityService, ActivityService>();
+
+            colServices.AddScoped<IServiceService, ServiceService>();
 
             return colServices;
         }

@@ -1,25 +1,27 @@
-﻿using CRM.Core.Companies.Domain;
+﻿using CRM.Core.Activities.Domain;
+using CRM.Core.Companies.Domain;
 using CRM.Core.Contacts.Domain;
 using CRM.Core.Entities.Domain;
 using CRM.Core.Jobs.Domain;
 using CRM.Core.Logging.Domain;
 using CRM.Core.Notes.Domain;
+using CRM.Core.Services.Domain;
 using CRM.Core.Tickets.Domain;
 using CRM.Core.Users.Domain;
+using CRM.Infrastructure.Activities.Configurations;
 using CRM.Infrastructure.Companies.Configurations;
 using CRM.Infrastructure.Contacts.Configurations;
 using CRM.Infrastructure.Entities.Configurations;
 using CRM.Infrastructure.Identity;
+using CRM.Infrastructure.Jobs.Configurations;
 using CRM.Infrastructure.Logging.Configurations;
 using CRM.Infrastructure.Notes.Configurations;
-using CRM.Infrastructure.Jobs.Configurations;
+using CRM.Infrastructure.Services.Configurations;
 using CRM.Infrastructure.Tickets.Configurations;
 using CRM.Infrastructure.Users.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using CRM.Core.Activities.Domain;
-using CRM.Infrastructure.Activities.Configurations;
 
 namespace CRM.Infrastructure.Data
 {
@@ -54,6 +56,8 @@ namespace CRM.Infrastructure.Data
 
         public DbSet<Activity> Activities => Set<Activity>();
 
+        public DbSet<Service> Services => Set<Service>();
+
         protected override void OnModelCreating(ModelBuilder objModelBuilder)
         {
             base.OnModelCreating(objModelBuilder);
@@ -82,6 +86,8 @@ namespace CRM.Infrastructure.Data
             objModelBuilder.ApplyConfiguration(new TicketStatusHistoryConfiguration());
 
             objModelBuilder.ApplyConfiguration(new ActivityConfiguration());
+
+            objModelBuilder.ApplyConfiguration(new ServiceConfiguration());
         }
     }
 }

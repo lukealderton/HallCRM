@@ -8,6 +8,8 @@ using CRM.Core.Logging.Abstraction;
 using CRM.Core.Mailing.Abstraction;
 using CRM.Core.Notes.Abstractions;
 using CRM.Core.Notifications.Abstractions;
+using CRM.Core.Services.Abstractions;
+using CRM.Core.Services.Domain;
 using CRM.Core.Tickets.Abstractions;
 using CRM.Core.Users.Abstraction.Repositories;
 using CRM.Infrastructure.Activities.Repositories;
@@ -21,6 +23,7 @@ using CRM.Infrastructure.Logging.Repositories;
 using CRM.Infrastructure.Mailing.Services;
 using CRM.Infrastructure.Notes.Repositories;
 using CRM.Infrastructure.Notifications.Services;
+using CRM.Infrastructure.Services.Repositories;
 using CRM.Infrastructure.Tickets.Repositories;
 using CRM.Infrastructure.Users.Repositories;
 using CRM.Infrastructure.Users.Services;
@@ -67,6 +70,8 @@ namespace CRM.Infrastructure
             colServices.AddHttpClient<IGeocodingService, GoogleGeocodingService>();
 
             colServices.AddScoped<IActivityRepository, ActivityRepository>();
+
+            colServices.AddScoped<IServiceRepository, ServiceRepository>();
 
             return colServices;
         }
