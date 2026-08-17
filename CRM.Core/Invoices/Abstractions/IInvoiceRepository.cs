@@ -36,7 +36,7 @@ namespace CRM.Core.Invoices.Abstractions
         /// <summary>
         /// Updates an existing invoice.
         /// </summary>
-        Task UpdateInvoiceAsync(
+        Task<Boolean> UpdateInvoiceAsync(
             Invoice objInvoice,
             CancellationToken objToken = default);
 

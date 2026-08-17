@@ -266,7 +266,7 @@ namespace CRM.Infrastructure.Invoices.Repositories
         }
 
         ///<inheritdoc/>
-        public async Task UpdateInvoiceAsync(
+        public async Task<Boolean> UpdateInvoiceAsync(
             Invoice objInvoice,
             CancellationToken objToken = default)
         {
@@ -309,7 +309,7 @@ namespace CRM.Infrastructure.Invoices.Repositories
 
             if (objExistingInvoice == null)
             {
-                return;
+                return false;
             }
 
             objExistingInvoice.JobId =
@@ -375,8 +375,7 @@ namespace CRM.Infrastructure.Invoices.Repositories
             objExistingInvoice.Entity.DeletedByUserId =
                 objInvoice.Entity.DeletedByUserId;
 
-            foreach (InvoiceLine objLine
-                in objInvoice.Lines)
+            foreach (InvoiceLine objLine in objInvoice.Lines)
             {
                 objContext
                     .Set<InvoiceLine>()
@@ -408,8 +407,7 @@ namespace CRM.Infrastructure.Invoices.Repositories
                         });
             }
 
-            await objContext.SaveChangesAsync(
-                objToken);
+            return await objContext.SaveChangesAsync(objToken) > 0;
         }
 
         ///<inheritdoc/>

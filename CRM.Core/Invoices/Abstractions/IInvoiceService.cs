@@ -74,6 +74,18 @@ namespace CRM.Core.Invoices.Abstractions
             CancellationToken objToken = default);
 
         /// <summary>
+        /// Voids an invoice, setting its status to 'Voided' and preventing further payments or modifications.
+        /// </summary>
+        /// <param name="objInvoiceId"></param>
+        /// <param name="objUserId"></param>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Boolean> VoidInvoiceAsync(
+            Guid objInvoiceId,
+            Guid? objUserId = null,
+            CancellationToken objToken = default);
+
+        /// <summary>
         /// Issues an invoice, setting its status to 'Issued' and optionally updating the issue and due dates.
         /// </summary>
         /// <param name="objInvoiceId"></param>

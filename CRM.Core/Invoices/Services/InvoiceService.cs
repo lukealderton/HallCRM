@@ -563,18 +563,24 @@ namespace CRM.Core.Invoices.Services
             Guid? objUserId = null,
             CancellationToken objToken = default)
         {
-            Invoice? objInvoice =
-                await GetEditableInvoiceAsync(
-                    objInvoiceId,
-                    objToken);
+            Invoice? objInvoice = await _invoiceRepository.GetInvoiceByIdAsync(
+                objInvoiceId,
+                true,
+                objToken);
 
-            if (objInvoice == null)
+            if (objInvoice == null ||
+                objInvoice.Entity.DeletedUtc.HasValue)
             {
                 return false;
             }
 
-            DateTime dteNow =
-                DateTime.UtcNow;
+            if (objInvoice.Status != InvoiceStatus.Draft)
+            {
+                throw new InvalidOperationException(
+                    "Only draft invoices can be deleted.");
+            }
+
+            DateTime dteNow = DateTime.UtcNow;
 
             objInvoice.Entity.DeletedUtc =
                 dteNow;
@@ -593,6 +599,47 @@ namespace CRM.Core.Invoices.Services
                 objToken);
 
             return true;
+        }
+
+        public async Task<Boolean> VoidInvoiceAsync(
+            Guid objInvoiceId,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
+        {
+            Invoice? objInvoice =
+                await _invoiceRepository.GetInvoiceByIdAsync(
+                    objInvoiceId,
+                    true,
+                    objToken);
+
+            if (objInvoice == null ||
+                objInvoice.Entity.DeletedUtc.HasValue)
+            {
+                return false;
+            }
+
+            if (objInvoice.Status != InvoiceStatus.Issued &&
+                objInvoice.Status != InvoiceStatus.PartPaid)
+            {
+                throw new InvalidOperationException(
+                    "Only issued or part-paid invoices can be voided.");
+            }
+
+            objInvoice.Status =
+                InvoiceStatus.Void;
+
+            DateTime dteNow =
+                DateTime.UtcNow;
+
+            objInvoice.Entity.UpdatedUtc =
+                dteNow;
+
+            objInvoice.Entity.UpdatedByUserId =
+                objUserId;
+
+            return await _invoiceRepository.UpdateInvoiceAsync(
+                objInvoice,
+                objToken);
         }
 
         ///<inheritdoc/>

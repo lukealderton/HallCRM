@@ -66,6 +66,110 @@
         </div>
     }
 
+    @if (blnConfirmDeleteInvoice &&
+    objInvoice != null)
+    {
+        <div class="alert alert-warning invoice-alert">
+
+            <span class="material-symbols-outlined">
+                delete
+            </span>
+
+            <div class="alert-content">
+
+                <strong>
+                    Delete this draft invoice?
+                </strong>
+
+                <p>
+                    This draft will be removed from the active invoice list.
+                    This action cannot be undone from this page.
+                </p>
+
+            </div>
+
+            <div class="alert-actions">
+
+                <button type="button"
+                        class="btn btn-soft-danger btn-sm"
+                        disabled="@blnDeletingInvoice"
+                        @onclick="DeleteInvoiceAsync">
+
+                    @if (blnDeletingInvoice)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                    }
+
+                    Delete draft
+
+                </button>
+
+                <button type="button"
+                        class="btn btn-soft-secondary btn-sm"
+                        disabled="@blnDeletingInvoice"
+                        @onclick="CancelDeleteInvoice">
+
+                    Cancel
+
+                </button>
+
+            </div>
+
+        </div>
+    }
+
+    @if (blnConfirmVoidInvoice &&
+        objInvoice != null)
+    {
+        <div class="alert alert-warning invoice-alert">
+
+            <span class="material-symbols-outlined">
+                block
+            </span>
+
+            <div class="alert-content">
+
+                <strong>
+                    Void this invoice?
+                </strong>
+
+                <p>
+                    The invoice will remain in the CRM for history,
+                    but it will no longer be treated as outstanding.
+                </p>
+
+            </div>
+
+            <div class="alert-actions">
+
+                <button type="button"
+                        class="btn btn-soft-danger btn-sm"
+                        disabled="@blnVoidingInvoice"
+                        @onclick="VoidInvoiceAsync">
+
+                    @if (blnVoidingInvoice)
+                    {
+                        <span class="spinner-border spinner-border-sm"></span>
+                    }
+
+                    Void invoice
+
+                </button>
+
+                <button type="button"
+                        class="btn btn-soft-secondary btn-sm"
+                        disabled="@blnVoidingInvoice"
+                        @onclick="CancelVoidInvoice">
+
+                    Cancel
+
+                </button>
+
+            </div>
+
+        </div>
+    }
+
     @if (objDeletePaymentId.HasValue)
     {
         Payment? objDeletePayment =
@@ -253,11 +357,9 @@
 
             <div class="invoice-profile-actions">
 
-                @if (objInvoice.Status ==
-                    InvoiceStatus.Draft)
+                @if (objInvoice.Status == InvoiceStatus.Draft)
                 {
-                    <a href="@GetEditUrl(
-                                               objInvoice.Id)"
+                    <a href="@GetEditUrl(objInvoice.Id)"
                        class="btn btn-primary">
 
                         <span class="material-symbols-outlined">
@@ -267,11 +369,22 @@
                         Edit invoice
 
                     </a>
+
+                    <button type="button"
+                            class="btn btn-soft-danger"
+                            @onclick="ConfirmDeleteInvoice">
+
+                        <span class="material-symbols-outlined">
+                            delete
+                        </span>
+
+                        Delete draft
+
+                    </button>
                 }
                 else
                 {
-                    <a href="@GetInvoicePdfUrl(
-                                               objInvoice.Id)"
+                    <a href="@GetInvoicePdfUrl(objInvoice.Id)"
                        class="btn btn-primary"
                        target="_blank">
 
@@ -282,28 +395,38 @@
                         Open PDF
 
                     </a>
+
+                    @if (objInvoice.Status == InvoiceStatus.Issued ||
+                        objInvoice.Status == InvoiceStatus.PartPaid)
+                    {
+                        <button type="button"
+                                class="btn btn-soft-danger"
+                                @onclick="ConfirmVoidInvoice">
+
+                            <span class="material-symbols-outlined">
+                                block
+                            </span>
+
+                            Void invoice
+
+                        </button>
+                    }
                 }
 
-                <a href="@GetJobUrl(
-                                       objInvoice.JobId)"
+                <a href="@GetJobUrl(objInvoice.JobId)"
                    class="btn btn-soft-secondary">
-
                     <span class="material-symbols-outlined">
                         work
                     </span>
-
                     Open job
-
                 </a>
 
             </div>
 
         </div>
 
-        @if (objInvoice.Status !=
-             InvoiceStatus.Draft &&
-            objInvoice.Status !=
-             InvoiceStatus.Void)
+        @if (objInvoice.Status != InvoiceStatus.Draft &&
+            objInvoice.Status != InvoiceStatus.Void)
         {
             <div class="invoice-finance-grid">
 
@@ -1256,6 +1379,14 @@
 
     private Boolean blnDeletingPayment;
 
+    private Boolean blnConfirmDeleteInvoice;
+
+    private Boolean blnConfirmVoidInvoice;
+
+    private Boolean blnDeletingInvoice;
+
+    private Boolean blnVoidingInvoice;
+
     protected override async Task OnParametersSetAsync()
     {
         await LoadInvoiceAsync();
@@ -1358,22 +1489,19 @@
 
     private void ShowPaymentForm()
     {
-        if (objInvoice == null ||
-            GetOutstanding() <= 0m)
+        if (objInvoice == null || GetOutstanding() <= 0m)
         {
             return;
         }
 
         ResetPaymentForm();
 
-        blnShowPaymentForm =
-            true;
+        blnShowPaymentForm = true;
     }
 
     private void CancelPayment()
     {
-        blnShowPaymentForm =
-            false;
+        blnShowPaymentForm = false;
 
         ResetPaymentForm();
     }
@@ -1405,11 +1533,9 @@
             return;
         }
 
-        strErrorMessage =
-            null;
+        strErrorMessage = null;
 
-        strSuccessMessage =
-            null;
+        strSuccessMessage = null;
 
         if (objPaymentForm.Amount <= 0m)
         {
@@ -1698,5 +1824,153 @@
     {
         return
             $"/invoices/{objInvoiceId}/invoice.pdf";
+    }
+
+    private void ConfirmDeleteInvoice()
+    {
+        strSuccessMessage =
+            null;
+
+        strErrorMessage =
+            null;
+
+        blnConfirmDeleteInvoice =
+            true;
+    }
+
+    private void CancelDeleteInvoice()
+    {
+        blnConfirmDeleteInvoice =
+            false;
+    }
+
+    private async Task DeleteInvoiceAsync()
+    {
+        if (objInvoice == null ||
+            objInvoice.Status !=
+                InvoiceStatus.Draft ||
+            blnDeletingInvoice)
+        {
+            return;
+        }
+
+        blnDeletingInvoice =
+            true;
+
+        strSuccessMessage =
+            null;
+
+        strErrorMessage =
+            null;
+
+        try
+        {
+            Guid? objUserId =
+                await CurrentUserState
+                    .GetCurrentUserIdAsync();
+
+            Boolean blnDeleted =
+                await InvoiceService.DeleteInvoiceAsync(
+                    objInvoice.Id,
+                    objUserId);
+
+            if (!blnDeleted)
+            {
+                strErrorMessage =
+                    "The draft invoice could not be deleted.";
+
+                return;
+            }
+
+            Navigation.NavigateTo(
+                "/invoices");
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Failed to delete invoice: " +
+                objError.Message;
+        }
+        finally
+        {
+            blnDeletingInvoice =
+                false;
+        }
+    }
+
+    private void ConfirmVoidInvoice()
+    {
+        strSuccessMessage =
+            null;
+
+        strErrorMessage =
+            null;
+
+        blnConfirmVoidInvoice =
+            true;
+    }
+
+    private void CancelVoidInvoice()
+    {
+        blnConfirmVoidInvoice =
+            false;
+    }
+
+    private async Task VoidInvoiceAsync()
+    {
+        if (objInvoice == null ||
+            blnVoidingInvoice)
+        {
+            return;
+        }
+
+        blnVoidingInvoice =
+            true;
+
+        strSuccessMessage =
+            null;
+
+        strErrorMessage =
+            null;
+
+        try
+        {
+            Guid? objUserId =
+                await CurrentUserState
+                    .GetCurrentUserIdAsync();
+
+            Boolean blnVoided =
+                await InvoiceService.VoidInvoiceAsync(
+                    objInvoice.Id,
+                    objUserId);
+
+            if (!blnVoided)
+            {
+                strErrorMessage =
+                    "The invoice could not be voided.";
+
+                return;
+            }
+
+            blnConfirmVoidInvoice =
+                false;
+
+            await LoadInvoiceAsync(
+                false);
+
+            strSuccessMessage =
+                "Invoice voided";
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Failed to void invoice: " +
+                objError.Message;
+        }
+        finally
+        {
+            blnVoidingInvoice =
+                false;
+        }
     }
 }
