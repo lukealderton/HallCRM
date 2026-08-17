@@ -1531,14 +1531,9 @@
             return;
         }
 
-        blnCreatingInvoice =
-            true;
-
-        strErrorMessage =
-            null;
-
-        strSuccessMessage =
-            null;
+        blnCreatingInvoice = true;
+        strErrorMessage = null;
+        strSuccessMessage = null;
 
         try
         {
@@ -1557,9 +1552,18 @@
         }
         catch (Exception objError)
         {
+            Exception objCurrentError =
+                objError;
+
+            while (objCurrentError.InnerException != null)
+            {
+                objCurrentError =
+                    objCurrentError.InnerException;
+            }
+
             strErrorMessage =
                 "Failed to create invoice: " +
-                objError.Message;
+                objCurrentError.Message;
         }
         finally
         {

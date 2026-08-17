@@ -703,8 +703,7 @@
 
     private static String GetStatusStyle(InvoiceStatus enmStatus)
     {
-        return
-            $"--invoice-status-color: {enmStatus.GetUI().ColorHex};";
+        return $"--invoice-status-color: {enmStatus.GetUI().ColorHex};";
     }
 
     private static String GetDateSummary(Invoice objInvoice)
@@ -716,12 +715,10 @@
 
         if (objInvoice.DueDateUtc.HasValue)
         {
-            return
-                $"Due {FormatDate(objInvoice.DueDateUtc)}";
+            return $"Due {FormatDate(objInvoice.DueDateUtc)}";
         }
 
-        return
-            $"Issued {FormatDate(objInvoice.IssueDateUtc)}";
+        return $"Issued {FormatDate(objInvoice.IssueDateUtc)}";
     }
 
     private static String FormatAddress(Invoice objInvoice)

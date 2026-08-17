@@ -99,6 +99,15 @@ namespace CRM.Infrastructure.Entities.Configurations
                 },
                 new CrmEntityType
                 {
+                    Id = (Int32)PredefinedEntityType.Invoice,
+                    Name = "Invoice",
+                    Alias = "invoice",
+                    IsSystem = true,
+                    IsCustom = false,
+                    CreatedUtc = objSeedDate
+                },
+                new CrmEntityType
+                {
                     Id = (Int32)PredefinedEntityType.CustomRecord,
                     Name = "Custom Record",
                     Alias = "custom-record",
