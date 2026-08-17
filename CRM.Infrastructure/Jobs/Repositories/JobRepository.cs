@@ -60,6 +60,8 @@ namespace CRM.Infrastructure.Jobs.Repositories
             JobStage? enmStage = null,
             Guid? objCompanyId = null,
             Guid? objServiceId = null,
+            Guid? objAssignedUserId = null,
+            Boolean blnUnassignedOnly = false,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
             Boolean blnOverdueOnly = false,
@@ -132,6 +134,23 @@ namespace CRM.Infrastructure.Jobs.Repositories
                                 objLink =>
                                     objLink.ServiceId ==
                                     objServiceId.Value));
+            }
+
+            if (objAssignedUserId.HasValue)
+            {
+                objQuery =
+                    objQuery.Where(
+                        objJob =>
+                            objJob.AssignedUserId ==
+                            objAssignedUserId.Value);
+            }
+
+            if (blnUnassignedOnly)
+            {
+                objQuery =
+                    objQuery.Where(
+                        objJob =>
+                            !objJob.AssignedUserId.HasValue);
             }
 
             if (blnOverdueOnly)

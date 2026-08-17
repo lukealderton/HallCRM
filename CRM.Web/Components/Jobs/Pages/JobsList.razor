@@ -6,11 +6,14 @@
 @using CRM.Core.Jobs.Domain
 @using CRM.Core.Jobs.Abstractions
 @using CRM.Core.Services.Abstractions
+@using CRM.Core.Users.Abstraction.Services
+@using CRM.Core.Users.Domain
 @using CRM.Web.State
 @using CrmService = CRM.Core.Services.Domain.Service
 
 @inject IJobService JobService
 @inject IServiceService ServiceService
+@inject IUserService UserService
 @inject NavigationManager Navigation
 @inject PageHeaderState HeaderState
 
@@ -83,6 +86,7 @@
         <div class="jobs-filters">
 
             <select class="form-select jobs-stage-filter"
+                    aria-label="Filter by stage"
                     @bind="strSelectedStage"
                     @bind:after="StageChangedAsync">
 
@@ -101,6 +105,7 @@
             </select>
 
             <select class="form-select jobs-service-filter"
+                    aria-label="Filter by service"
                     @bind="strSelectedServiceId"
                     @bind:after="ServiceChangedAsync">
 
@@ -113,6 +118,29 @@
                 {
                     <option value="@objService.Id.ToString()">
                         @objService.Name
+                    </option>
+                }
+
+            </select>
+
+            <select class="form-select jobs-assignee-filter"
+                    aria-label="Filter by assignee"
+                    @bind="strSelectedAssignee"
+                    @bind:after="AssigneeChangedAsync">
+
+                <option value="">
+                    All assignees
+                </option>
+
+                <option value="unassigned">
+                    Unassigned
+                </option>
+
+                @foreach (User objUser
+                    in AssignableUsers)
+                {
+                    <option value="@objUser.Id.ToString()">
+                        @objUser.DisplayName
                     </option>
                 }
 
@@ -233,7 +261,9 @@
 
                     <span class="jobs-summary-note">
                         Due before
-                        @dteClosingSoonCutoffUtc.ToLocalTime().ToString("dd MMM")
+                        @dteClosingSoonCutoffUtc
+                        .ToLocalTime()
+                        .ToString("dd MMM")
                     </span>
 
                 </div>
@@ -393,6 +423,18 @@
                             No jobs currently use the selected service.
                         </text>
                     }
+                    else if (Unassigned)
+                    {
+                        <text>
+                            There are no unassigned jobs matching the current filters.
+                        </text>
+                    }
+                    else if (AssignedUserId.HasValue)
+                    {
+                        <text>
+                            No jobs are currently assigned to the selected user.
+                        </text>
+                    }
                     else
                     {
                         <text>
@@ -429,6 +471,7 @@
                                 <th>Job</th>
                                 <th>Site</th>
                                 <th>Company</th>
+                                <th>Assigned to</th>
                                 <th>Stage</th>
                                 <th>Value</th>
                                 <th>Close date</th>
@@ -532,6 +575,37 @@
                                         {
                                             <span class="jobs-muted">
                                                 Not linked
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (objJob.AssignedUserId.HasValue)
+                                        {
+                                            <div class="jobs-assignee-cell">
+
+                                                <div class="jobs-assignee-avatar">
+                                                    @GetAssigneeInitials(objJob)
+                                                </div>
+
+                                                <span>
+                                                    @GetAssigneeName(objJob)
+                                                </span>
+
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="jobs-unassigned">
+
+                                                <span class="material-symbols-outlined">
+                                                    person_off
+                                                </span>
+
+                                                Unassigned
+
                                             </span>
                                         }
 
@@ -684,6 +758,20 @@
                                       "No company linked")
                                 </span>
 
+                                <div class="@GetMobileAssigneeClass(objJob)">
+
+                                    <span class="material-symbols-outlined">
+                                        @(objJob.AssignedUserId.HasValue
+                                            ? "assignment_ind"
+                                            : "person_off")
+                                    </span>
+
+                                    <span>
+                                        @GetAssigneeName(objJob)
+                                    </span>
+
+                                </div>
+
                             </div>
 
                             <span class="material-symbols-outlined jobs-mobile-arrow">
@@ -804,10 +892,19 @@
     [SupplyParameterFromQuery(Name = "serviceId")]
     public Guid? ServiceId { get; set; }
 
+    [SupplyParameterFromQuery(Name = "assignedUserId")]
+    public Guid? AssignedUserId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "unassigned")]
+    public Boolean Unassigned { get; set; }
+
     private List<Job> colJobs =
         [];
 
     private List<CrmService> colServices =
+        [];
+
+    private List<User> colUsers =
         [];
 
     private String? strSearch;
@@ -818,6 +915,9 @@
         String.Empty;
 
     private String strSelectedServiceId =
+        String.Empty;
+
+    private String strSelectedAssignee =
         String.Empty;
 
     private String strResultSummary =
@@ -846,12 +946,21 @@
     private DateTime dteClosingSoonCutoffUtc =
         DateTime.UtcNow.Date.AddDays(30);
 
+    private IEnumerable<User> AssignableUsers =>
+        colUsers
+            .Where(objUser =>
+                objUser.Enabled)
+            .OrderBy(objUser =>
+                objUser.DisplayName);
+
     private Boolean HasActiveFilters =>
         !String.IsNullOrWhiteSpace(
             strSearch) ||
         !String.IsNullOrWhiteSpace(
             strSelectedStage) ||
         ServiceId.HasValue ||
+        AssignedUserId.HasValue ||
+        Unassigned ||
         blnIncludeArchived ||
         Overdue ||
         CompanyId.HasValue;
@@ -876,10 +985,10 @@
     {
         HeaderState.SetHeader(
             "Jobs",
-            "Track jobs, sites, pipeline value and expected close dates.",
+            "Track jobs, sites, assignments, pipeline value and expected close dates.",
             GetHeaderActions());
 
-        await LoadServicesAsync();
+        await LoadLookupsAsync();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -903,13 +1012,29 @@
         </a>;
     }
 
-    private async Task LoadServicesAsync()
+    private async Task LoadLookupsAsync()
     {
+        Task<List<CrmService>> objServicesTask =
+            ServiceService.GetServicesAsync();
+
+        Task<List<User>> objUsersTask =
+            UserService.GetUsersAsync(
+                true);
+
+        await Task.WhenAll(
+            objServicesTask,
+            objUsersTask);
+
         colServices =
-            (await ServiceService.GetServicesAsync())
-                .OrderBy(
-                    objService =>
-                        objService.Name)
+            (await objServicesTask)
+                .OrderBy(objService =>
+                    objService.Name)
+                .ToList();
+
+        colUsers =
+            (await objUsersTask)
+                .OrderBy(objUser =>
+                    objUser.DisplayName)
                 .ToList();
     }
 
@@ -939,6 +1064,19 @@
             ServiceId.HasValue
                 ? ServiceId.Value.ToString()
                 : String.Empty;
+
+        if (Unassigned)
+        {
+            strSelectedAssignee =
+                "unassigned";
+        }
+        else
+        {
+            strSelectedAssignee =
+                AssignedUserId.HasValue
+                    ? AssignedUserId.Value.ToString()
+                    : String.Empty;
+        }
     }
 
     private Task SearchAsync()
@@ -959,13 +1097,7 @@
 
     private Task StageChangedAsync()
     {
-        Navigation.NavigateTo(
-            BuildJobsUrl(
-                strSelectedStage,
-                Overdue,
-                CompanyId,
-                ServiceId),
-            replace: true);
+        NavigateToCurrentFilters();
 
         return Task.CompletedTask;
     }
@@ -979,28 +1111,61 @@
                 ? objServiceId
                 : null;
 
-        Navigation.NavigateTo(
-            BuildJobsUrl(
-                strSelectedStage,
-                Overdue,
-                CompanyId,
-                ServiceId),
-            replace: true);
+        NavigateToCurrentFilters();
+
+        return Task.CompletedTask;
+    }
+
+    private Task AssigneeChangedAsync()
+    {
+        AssignedUserId =
+            null;
+
+        Unassigned =
+            false;
+
+        if (String.Equals(
+            strSelectedAssignee,
+            "unassigned",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            Unassigned =
+                true;
+        }
+        else if (Guid.TryParse(
+            strSelectedAssignee,
+            out Guid objAssignedUserId))
+        {
+            AssignedUserId =
+                objAssignedUserId;
+        }
+
+        NavigateToCurrentFilters();
 
         return Task.CompletedTask;
     }
 
     private Task ClearCompanyFilterAsync()
     {
+        CompanyId =
+            null;
+
+        NavigateToCurrentFilters();
+
+        return Task.CompletedTask;
+    }
+
+    private void NavigateToCurrentFilters()
+    {
         Navigation.NavigateTo(
             BuildJobsUrl(
                 strSelectedStage,
                 Overdue,
-                null,
-                ServiceId),
+                CompanyId,
+                ServiceId,
+                AssignedUserId,
+                Unassigned),
             replace: true);
-
-        return Task.CompletedTask;
     }
 
     private async Task LoadJobsAsync()
@@ -1018,13 +1183,15 @@
         {
             colJobs =
                 await JobService.GetJobsAsync(
-                    strSearch,
-                    SelectedStage,
-                    CompanyId,
-                    ServiceId,
-                    blnIncludeArchived,
-                    false,
-                    Overdue);
+                    strSearch: strSearch,
+                    enmStage: SelectedStage,
+                    objCompanyId: CompanyId,
+                    objServiceId: ServiceId,
+                    objAssignedUserId: AssignedUserId,
+                    blnUnassignedOnly: Unassigned,
+                    blnIncludeArchived: blnIncludeArchived,
+                    blnIncludeDeleted: false,
+                    blnOverdueOnly: Overdue);
 
             SetJobStats();
 
@@ -1077,6 +1244,9 @@
         strSelectedServiceId =
             String.Empty;
 
+        strSelectedAssignee =
+            String.Empty;
+
         blnIncludeArchived =
             false;
 
@@ -1085,6 +1255,12 @@
 
         ServiceId =
             null;
+
+        AssignedUserId =
+            null;
+
+        Unassigned =
+            false;
 
         Overdue =
             false;
@@ -1188,6 +1364,23 @@
                     : "for the selected service");
         }
 
+        if (Unassigned)
+        {
+            colFilters.Add(
+                "that are unassigned");
+        }
+        else if (AssignedUserId.HasValue)
+        {
+            User? objUser =
+                FindUser(
+                    AssignedUserId.Value);
+
+            colFilters.Add(
+                objUser != null
+                    ? $"assigned to {objUser.DisplayName}"
+                    : "for the selected assignee");
+        }
+
         if (Overdue)
         {
             colFilters.Add(
@@ -1237,7 +1430,9 @@
         String? strStage,
         Boolean blnOverdue,
         Guid? objCompanyId,
-        Guid? objServiceId)
+        Guid? objServiceId,
+        Guid? objAssignedUserId,
+        Boolean blnUnassigned)
     {
         List<String> colQuery =
             [];
@@ -1267,6 +1462,17 @@
                 $"serviceId={objServiceId.Value}");
         }
 
+        if (blnUnassigned)
+        {
+            colQuery.Add(
+                "unassigned=true");
+        }
+        else if (objAssignedUserId.HasValue)
+        {
+            colQuery.Add(
+                $"assignedUserId={objAssignedUserId.Value}");
+        }
+
         if (colQuery.Count == 0)
         {
             return "/jobs";
@@ -1277,6 +1483,55 @@
             String.Join(
                 "&",
                 colQuery);
+    }
+
+    private User? FindUser(
+        Guid objUserId)
+    {
+        return colUsers.FirstOrDefault(
+            objUser =>
+                objUser.Id ==
+                objUserId);
+    }
+
+    private String GetAssigneeName(
+        Job objJob)
+    {
+        if (!objJob.AssignedUserId.HasValue)
+        {
+            return "Unassigned";
+        }
+
+        User? objUser =
+            FindUser(
+                objJob.AssignedUserId.Value);
+
+        return objUser?.DisplayName ??
+            "Unknown user";
+    }
+
+    private String GetAssigneeInitials(
+        Job objJob)
+    {
+        if (!objJob.AssignedUserId.HasValue)
+        {
+            return "?";
+        }
+
+        User? objUser =
+            FindUser(
+                objJob.AssignedUserId.Value);
+
+        return objUser?.GetInitials() ??
+            "?";
+    }
+
+    private static String GetMobileAssigneeClass(
+        Job objJob)
+    {
+        return objJob.AssignedUserId.HasValue
+            ? "jobs-mobile-assignee"
+            : "jobs-mobile-assignee jobs-mobile-assignee-unassigned";
     }
 
     private static Boolean IsOpenJob(
@@ -1342,19 +1597,16 @@
                 objJob.Town,
                 objJob.Postcode
             }
-            .Where(
-                strValue =>
-                    !String.IsNullOrWhiteSpace(
-                        strValue))
-            .Select(
-                strValue =>
-                    strValue!.Trim())
-            .Where(
-                strValue =>
-                    !String.Equals(
-                        strValue,
-                        strPrimary,
-                        StringComparison.OrdinalIgnoreCase))
+            .Where(strValue =>
+                !String.IsNullOrWhiteSpace(
+                    strValue))
+            .Select(strValue =>
+                strValue!.Trim())
+            .Where(strValue =>
+                !String.Equals(
+                    strValue,
+                    strPrimary,
+                    StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         return colParts.Count == 0
@@ -1374,13 +1626,11 @@
                 objJob.Town,
                 objJob.Postcode
             }
-            .Where(
-                strValue =>
-                    !String.IsNullOrWhiteSpace(
-                        strValue))
-            .Select(
-                strValue =>
-                    strValue!.Trim())
+            .Where(strValue =>
+                !String.IsNullOrWhiteSpace(
+                    strValue))
+            .Select(strValue =>
+                strValue!.Trim())
             .ToList();
 
         return colParts.Count == 0

@@ -70,7 +70,7 @@
 .jobs-toolbar {
     padding: 1rem 1.25rem;
     display: grid;
-    grid-template-columns: minmax(280px, 1fr) auto auto;
+    grid-template-columns: minmax(260px, 1fr) auto auto;
     gap: 1rem;
     align-items: center;
 }
@@ -97,17 +97,22 @@
 .jobs-filters {
     display: flex;
     align-items: center;
-    gap: .65rem;
+    gap: .6rem;
     white-space: nowrap;
 }
 
 .jobs-stage-filter {
-    width: 11rem;
+    width: 10rem;
     min-height: 42px;
 }
 
 .jobs-service-filter {
-    width: 13rem;
+    width: 12rem;
+    min-height: 42px;
+}
+
+.jobs-assignee-filter {
+    width: 12rem;
     min-height: 42px;
 }
 
@@ -254,11 +259,11 @@
 }
 
     .jobs-table thead th {
-        padding: .8rem 1rem;
+        padding: .8rem .85rem;
         color: #64748b;
         background: #f8fafc;
         border-bottom: 1px solid #e5eaf2;
-        font-size: .7rem;
+        font-size: .68rem;
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: .04em;
@@ -266,7 +271,7 @@
     }
 
     .jobs-table tbody td {
-        padding: .9rem 1rem;
+        padding: .9rem .85rem;
         color: #334155;
         border-bottom: 1px solid #edf0f4;
         vertical-align: middle;
@@ -289,7 +294,7 @@
 ---------------------------------- */
 
 .jobs-job-cell {
-    min-width: 190px;
+    min-width: 180px;
     display: flex;
     align-items: center;
     gap: .7rem;
@@ -355,8 +360,8 @@
 ---------------------------------- */
 
 .jobs-site-cell {
-    min-width: 180px;
-    max-width: 270px;
+    min-width: 160px;
+    max-width: 250px;
     display: flex;
     align-items: flex-start;
     gap: .5rem;
@@ -393,6 +398,55 @@
         font-size: .7rem;
         line-height: 1.35;
         overflow-wrap: anywhere;
+    }
+
+/* ---------------------------------
+   Assignee
+---------------------------------- */
+
+.jobs-assignee-cell {
+    min-width: 130px;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.jobs-assignee-avatar {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1d4ed8;
+    background: #eef4ff;
+    border-radius: 50%;
+    font-size: .66rem;
+    font-weight: 850;
+}
+
+.jobs-assignee-cell > span {
+    min-width: 0;
+    color: #334155;
+    font-size: .76rem;
+    font-weight: 750;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.jobs-unassigned {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    color: #94a3b8;
+    font-size: .74rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+    .jobs-unassigned
+    .material-symbols-outlined {
+        font-size: 17px;
     }
 
 /* ---------------------------------
@@ -592,6 +646,32 @@
     overflow-wrap: anywhere;
 }
 
+.jobs-mobile-assignee {
+    margin-top: .3rem;
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+    color: #475569;
+    font-size: .7rem;
+    font-weight: 700;
+}
+
+    .jobs-mobile-assignee
+    .material-symbols-outlined {
+        flex: 0 0 auto;
+        color: #64748b;
+        font-size: 15px;
+    }
+
+.jobs-mobile-assignee-unassigned {
+    color: #94a3b8;
+}
+
+    .jobs-mobile-assignee-unassigned
+    .material-symbols-outlined {
+        color: #94a3b8;
+    }
+
 .jobs-mobile-arrow {
     flex: 0 0 auto;
     margin-top: .7rem;
@@ -695,7 +775,7 @@
    Tablet
 ---------------------------------- */
 
-@media (max-width: 1199.98px) {
+@media (max-width: 1399.98px) {
 
     .jobs-toolbar {
         grid-template-columns: 1fr;
@@ -705,27 +785,22 @@
         width: 100%;
     }
 
-    .jobs-stage-filter {
-        width: 11rem;
-    }
-
-    .jobs-service-filter {
-        width: 13rem;
-    }
-
     .jobs-toolbar-actions {
         width: 100%;
         justify-content: flex-end;
     }
+}
+
+@media (max-width: 1199.98px) {
 
     .jobs-table thead th,
     .jobs-table tbody td {
-        padding-left: .75rem;
-        padding-right: .75rem;
+        padding-left: .7rem;
+        padding-right: .7rem;
     }
 
     .jobs-site-cell {
-        min-width: 160px;
+        min-width: 150px;
     }
 }
 
@@ -775,7 +850,8 @@
     }
 
     .jobs-stage-filter,
-    .jobs-service-filter {
+    .jobs-service-filter,
+    .jobs-assignee-filter {
         width: 100%;
         min-height: 44px;
     }

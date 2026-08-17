@@ -11,13 +11,18 @@
 @using CRM.Core.Jobs.Abstractions
 @using CRM.Core.Jobs.Domain
 @using CRM.Core.Services.Abstractions
+@using CRM.Core.Users.Abstraction.Services
+@using CRM.Core.Users.Domain
 @using CRM.Web.State
+@using CRM.Web.Users.Abstraction
 @using CrmService = CRM.Core.Services.Domain.Service
 
 @inject IJobService JobService
 @inject ICompanyService CompanyService
 @inject IContactService ContactService
 @inject IServiceService ServiceService
+@inject IUserService UserService
+@inject ICurrentUserState CurrentUserState
 @inject NavigationManager Navigation
 @inject PageHeaderState HeaderState
 
@@ -101,7 +106,7 @@
                                 </h2>
 
                                 <p>
-                                    Track the work, customer, site and pipeline stage.
+                                    Track the work, customer, site, assignment and pipeline stage.
                                 </p>
                             </div>
 
@@ -199,6 +204,71 @@
                                         }
 
                                     </select>
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <div class="job-form-section-heading">
+
+                                        <div class="job-form-section-icon">
+
+                                            <span class="material-symbols-outlined">
+                                                assignment_ind
+                                            </span>
+
+                                        </div>
+
+                                        <div>
+                                            <h3>
+                                                Assignment
+                                            </h3>
+
+                                            <p>
+                                                Choose who is responsible for this job.
+                                            </p>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-12 col-md-6">
+
+                                    <label class="form-label"
+                                           for="assignedUser">
+                                        Assigned to
+                                    </label>
+
+                                    <InputSelect id="assignedUser"
+                                                 class="form-select"
+                                                 TValue="Guid?"
+                                                 @bind-Value="objJob.AssignedUserId">
+
+                                        <option value="">
+                                            Unassigned
+                                        </option>
+
+                                        @foreach (User objUser
+                                            in AssignableUsers)
+                                        {
+                                            <option value="@objUser.Id">
+
+                                                @(objUser.Id ==
+                                                    CurrentUserState.CurrentUserId
+                                                    ? $"{objUser.DisplayName} (You)"
+                                                    : objUser.Enabled
+                                                        ? objUser.DisplayName
+                                                        : $"{objUser.DisplayName} (Disabled)")
+
+                                            </option>
+                                        }
+
+                                    </InputSelect>
+
+                                    <div class="form-text">
+                                        The person currently responsible for this job.
+                                    </div>
 
                                 </div>
 
@@ -615,6 +685,14 @@
                             </div>
 
                             <div>
+                                <dt>Assigned to</dt>
+
+                                <dd>
+                                    @GetAssigneeSummary()
+                                </dd>
+                            </div>
+
+                            <div>
                                 <dt>Company</dt>
 
                                 <dd>
@@ -757,6 +835,9 @@
     private List<CrmService> colServices =
         [];
 
+    private List<User> colUsers =
+        [];
+
     private HashSet<Guid> colSelectedServiceIds =
         [];
 
@@ -773,6 +854,15 @@
     private Boolean blnEditMode =>
         JobId.HasValue &&
         JobId.Value != Guid.Empty;
+
+    private IEnumerable<User> AssignableUsers =>
+        colUsers
+            .Where(objUser =>
+                objUser.Enabled ||
+                objUser.Id ==
+                    objJob.AssignedUserId)
+            .OrderBy(objUser =>
+                objUser.DisplayName);
 
     private String strSelectedCompanyId
     {
@@ -832,10 +922,15 @@
             Task<List<CrmService>> objServicesTask =
                 ServiceService.GetServicesAsync();
 
+            Task<List<User>> objUsersTask =
+                UserService.GetUsersAsync(
+                    true);
+
             await Task.WhenAll(
                 objCompaniesTask,
                 objContactsTask,
-                objServicesTask);
+                objServicesTask,
+                objUsersTask);
 
             colCompanies =
                 (await objCompaniesTask)
@@ -853,6 +948,12 @@
                 (await objServicesTask)
                     .OrderBy(objService =>
                         objService.Name)
+                    .ToList();
+
+            colUsers =
+                (await objUsersTask)
+                    .OrderBy(objUser =>
+                        objUser.DisplayName)
                     .ToList();
 
             if (blnEditMode)
@@ -893,6 +994,9 @@
                 return;
             }
 
+            Guid? objCurrentUserId =
+                await CurrentUserState.GetCurrentUserIdAsync();
+
             objJob =
                 new Job
                 {
@@ -901,6 +1005,9 @@
 
                     ContactId =
                         ContactId,
+
+                    AssignedUserId =
+                        objCurrentUserId,
 
                     Stage =
                         JobStage.New
@@ -1015,6 +1122,23 @@
             objServiceId);
     }
 
+    private String GetAssigneeSummary()
+    {
+        if (!objJob.AssignedUserId.HasValue)
+        {
+            return "Unassigned";
+        }
+
+        User? objUser =
+            colUsers.FirstOrDefault(
+                objUser =>
+                    objUser.Id ==
+                    objJob.AssignedUserId.Value);
+
+        return objUser?.DisplayName ??
+            "Unknown user";
+    }
+
     private String GetCompanySummary()
     {
         if (!objJob.CompanyId.HasValue)
@@ -1042,14 +1166,17 @@
                 objJob.Postcode
             }
             .Where(strValue =>
-                !String.IsNullOrWhiteSpace(strValue))
+                !String.IsNullOrWhiteSpace(
+                    strValue))
             .Select(strValue =>
                 strValue!.Trim())
             .ToList();
 
         return colParts.Count == 0
             ? "Not set"
-            : String.Join(", ", colParts);
+            : String.Join(
+                ", ",
+                colParts);
     }
 
     private String GetServicesSummary()

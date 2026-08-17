@@ -33,12 +33,12 @@ namespace CRM.Infrastructure.Jobs.Configurations
                 .HasMaxLength(4000);
 
             objEntity.Property(
-                objJob =>
-                    objJob.AddressLine1)
-            .HasColumnName(
-                "jobAddressLine1")
-            .HasMaxLength(
-                250);
+                    objJob =>
+                        objJob.AddressLine1)
+                .HasColumnName(
+                    "jobAddressLine1")
+                .HasMaxLength(
+                    250);
 
             objEntity.Property(
                     objJob =>
@@ -95,6 +95,12 @@ namespace CRM.Infrastructure.Jobs.Configurations
                     "jobAccessNotes")
                 .HasMaxLength(
                     2000);
+
+            objEntity.Property(
+                    objJob =>
+                        objJob.AssignedUserId)
+                .HasColumnName(
+                    "jobAssignedUserId");
 
             objEntity.HasOne(objJob => objJob.Entity)
                 .WithOne()

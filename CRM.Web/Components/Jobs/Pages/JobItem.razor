@@ -5,10 +5,13 @@
 
 @using CRM.Core.Jobs.Abstractions
 @using CRM.Core.Jobs.Domain
+@using CRM.Core.Users.Abstraction.Services
+@using CRM.Core.Users.Domain
 @using CRM.Web.Components.Activities.Shared
 @using CRM.Web.State
 
 @inject IJobService JobService
+@inject IUserService UserService
 @inject NavigationManager Navigation
 @inject PageHeaderState HeaderState
 
@@ -225,6 +228,16 @@
                     </p>
 
                     <div class="job-meta-row">
+
+                        <span>
+
+                            <span class="material-symbols-outlined">
+                                assignment_ind
+                            </span>
+
+                            @GetAssigneeText()
+
+                        </span>
 
                         @if (HasAddress(objJob))
                         {
@@ -840,6 +853,14 @@
                         <div class="job-meta-list">
 
                             <div>
+                                <span>Assigned to</span>
+
+                                <strong>
+                                    @GetAssigneeText()
+                                </strong>
+                            </div>
+
+                            <div>
                                 <span>Company</span>
 
                                 @if (objJob.Company != null)
@@ -975,6 +996,8 @@
 
     private Job? objJob;
 
+    private User? objAssignedUser;
+
     private String strPageTitle =
         "Job";
 
@@ -1027,6 +1050,9 @@
         blnConfirmDelete =
             false;
 
+        objAssignedUser =
+            null;
+
         HeaderState.SetHeader(
             "Job",
             "Loading job...",
@@ -1049,6 +1075,13 @@
                     GetHeaderActions());
 
                 return;
+            }
+
+            if (objJob.AssignedUserId.HasValue)
+            {
+                objAssignedUser =
+                    await UserService.GetUserAsync(
+                        objJob.AssignedUserId.Value);
             }
 
             strPageTitle =
@@ -1076,6 +1109,18 @@
             blnLoading =
                 false;
         }
+    }
+
+    private String GetAssigneeText()
+    {
+        if (objJob == null ||
+            !objJob.AssignedUserId.HasValue)
+        {
+            return "Unassigned";
+        }
+
+        return objAssignedUser?.DisplayName ??
+            "Unknown user";
     }
 
     private void GoToEdit()
@@ -1326,20 +1371,23 @@
     private static String GetTelephoneUrl(
         String strTelephone)
     {
-        return "tel:" +
+        return
+            "tel:" +
             strTelephone;
     }
 
     private static String GetCompanyUrl(
         Guid objCompanyId)
     {
-        return $"/companies/{objCompanyId}";
+        return
+            $"/companies/{objCompanyId}";
     }
 
     private static String GetContactUrl(
         Guid objContactId)
     {
-        return $"/contacts/{objContactId}";
+        return
+            $"/contacts/{objContactId}";
     }
 
     private static String GetJobInitial(

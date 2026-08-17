@@ -32,6 +32,8 @@ namespace CRM.Core.Jobs.Services
             JobStage? enmStage = null,
             Guid? objCompanyId = null,
             Guid? objServiceId = null,
+            Guid? objAssignedUserId = null,
+            Boolean blnUnassignedOnly = false,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
             Boolean blnOverdueOnly = false,
@@ -42,6 +44,8 @@ namespace CRM.Core.Jobs.Services
                 enmStage,
                 objCompanyId,
                 objServiceId,
+                objAssignedUserId,
+                blnUnassignedOnly,
                 blnIncludeArchived,
                 blnIncludeDeleted,
                 blnOverdueOnly,
@@ -75,54 +79,25 @@ namespace CRM.Core.Jobs.Services
                     ? Guid.NewGuid()
                     : objJob.Id;
 
-            DateTime dteNow =
-                DateTime.UtcNow;
+            DateTime dteNow = DateTime.UtcNow;
 
-            String strJobName =
-                objJob.Name.Trim();
+            String strJobName = objJob.Name.Trim();
 
-            objJob.Id =
-                objJobId;
+            objJob.Id = objJobId;
+            objJob.Name = strJobName;
 
-            objJob.Name =
-                strJobName;
-
-            objJob.Description =
-                CleanString(objJob.Description);
-
-            objJob.Source =
-                CleanString(objJob.Source);
-
-            objJob.Notes =
-                CleanString(objJob.Notes);
-
-            objJob.AddressLine1 =
-                CleanString(objJob.AddressLine1);
-
-            objJob.AddressLine2 =
-                CleanString(
-                    objJob.AddressLine2);
-
-            objJob.Town =
-                CleanString(objJob.Town);
-
-            objJob.County =
-                CleanString(objJob.County);
-
-            objJob.Postcode =
-                CleanPostcode(objJob.Postcode);
-
-            objJob.SiteContactName =
-                CleanString(objJob.SiteContactName);
-
-            objJob.SiteContactPhone =
-                CleanString(objJob.SiteContactPhone);
-
-            objJob.AccessNotes =
-                CleanString(objJob.AccessNotes);
-
-            objJob.ProbabilityPercent =
-                CleanProbability(objJob.ProbabilityPercent);
+            objJob.Description = CleanString(objJob.Description);
+            objJob.Source = CleanString(objJob.Source);
+            objJob.Notes = CleanString(objJob.Notes);
+            objJob.AddressLine1 = CleanString(objJob.AddressLine1);
+            objJob.AddressLine2 = CleanString(objJob.AddressLine2);
+            objJob.Town = CleanString(objJob.Town);
+            objJob.County = CleanString(objJob.County);
+            objJob.Postcode = CleanPostcode(objJob.Postcode);
+            objJob.SiteContactName = CleanString(objJob.SiteContactName);
+            objJob.SiteContactPhone = CleanString(objJob.SiteContactPhone);
+            objJob.AccessNotes = CleanString(objJob.AccessNotes);
+            objJob.ProbabilityPercent = CleanProbability(objJob.ProbabilityPercent);
 
             /*
              * Links are persisted separately so that
@@ -213,6 +188,7 @@ namespace CRM.Core.Jobs.Services
 
             objExistingJob.CompanyId = objJob.CompanyId;
             objExistingJob.ContactId = objJob.ContactId;
+            objExistingJob.AssignedUserId = objJob.AssignedUserId;
             objExistingJob.Name = strJobName;
             objExistingJob.Description = CleanString(objJob.Description);
             objExistingJob.Stage = objJob.Stage;
