@@ -32,6 +32,7 @@
 
             <a href="/contacts"
                class="btn btn-soft-secondary btn-sm">
+
                 <span class="material-symbols-outlined">
                     close
                 </span>
@@ -42,8 +43,10 @@
     }
 
     <div class="crm-card contacts-toolbar">
+
         <div class="contacts-search">
             <div class="input-group">
+
                 <span class="input-group-text">
                     <span class="material-symbols-outlined">
                         search
@@ -52,13 +55,15 @@
 
                 <input id="contactSearch"
                        class="form-control"
-                       placeholder="Search contacts, companies, email or phone..."
+                       placeholder="Search contacts..."
                        @bind="strSearch"
                        @bind:event="oninput" />
+
             </div>
         </div>
 
         <div class="contacts-filters">
+
             <div class="form-check form-switch">
                 <input id="includeArchived"
                        class="form-check-input"
@@ -71,9 +76,11 @@
                     Include archived
                 </label>
             </div>
+
         </div>
 
         <div class="contacts-toolbar-actions">
+
             <button class="btn btn-primary"
                     type="button"
                     @onclick="SearchAsync">
@@ -84,89 +91,109 @@
 
                 Search
             </button>
+
         </div>
+
     </div>
 
-    <div class="contacts-summary row g-3">
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="contacts-summary-card contacts-summary-card-primary">
-                <span class="material-symbols-outlined">
-                    groups
+    <div class="contacts-summary">
+
+        <div class="contacts-summary-card contacts-summary-card-primary">
+
+            <span class="material-symbols-outlined">
+                groups
+            </span>
+
+            <div class="contacts-summary-content">
+
+                <small>
+                    Active shown
+                </small>
+
+                <strong>
+                    @intActiveContacts
+                </strong>
+
+                <span class="contacts-summary-note">
+                    @intTotalContacts total result@(GetPlural(intTotalContacts))
                 </span>
 
-                <div>
-                    <small>Active shown</small>
-
-                    <strong>
-                        @intActiveContacts
-                    </strong>
-
-                    <span class="contacts-summary-note">
-                        @intTotalContacts total result@(GetPlural(intTotalContacts))
-                    </span>
-                </div>
             </div>
+
         </div>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="contacts-summary-card contacts-summary-card-success">
-                <span class="material-symbols-outlined">
-                    alternate_email
+        <div class="contacts-summary-card contacts-summary-card-success">
+
+            <span class="material-symbols-outlined">
+                alternate_email
+            </span>
+
+            <div class="contacts-summary-content">
+
+                <small>
+                    Contactable
+                </small>
+
+                <strong>
+                    @intContactableContacts
+                </strong>
+
+                <span class="contacts-summary-note">
+                    @intContactablePercentage% have email or phone
                 </span>
 
-                <div>
-                    <small>Contactable</small>
-
-                    <strong>
-                        @intContactableContacts
-                    </strong>
-
-                    <span class="contacts-summary-note">
-                        @intContactablePercentage% have email or phone
-                    </span>
-                </div>
             </div>
+
         </div>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="contacts-summary-card contacts-summary-card-info">
-                <span class="material-symbols-outlined">
-                    apartment
+        <div class="contacts-summary-card contacts-summary-card-info">
+
+            <span class="material-symbols-outlined">
+                apartment
+            </span>
+
+            <div class="contacts-summary-content">
+
+                <small>
+                    Linked to companies
+                </small>
+
+                <strong>
+                    @intLinkedContacts
+                </strong>
+
+                <span class="contacts-summary-note">
+                    @intLinkedPercentage% are attached to a company
                 </span>
 
-                <div>
-                    <small>Linked to companies</small>
-
-                    <strong>
-                        @intLinkedContacts
-                    </strong>
-
-                    <span class="contacts-summary-note">
-                        @intLinkedPercentage% are attached to a company
-                    </span>
-                </div>
             </div>
+
         </div>
 
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="contacts-summary-card contacts-summary-card-warning">
-                <span class="material-symbols-outlined">
-                    priority_high
+        <div class="contacts-summary-card contacts-summary-card-warning">
+
+            <span class="material-symbols-outlined">
+                priority_high
+            </span>
+
+            <div class="contacts-summary-content">
+
+                <small>
+                    Needs details
+                </small>
+
+                <strong>
+                    @intNeedsDetailsContacts
+                </strong>
+
+                <span class="contacts-summary-note">
+                    Missing company or contact details
                 </span>
 
-                <div>
-                    <small>Needs details</small>
-
-                    <strong>
-                        @intNeedsDetailsContacts
-                    </strong>
-
-                    <span class="contacts-summary-note">
-                        Missing company or contact details
-                    </span>
-                </div>
             </div>
+
         </div>
+
     </div>
 
     @if (blnShowErrorAlert &&
@@ -180,6 +207,7 @@
             </span>
 
             <div class="alert-content">
+
                 <strong class="alert-title">
                     Unable to load contacts
                 </strong>
@@ -187,9 +215,11 @@
                 <p>
                     @strErrorMessage
                 </p>
+
             </div>
 
             <div class="alert-actions">
+
                 <button class="btn btn-soft-danger btn-sm"
                         type="button"
                         @onclick="LoadContactsAsync">
@@ -203,21 +233,31 @@
 
                 <button class="btn btn-soft-danger btn-sm contacts-alert-close"
                         type="button"
+                        aria-label="Dismiss"
                         @onclick="DismissErrorAlert">
 
                     <span class="material-symbols-outlined">
                         close
                     </span>
+
                 </button>
+
             </div>
         </div>
     }
 
-    <div class="crm-card">
+    <div class="crm-card contacts-results">
+
         <div class="crm-card-header">
+
             <div>
-                <h3>Contact records</h3>
-                <p>@strResultSummary</p>
+                <h3>
+                    Contact records
+                </h3>
+
+                <p>
+                    @strResultSummary
+                </p>
             </div>
 
             @if (!String.IsNullOrWhiteSpace(strSearch))
@@ -233,23 +273,31 @@
                     Clear search
                 </button>
             }
+
         </div>
 
         @if (blnLoading)
         {
             <div class="crm-loading">
-                <span class="spinner-border spinner-border-sm"></span>
+
+                <span class="spinner-border spinner-border-sm">
+                </span>
+
                 Loading contacts...
+
             </div>
         }
         else if (!colContacts.Any())
         {
             <div class="crm-empty-state">
+
                 <span class="material-symbols-outlined">
                     contacts
                 </span>
 
-                <h4>No contacts found</h4>
+                <h4>
+                    No contacts found
+                </h4>
 
                 <p>
                     @if (CompanyId.HasValue)
@@ -275,96 +323,179 @@
 
                     Add contact
                 </a>
+
             </div>
         }
         else
         {
-            <div class="table-responsive">
-                <table class="table table-hover align-middle crm-table contacts-table">
-                    <thead>
-                        <tr>
-                            <th>Contact</th>
-                            <th>Company</th>
-                            <th>Role</th>
-                            <th>Contact details</th>
-                            <th>Status</th>
-                            <th class="text-end">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
+            <div class="contacts-table-view">
 
-                    <tbody>
-                        @foreach (Contact objContact in colContacts)
-                        {
-                            <tr class="@GetContactRowClass(objContact)">
-                                <td>
-                                    <div class="contacts-person-cell">
-                                        <div class="contacts-avatar">
-                                            @GetInitials(objContact)
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle crm-table contacts-table">
+
+                        <thead>
+                            <tr>
+                                <th>Contact</th>
+                                <th>Company</th>
+                                <th>Role</th>
+                                <th>Contact details</th>
+                                <th>Status</th>
+                                <th class="text-end">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (Contact objContact in colContacts)
+                            {
+                                <tr class="@GetContactRowClass(objContact)">
+
+                                    <td>
+                                        <div class="contacts-person-cell">
+
+                                            <div class="contacts-avatar">
+                                                @GetInitials(objContact)
+                                            </div>
+
+                                            <div class="contacts-person-name">
+
+                                                <a class="contacts-name-link"
+                                                   href="@GetContactUrl(objContact.Id)">
+                                                    @GetContactName(objContact)
+                                                </a>
+
+                                                @if (!String.IsNullOrWhiteSpace(objContact.Department))
+                                                {
+                                                    <small class="d-block text-muted">
+                                                        @objContact.Department
+                                                    </small>
+                                                }
+
+                                            </div>
+
                                         </div>
+                                    </td>
 
-                                        <div>
-                                            <a class="contacts-name-link"
-                                               href="@GetContactUrl(objContact.Id)">
+                                    <td>
+                                        @if (objContact.Company != null)
+                                        {
+                                            <a class="contacts-company-link"
+                                               href="@GetCompanyUrl(objContact.Company.Id)">
+                                                @objContact.Company.Name
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not linked
+                                            </span>
+                                        }
+                                    </td>
 
-                                                @GetContactName(objContact)
+                                    <td>
+                                        @DisplayValue(objContact.JobTitle)
+                                    </td>
+
+                                    <td>
+                                        @if (!String.IsNullOrWhiteSpace(objContact.PrimaryEmail))
+                                        {
+                                            <a href="mailto:@objContact.PrimaryEmail">
+                                                @objContact.PrimaryEmail
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                —
+                                            </span>
+                                        }
+
+                                        @if (!String.IsNullOrWhiteSpace(GetBestPhoneNumber(objContact)))
+                                        {
+                                            <small class="d-block text-muted">
+                                                @GetBestPhoneNumber(objContact)
+                                            </small>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (objContact.Entity.ArchivedUtc.HasValue)
+                                        {
+                                            <span class="badge text-bg-secondary">
+                                                Archived
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-success">
+                                                Active
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        <div class="contacts-row-actions">
+
+                                            <a href="@GetContactUrl(objContact.Id)"
+                                               class="btn btn-soft-primary btn-sm">
+
+                                                <span class="material-symbols-outlined">
+                                                    visibility
+                                                </span>
+
+                                                View
                                             </a>
 
-                                            @if (!String.IsNullOrWhiteSpace(objContact.Department))
-                                            {
-                                                <small class="d-block text-muted">
-                                                    @objContact.Department
-                                                </small>
-                                            }
+                                            <a href="@($"/contacts/{objContact.Id}/edit")"
+                                               class="btn btn-soft-secondary btn-sm">
+
+                                                <span class="material-symbols-outlined">
+                                                    edit
+                                                </span>
+
+                                                Edit
+                                            </a>
+
                                         </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="contacts-mobile-list">
+
+                @foreach (Contact objContact in colContacts)
+                {
+                    <article class="contacts-mobile-card @GetContactRowClass(objContact)">
+
+                        <a href="@GetContactUrl(objContact.Id)"
+                           class="contacts-mobile-main">
+
+                            <div class="contacts-avatar contacts-mobile-avatar">
+                                @GetInitials(objContact)
+                            </div>
+
+                            <div class="contacts-mobile-heading">
+
+                                <div class="contacts-mobile-title-row">
+
+                                    <div class="contacts-mobile-title">
+                                        @GetContactName(objContact)
                                     </div>
-                                </td>
 
-                                <td>
-                                    @if (objContact.Company != null)
-                                    {
-                                        <a class="contacts-company-link"
-                                           href="@GetCompanyUrl(objContact.Company.Id)">
-
-                                            @objContact.Company.Name
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">
-                                            Not linked
-                                        </span>
-                                    }
-                                </td>
-
-                                <td>
-                                    @DisplayValue(objContact.JobTitle)
-                                </td>
-
-                                <td>
-                                    @if (!String.IsNullOrWhiteSpace(objContact.PrimaryEmail))
-                                    {
-                                        <a href="mailto:@objContact.PrimaryEmail">
-                                            @objContact.PrimaryEmail
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">
-                                            —
-                                        </span>
-                                    }
-
-                                    @if (!String.IsNullOrWhiteSpace(GetBestPhoneNumber(objContact)))
-                                    {
-                                        <small class="d-block text-muted">
-                                            @GetBestPhoneNumber(objContact)
-                                        </small>
-                                    }
-                                </td>
-
-                                <td>
                                     @if (objContact.Entity.ArchivedUtc.HasValue)
                                     {
                                         <span class="badge text-bg-secondary">
@@ -377,38 +508,129 @@
                                             Active
                                         </span>
                                     }
-                                </td>
 
-                                <td class="text-end">
-                                    <div class="contacts-row-actions">
-                                        <a href="@GetContactUrl(objContact.Id)"
-                                           class="btn btn-soft-primary btn-sm">
+                                </div>
 
-                                            <span class="material-symbols-outlined">
-                                                visibility
-                                            </span>
-
-                                            View
-                                        </a>
-
-                                        <a href="@($"/contacts/{objContact.Id}/edit")"
-                                           class="btn btn-soft-secondary btn-sm">
-
-                                            <span class="material-symbols-outlined">
-                                                edit
-                                            </span>
-
-                                            Edit
-                                        </a>
+                                @if (!String.IsNullOrWhiteSpace(objContact.JobTitle))
+                                {
+                                    <div class="contacts-mobile-role">
+                                        @objContact.JobTitle
                                     </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                                }
+
+                                @if (!String.IsNullOrWhiteSpace(objContact.Department))
+                                {
+                                    <div class="contacts-mobile-department">
+                                        @objContact.Department
+                                    </div>
+                                }
+
+                            </div>
+
+                            <span class="material-symbols-outlined contacts-mobile-chevron">
+                                chevron_right
+                            </span>
+
+                        </a>
+
+                        <div class="contacts-mobile-details">
+
+                            @if (objContact.Company != null)
+                            {
+                                <a href="@GetCompanyUrl(objContact.Company.Id)"
+                                   class="contacts-mobile-detail">
+
+                                    <span class="material-symbols-outlined">
+                                        apartment
+                                    </span>
+
+                                    <span>
+                                        @objContact.Company.Name
+                                    </span>
+
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="contacts-mobile-detail contacts-mobile-detail-muted">
+
+                                    <span class="material-symbols-outlined">
+                                        apartment
+                                    </span>
+
+                                    <span>
+                                        Not linked to a company
+                                    </span>
+
+                                </div>
+                            }
+
+                            @if (!String.IsNullOrWhiteSpace(objContact.PrimaryEmail))
+                            {
+                                <a href="mailto:@objContact.PrimaryEmail"
+                                   class="contacts-mobile-detail">
+
+                                    <span class="material-symbols-outlined">
+                                        mail
+                                    </span>
+
+                                    <span>
+                                        @objContact.PrimaryEmail
+                                    </span>
+
+                                </a>
+                            }
+
+                            @if (!String.IsNullOrWhiteSpace(GetBestPhoneNumber(objContact)))
+                            {
+                                <a href="tel:@GetBestPhoneNumber(objContact)"
+                                   class="contacts-mobile-detail">
+
+                                    <span class="material-symbols-outlined">
+                                        call
+                                    </span>
+
+                                    <span>
+                                        @GetBestPhoneNumber(objContact)
+                                    </span>
+
+                                </a>
+                            }
+
+                        </div>
+
+                        <div class="contacts-mobile-actions">
+
+                            <a href="@GetContactUrl(objContact.Id)"
+                               class="btn btn-soft-primary">
+
+                                <span class="material-symbols-outlined">
+                                    visibility
+                                </span>
+
+                                View
+                            </a>
+
+                            <a href="@($"/contacts/{objContact.Id}/edit")"
+                               class="btn btn-soft-secondary">
+
+                                <span class="material-symbols-outlined">
+                                    edit
+                                </span>
+
+                                Edit
+                            </a>
+
+                        </div>
+
+                    </article>
+                }
+
             </div>
         }
+
     </div>
+
 </section>
 
 @code {
@@ -419,6 +641,7 @@
 
     private String? strSearch;
     private String? strErrorMessage;
+
     private String strResultSummary =
         "Showing active contact records.";
 
