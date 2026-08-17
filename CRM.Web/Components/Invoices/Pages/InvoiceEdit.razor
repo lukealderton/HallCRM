@@ -1,0 +1,948 @@
+﻿@page "/invoices/{InvoiceId:guid}/edit"
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using CRM.Core.Invoices.Abstractions
+@using CRM.Core.Invoices.Domain
+@using CRM.Web.State
+@using CRM.Web.Users.Abstraction
+
+@inject IInvoiceService InvoiceService
+@inject ICurrentUserState CurrentUserState
+@inject NavigationManager Navigation
+@inject PageHeaderState HeaderState
+
+<SeoHead Title="@strPageTitle" />
+
+<section class="invoice-edit-page">
+
+    <div class="invoice-edit-toolbar">
+
+        <button type="button"
+                class="btn btn-soft-secondary"
+                @onclick="GoBack">
+
+            <span class="material-symbols-outlined">
+                arrow_back
+            </span>
+
+            Back to invoice
+
+        </button>
+
+    </div>
+
+    @if (!String.IsNullOrWhiteSpace(
+        strErrorMessage))
+    {
+        <div class="alert alert-danger invoice-edit-alert">
+
+            <span class="material-symbols-outlined">
+                error
+            </span>
+
+            <div>
+                @strErrorMessage
+            </div>
+
+        </div>
+    }
+
+    @if (blnLoading)
+    {
+        <div class="crm-card">
+
+            <div class="crm-loading">
+
+                <span class="spinner-border spinner-border-sm"></span>
+
+                Loading invoice...
+
+            </div>
+
+        </div>
+    }
+    else if (objInvoice == null)
+    {
+        <div class="crm-card invoice-edit-empty">
+
+            <span class="material-symbols-outlined">
+                search_off
+            </span>
+
+            <h2>
+                Invoice not found
+            </h2>
+
+        </div>
+    }
+    else if (objInvoice.Status !=
+        InvoiceStatus.Draft)
+    {
+        <div class="crm-card invoice-edit-empty">
+
+            <span class="material-symbols-outlined">
+                lock
+            </span>
+
+            <h2>
+                Invoice is locked
+            </h2>
+
+            <p>
+                Issued invoices can no longer be edited.
+            </p>
+
+            <button type="button"
+                    class="btn btn-primary"
+                    @onclick="GoBack">
+
+                View invoice
+
+            </button>
+
+        </div>
+    }
+    else
+    {
+        <EditForm Model="objInvoice"
+                  OnValidSubmit="SaveInvoiceAsync"
+                  FormName="InvoiceEditForm">
+
+            <DataAnnotationsValidator />
+
+            <div class="invoice-edit-layout">
+
+                <div class="invoice-edit-main">
+
+                    <div class="crm-card">
+
+                        <div class="invoice-edit-heading">
+
+                            <div>
+
+                                <h2>
+                                    Edit draft invoice
+                                </h2>
+
+                                <p>
+                                    Review the customer details and invoice lines before issuing.
+                                </p>
+
+                            </div>
+
+                            <span class="invoice-edit-draft-badge">
+
+                                <span class="material-symbols-outlined">
+                                    draft
+                                </span>
+
+                                Draft
+
+                            </span>
+
+                        </div>
+
+                        <div class="invoice-edit-body">
+
+                            <div class="invoice-edit-section-heading">
+
+                                <span class="material-symbols-outlined">
+                                    person
+                                </span>
+
+                                <div>
+
+                                    <h3>
+                                        Customer
+                                    </h3>
+
+                                    <p>
+                                        Details that will appear on the invoice.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-12">
+
+                                    <label class="form-label"
+                                           for="customerName">
+                                        Customer name
+                                    </label>
+
+                                    <InputText id="customerName"
+                                               class="form-control"
+                                               @bind-Value="objInvoice.CustomerName" />
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <label class="form-label"
+                                           for="address1">
+                                        Address line 1
+                                    </label>
+
+                                    <InputText id="address1"
+                                               class="form-control"
+                                               @bind-Value="objInvoice.AddressLine1" />
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <label class="form-label"
+                                           for="address2">
+                                        Address line 2
+                                    </label>
+
+                                    <InputText id="address2"
+                                               class="form-control"
+                                               @bind-Value="objInvoice.AddressLine2" />
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="town">
+                                        Town / city
+                                    </label>
+
+                                    <InputText id="town"
+                                               class="form-control"
+                                               @bind-Value="objInvoice.Town" />
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="county">
+                                        County
+                                    </label>
+
+                                    <InputText id="county"
+                                               class="form-control"
+                                               @bind-Value="objInvoice.County" />
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="postcode">
+                                        Postcode
+                                    </label>
+
+                                    <InputText id="postcode"
+                                               class="form-control text-uppercase"
+                                               @bind-Value="objInvoice.Postcode" />
+
+                                </div>
+
+                            </div>
+
+                            <div class="invoice-edit-section-heading">
+
+                                <span class="material-symbols-outlined">
+                                    receipt_long
+                                </span>
+
+                                <div>
+
+                                    <h3>
+                                        Invoice lines
+                                    </h3>
+
+                                    <p>
+                                        Adjust descriptions, quantities and prices before issuing.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div class="invoice-lines-editor">
+
+                                @foreach (InvoiceLine objLine
+                                    in OrderedLines)
+                                {
+                                    <div class="invoice-line-editor">
+
+                                        <div class="invoice-line-editor-heading">
+
+                                            <span>
+                                                Line @(objLine.SortOrder)
+                                            </span>
+
+                                            <button type="button"
+                                                    class="btn btn-sm btn-soft-danger"
+                                                    @onclick="@(() => RemoveLine(objLine.Id))">
+
+                                                <span class="material-symbols-outlined">
+                                                    delete
+                                                </span>
+
+                                                Remove
+
+                                            </button>
+
+                                        </div>
+
+                                        <div class="row g-2">
+
+                                            <div class="col-12">
+
+                                                <label class="form-label">
+                                                    Description
+                                                </label>
+
+                                                <InputText class="form-control"
+                                                           @bind-Value="objLine.Description" />
+
+                                            </div>
+
+                                            <div class="col-6 col-lg-3">
+
+                                                <label class="form-label">
+                                                    Quantity
+                                                </label>
+
+                                                <InputNumber class="form-control"
+                                                             min="0.01"
+                                                             step="0.01"
+                                                             @bind-Value="objLine.Quantity" />
+
+                                            </div>
+
+                                            <div class="col-6 col-lg-4">
+
+                                                <label class="form-label">
+                                                    Unit price
+                                                </label>
+
+                                                <div class="input-group">
+
+                                                    <span class="input-group-text">
+                                                        £
+                                                    </span>
+
+                                                    <InputNumber class="form-control"
+                                                                 min="0"
+                                                                 step="0.01"
+                                                                 @bind-Value="objLine.UnitPrice" />
+
+                                                </div>
+
+                                            </div>
+
+                                            <div class="col-12 col-lg-5">
+
+                                                <label class="form-label">
+                                                    Line total
+                                                </label>
+
+                                                <div class="invoice-line-editor-total">
+                                                    @objLine.LineTotal.ToString("C")
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+                                }
+
+                            </div>
+
+                            <button type="button"
+                                    class="btn btn-soft-primary invoice-add-line"
+                                    @onclick="AddLine">
+
+                                <span class="material-symbols-outlined">
+                                    add
+                                </span>
+
+                                Add invoice line
+
+                            </button>
+
+                            <div class="invoice-edit-total">
+
+                                <span>
+                                    Invoice total
+                                </span>
+
+                                <strong>
+                                    @GetInvoiceTotal().ToString("C")
+                                </strong>
+
+                            </div>
+
+                            <div class="invoice-edit-section-heading">
+
+                                <span class="material-symbols-outlined">
+                                    event
+                                </span>
+
+                                <div>
+
+                                    <h3>
+                                        Issue details
+                                    </h3>
+
+                                    <p>
+                                        These dates will be used when the invoice is issued.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="issueDate">
+                                        Issue date
+                                    </label>
+
+                                    <InputDate id="issueDate"
+                                               class="form-control"
+                                               @bind-Value="dteIssueDate" />
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <label class="form-label"
+                                           for="dueDate">
+                                        Due date
+                                    </label>
+
+                                    <InputDate id="dueDate"
+                                               class="form-control"
+                                               @bind-Value="dteDueDate" />
+
+                                </div>
+
+                                <div class="col-12">
+
+                                    <label class="form-label"
+                                           for="notes">
+                                        Notes
+                                    </label>
+
+                                    <InputTextArea id="notes"
+                                                   class="form-control invoice-notes-input"
+                                                   @bind-Value="objInvoice.Notes"
+                                                   placeholder="Payment details, customer note or other invoice information..." />
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <aside class="invoice-edit-side">
+
+                    <div class="crm-card invoice-edit-summary">
+
+                        <h3>
+                            Invoice summary
+                        </h3>
+
+                        <dl>
+
+                            <div>
+
+                                <dt>
+                                    Reference
+                                </dt>
+
+                                <dd>
+                                    @objInvoice.InvoiceNumber
+                                </dd>
+
+                            </div>
+
+                            <div>
+
+                                <dt>
+                                    Job
+                                </dt>
+
+                                <dd>
+                                    @objInvoice.Job?.Name
+                                </dd>
+
+                            </div>
+
+                            <div>
+
+                                <dt>
+                                    Lines
+                                </dt>
+
+                                <dd>
+                                    @objInvoice.Lines.Count
+                                </dd>
+
+                            </div>
+
+                            <div>
+
+                                <dt>
+                                    Total
+                                </dt>
+
+                                <dd>
+                                    @GetInvoiceTotal().ToString("C")
+                                </dd>
+
+                            </div>
+
+                            <div>
+
+                                <dt>
+                                    Issue
+                                </dt>
+
+                                <dd>
+                                    @dteIssueDate.ToString("dd MMM yyyy")
+                                </dd>
+
+                            </div>
+
+                            <div>
+
+                                <dt>
+                                    Due
+                                </dt>
+
+                                <dd>
+                                    @dteDueDate.ToString("dd MMM yyyy")
+                                </dd>
+
+                            </div>
+
+                        </dl>
+
+                    </div>
+
+                    <div class="crm-card invoice-save-panel">
+
+                        <div class="invoice-save-icon">
+
+                            <span class="material-symbols-outlined">
+                                save
+                            </span>
+
+                        </div>
+
+                        <h3>
+                            Save draft
+                        </h3>
+
+                        <p>
+                            Keep working on this invoice without issuing it.
+                        </p>
+
+                        <button type="submit"
+                                class="btn btn-soft-primary w-100"
+                                disabled="@blnSaving">
+
+                            @if (blnSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined">
+                                    save
+                                </span>
+                            }
+
+                            Save draft
+
+                        </button>
+
+                    </div>
+
+                    <div class="crm-card invoice-issue-panel">
+
+                        <div class="invoice-issue-icon">
+
+                            <span class="material-symbols-outlined">
+                                send
+                            </span>
+
+                        </div>
+
+                        <h3>
+                            Issue invoice
+                        </h3>
+
+                        <p>
+                            Save the current details, assign the final invoice number and lock the invoice.
+                        </p>
+
+                        <button type="button"
+                                class="btn btn-primary w-100"
+                                disabled="@(blnSaving || blnIssuing)"
+                                @onclick="IssueInvoiceAsync">
+
+                            @if (blnIssuing)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+
+                                <span>
+                                    Issuing...
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined">
+                                    send
+                                </span>
+
+                                <span>
+                                    Issue invoice
+                                </span>
+                            }
+
+                        </button>
+
+                    </div>
+
+                </aside>
+
+            </div>
+
+        </EditForm>
+    }
+
+</section>
+
+@code {
+    [Parameter]
+    public Guid InvoiceId { get; set; }
+
+    private Invoice? objInvoice;
+
+    private String strPageTitle =
+        "Edit invoice";
+
+    private String? strErrorMessage;
+
+    private Boolean blnLoading =
+        true;
+
+    private Boolean blnSaving;
+
+    private Boolean blnIssuing;
+
+    private DateTime dteIssueDate =
+        DateTime.Today;
+
+    private DateTime dteDueDate =
+        DateTime.Today.AddDays(
+            30);
+
+    private IEnumerable<InvoiceLine> OrderedLines =>
+        objInvoice?.Lines
+            .OrderBy(objLine =>
+                objLine.SortOrder)
+        ?? Enumerable.Empty<InvoiceLine>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadInvoiceAsync();
+    }
+
+    private async Task LoadInvoiceAsync()
+    {
+        blnLoading =
+            true;
+
+        strErrorMessage =
+            null;
+
+        try
+        {
+            objInvoice =
+                await InvoiceService.GetInvoiceByIdAsync(
+                    InvoiceId);
+
+            if (objInvoice == null)
+            {
+                HeaderState.SetHeader(
+                    "Invoice not found",
+                    "The selected invoice could not be loaded");
+
+                return;
+            }
+
+            strPageTitle =
+                $"Edit {objInvoice.InvoiceNumber}";
+
+            dteIssueDate =
+                objInvoice.IssueDateUtc?.ToLocalTime().Date ??
+                DateTime.Today;
+
+            dteDueDate =
+                objInvoice.DueDateUtc?.ToLocalTime().Date ??
+                dteIssueDate.AddDays(
+                    30);
+
+            HeaderState.SetHeader(
+                "Edit invoice",
+                objInvoice.InvoiceNumber);
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Unable to load invoice: " +
+                objError.Message;
+        }
+        finally
+        {
+            blnLoading =
+                false;
+        }
+    }
+
+    private async Task SaveInvoiceAsync()
+    {
+        if (objInvoice == null ||
+            blnSaving)
+        {
+            return;
+        }
+
+        blnSaving =
+            true;
+
+        strErrorMessage =
+            null;
+
+        try
+        {
+            NormaliseLines();
+
+            Guid? objUserId =
+                await CurrentUserState
+                    .GetCurrentUserIdAsync();
+
+            Invoice? objSavedInvoice =
+                await InvoiceService.UpdateInvoiceAsync(
+                    objInvoice,
+                    objUserId);
+
+            if (objSavedInvoice == null)
+            {
+                strErrorMessage =
+                    "The invoice could not be saved.";
+
+                return;
+            }
+
+            objInvoice =
+                objSavedInvoice;
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Unable to save invoice: " +
+                objError.Message;
+        }
+        finally
+        {
+            blnSaving =
+                false;
+        }
+    }
+
+    private async Task IssueInvoiceAsync()
+    {
+        if (objInvoice == null ||
+            blnIssuing)
+        {
+            return;
+        }
+
+        blnIssuing =
+            true;
+
+        strErrorMessage =
+            null;
+
+        try
+        {
+            /*
+             * Save the current editor state first so the issued
+             * invoice exactly matches what is visible on screen.
+             */
+            NormaliseLines();
+
+            Guid? objUserId =
+                await CurrentUserState
+                    .GetCurrentUserIdAsync();
+
+            Invoice? objSavedInvoice =
+                await InvoiceService.UpdateInvoiceAsync(
+                    objInvoice,
+                    objUserId);
+
+            if (objSavedInvoice == null)
+            {
+                strErrorMessage =
+                    "The invoice could not be saved before issuing.";
+
+                return;
+            }
+
+            Invoice? objIssuedInvoice =
+                await InvoiceService.IssueInvoiceAsync(
+                    objSavedInvoice.Id,
+                    dteIssueDate,
+                    dteDueDate,
+                    objUserId);
+
+            if (objIssuedInvoice == null)
+            {
+                strErrorMessage =
+                    "The invoice could not be issued.";
+
+                return;
+            }
+
+            Navigation.NavigateTo(
+                $"/invoices/{objIssuedInvoice.Id}");
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Unable to issue invoice: " +
+                objError.Message;
+        }
+        finally
+        {
+            blnIssuing =
+                false;
+        }
+    }
+
+    private void AddLine()
+    {
+        if (objInvoice == null)
+        {
+            return;
+        }
+
+        Int32 intNextSortOrder =
+            objInvoice.Lines.Count == 0
+                ? 1
+                : objInvoice.Lines.Max(
+                    objLine =>
+                        objLine.SortOrder) + 1;
+
+        objInvoice.Lines.Add(
+            new InvoiceLine
+            {
+                Id =
+                    Guid.NewGuid(),
+
+                InvoiceId =
+                    objInvoice.Id,
+
+                SortOrder =
+                    intNextSortOrder,
+
+                Description =
+                    String.Empty,
+
+                Quantity =
+                    1m,
+
+                UnitPrice =
+                    0m
+            });
+    }
+
+    private void RemoveLine(
+        Guid objLineId)
+    {
+        if (objInvoice == null)
+        {
+            return;
+        }
+
+        InvoiceLine? objLine =
+            objInvoice.Lines.FirstOrDefault(
+                objLine =>
+                    objLine.Id ==
+                    objLineId);
+
+        if (objLine == null)
+        {
+            return;
+        }
+
+        objInvoice.Lines.Remove(
+            objLine);
+
+        NormaliseLines();
+    }
+
+    private void NormaliseLines()
+    {
+        if (objInvoice == null)
+        {
+            return;
+        }
+
+        Int32 intSortOrder =
+            0;
+
+        foreach (InvoiceLine objLine
+            in objInvoice.Lines
+                .OrderBy(objLine =>
+                    objLine.SortOrder))
+        {
+            intSortOrder++;
+
+            objLine.SortOrder =
+                intSortOrder;
+        }
+    }
+
+    private Decimal GetInvoiceTotal()
+    {
+        if (objInvoice == null)
+        {
+            return 0m;
+        }
+
+        return objInvoice.Lines.Sum(
+            objLine =>
+                objLine.LineTotal);
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo(
+            $"/invoices/{InvoiceId}");
+    }
+}

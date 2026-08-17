@@ -373,6 +373,12 @@ namespace CRM.Core.Invoices.Services
                 return null;
             }
 
+            if (objExistingInvoice.Status != InvoiceStatus.Draft)
+            {
+                throw new InvalidOperationException(
+                    "Only draft invoices can be edited.");
+            }
+
             String strInvoiceNumber =
                 objInvoice.InvoiceNumber
                     ?.Trim()
@@ -583,6 +589,95 @@ namespace CRM.Core.Invoices.Services
                 objToken);
 
             return true;
+        }
+
+        ///<inheritdoc/>
+        public async Task<Invoice?> IssueInvoiceAsync(
+            Guid objInvoiceId,
+            DateTime? dteIssueDateUtc = null,
+            DateTime? dteDueDateUtc = null,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
+        {
+            if (objInvoiceId == Guid.Empty)
+            {
+                throw new ArgumentException(
+                    "Invoice id is required.",
+                    nameof(objInvoiceId));
+            }
+
+            Invoice? objInvoice =
+                await _invoiceRepository.GetInvoiceByIdAsync(
+                    objInvoiceId,
+                    false,
+                    objToken);
+
+            if (objInvoice == null ||
+                objInvoice.Entity.DeletedUtc.HasValue)
+            {
+                return null;
+            }
+
+            if (objInvoice.Status !=
+                InvoiceStatus.Draft)
+            {
+                throw new InvalidOperationException(
+                    "Only draft invoices can be issued.");
+            }
+
+            if (objInvoice.Lines.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "The invoice must contain at least one line before it can be issued.");
+            }
+
+            if (objInvoice.Lines.Any(
+                objLine =>
+                    String.IsNullOrWhiteSpace(
+                        objLine.Description)))
+            {
+                throw new InvalidOperationException(
+                    "Every invoice line must have a description.");
+            }
+
+            if (objInvoice.Lines.Any(
+                objLine =>
+                    objLine.Quantity <= 0m))
+            {
+                throw new InvalidOperationException(
+                    "Every invoice line must have a quantity greater than zero.");
+            }
+
+            if (objInvoice.Lines.Any(
+                objLine =>
+                    objLine.UnitPrice < 0m))
+            {
+                throw new InvalidOperationException(
+                    "Invoice line prices cannot be negative.");
+            }
+
+            DateTime dteIssue =
+                dteIssueDateUtc?.Date ??
+                DateTime.UtcNow.Date;
+
+            DateTime dteDue =
+                dteDueDateUtc?.Date ??
+                dteIssue.AddDays(
+                    30);
+
+            if (dteDue <
+                dteIssue)
+            {
+                throw new InvalidOperationException(
+                    "The due date cannot be before the issue date.");
+            }
+
+            return await _invoiceRepository.IssueInvoiceAsync(
+                objInvoiceId,
+                dteIssue,
+                dteDue,
+                objUserId,
+                objToken);
         }
 
         private async Task<Invoice?> GetEditableInvoiceAsync(

@@ -256,7 +256,7 @@ namespace CRM.Infrastructure.Jobs.Services
                                 "Stage",
                                 objJob.Stage
                                     .GetDisplay()
-                                    .Name);
+                                    .Name ?? "");
 
                             AddValueCell(
                                 objTable,

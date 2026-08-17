@@ -2,6 +2,7 @@
 using CRM.Core.Invoices.Domain;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace CRM.Infrastructure.Invoices.Repositories
 {
@@ -393,6 +394,153 @@ namespace CRM.Infrastructure.Invoices.Repositories
 
             return await objQuery.AnyAsync(
                 objToken);
+        }
+
+        ///<inheritdoc/>
+        public async Task<Invoice?> IssueInvoiceAsync(
+            Guid objInvoiceId,
+            DateTime dteIssueDateUtc,
+            DateTime dteDueDateUtc,
+            Guid? objUserId = null,
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objContext =
+                await _dbContextFactory.CreateDbContextAsync(
+                    objToken);
+
+            await using var objTransaction =
+                await objContext.Database.BeginTransactionAsync(
+                    IsolationLevel.Serializable,
+                    objToken);
+
+            Invoice? objInvoice =
+                await objContext
+                    .Set<Invoice>()
+                    .Include(objInvoice =>
+                        objInvoice.Entity)
+                    .Include(objInvoice =>
+                        objInvoice.Lines)
+                    .FirstOrDefaultAsync(
+                        objInvoice =>
+                            objInvoice.Id ==
+                            objInvoiceId,
+                        objToken);
+
+            if (objInvoice == null ||
+                objInvoice.Entity.DeletedUtc.HasValue)
+            {
+                await objTransaction.RollbackAsync(
+                    objToken);
+
+                return null;
+            }
+
+            if (objInvoice.Status !=
+                InvoiceStatus.Draft)
+            {
+                await objTransaction.RollbackAsync(
+                    objToken);
+
+                return null;
+            }
+
+            /*
+             * Locking the transaction at Serializable isolation means
+             * invoice-number allocation and the update happen together.
+             *
+             * Only customer-facing invoice numbers beginning INV-
+             * participate in this sequence. Draft references are ignored.
+             */
+            List<String> colInvoiceNumbers =
+                await objContext
+                    .Set<Invoice>()
+                    .Where(objExisting =>
+                        objExisting.InvoiceNumber.StartsWith(
+                            "INV-"))
+                    .Select(objExisting =>
+                        objExisting.InvoiceNumber)
+                    .ToListAsync(
+                        objToken);
+
+            Int32 intHighestNumber =
+                0;
+
+            foreach (String strExistingNumber
+                in colInvoiceNumbers)
+            {
+                String strNumberPart =
+                    strExistingNumber[
+                        "INV-".Length..];
+
+                if (Int32.TryParse(
+                        strNumberPart,
+                        out Int32 intNumber) &&
+                    intNumber >
+                    intHighestNumber)
+                {
+                    intHighestNumber =
+                        intNumber;
+                }
+            }
+
+            Int32 intNextNumber =
+                intHighestNumber + 1;
+
+            String strInvoiceNumber =
+                $"INV-{intNextNumber:000000}";
+
+            DateTime dteNow =
+                DateTime.UtcNow;
+
+            objInvoice.InvoiceNumber =
+                strInvoiceNumber;
+
+            objInvoice.Status =
+                InvoiceStatus.Issued;
+
+            objInvoice.IssueDateUtc =
+                dteIssueDateUtc;
+
+            objInvoice.DueDateUtc =
+                dteDueDateUtc;
+
+            objInvoice.Entity.DisplayName =
+                strInvoiceNumber;
+
+            objInvoice.Entity.UpdatedUtc =
+                dteNow;
+
+            objInvoice.Entity.UpdatedByUserId =
+                objUserId;
+
+            await objContext.SaveChangesAsync(
+                objToken);
+
+            await objTransaction.CommitAsync(
+                objToken);
+
+            return await objContext
+                .Set<Invoice>()
+                .AsNoTracking()
+                .Include(objInvoice =>
+                    objInvoice.Entity)
+                .Include(objInvoice =>
+                    objInvoice.Job)
+                .Include(objInvoice =>
+                    objInvoice.Company)
+                .Include(objInvoice =>
+                    objInvoice.Contact)
+                    .ThenInclude(objContact =>
+                        objContact!.Entity)
+                .Include(objInvoice =>
+                    objInvoice.Lines)
+                    .ThenInclude(objLine =>
+                        objLine.Service)
+                .FirstOrDefaultAsync(
+                    objInvoice =>
+                        objInvoice.Id ==
+                        objInvoiceId,
+                    objToken);
         }
     }
 }

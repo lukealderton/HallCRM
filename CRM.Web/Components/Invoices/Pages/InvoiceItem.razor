@@ -1,0 +1,800 @@
+﻿@page "/invoices/{InvoiceId:guid}"
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using CRM.Core.Invoices.Abstractions
+@using CRM.Core.Invoices.Domain
+@using CRM.Web.State
+
+@inject IInvoiceService InvoiceService
+@inject NavigationManager Navigation
+@inject PageHeaderState HeaderState
+
+<SeoHead Title="@strPageTitle" />
+
+<section class="invoice-page">
+
+    @if (!String.IsNullOrWhiteSpace(
+        strSuccessMessage))
+    {
+        <div class="alert alert-success invoice-alert">
+
+            <span class="material-symbols-outlined">
+                check_circle
+            </span>
+
+            <div class="alert-content">
+
+                <strong>
+                    @strSuccessMessage
+                </strong>
+
+            </div>
+
+        </div>
+    }
+
+    @if (!String.IsNullOrWhiteSpace(
+        strErrorMessage))
+    {
+        <div class="alert alert-danger invoice-alert">
+
+            <span class="material-symbols-outlined">
+                error
+            </span>
+
+            <div class="alert-content">
+
+                <strong>
+                    Unable to update invoice
+                </strong>
+
+                <p>
+                    @strErrorMessage
+                </p>
+
+            </div>
+
+        </div>
+    }
+
+    @if (blnLoading)
+    {
+        <div class="crm-card">
+
+            <div class="crm-loading">
+
+                <span class="spinner-border spinner-border-sm"></span>
+
+                Loading invoice...
+
+            </div>
+
+        </div>
+    }
+    else if (objInvoice == null)
+    {
+        <div class="alert alert-danger invoice-alert">
+
+            <span class="material-symbols-outlined">
+                search_off
+            </span>
+
+            <div class="alert-content">
+
+                <strong>
+                    Invoice not found
+                </strong>
+
+                <p>
+                    This invoice could not be loaded.
+                </p>
+
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <div class="invoice-profile-card crm-card">
+
+            <div class="invoice-profile-main">
+
+                <div class="invoice-avatar">
+
+                    <span class="material-symbols-outlined">
+                        receipt_long
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <div class="invoice-title-row">
+
+                        <h2>
+                            @objInvoice.InvoiceNumber
+                        </h2>
+
+                        <span class="invoice-status-pill"
+                              style="@GetStatusStyle(objInvoice.Status)">
+
+                            <span class="material-symbols-outlined">
+                                @objInvoice.Status.GetUI().IconName
+                            </span>
+
+                            @objInvoice.Status.GetDisplay().Name
+
+                        </span>
+
+                        @if (objInvoice.Entity.ArchivedUtc.HasValue)
+                        {
+                            <span class="badge text-bg-secondary">
+                                Archived
+                            </span>
+                        }
+
+                    </div>
+
+                    <p class="invoice-subtitle">
+                        @DisplayValue(
+                            objInvoice.CustomerName)
+                    </p>
+
+                    <div class="invoice-meta-row">
+
+                        <span>
+
+                            <span class="material-symbols-outlined">
+                                work
+                            </span>
+
+                            @objInvoice.Job.Name
+
+                        </span>
+
+                        <span>
+
+                            <span class="material-symbols-outlined">
+                                payments
+                            </span>
+
+                            @objInvoice.Total.ToString("C")
+
+                        </span>
+
+                        <span>
+
+                            <span class="material-symbols-outlined">
+                                event
+                            </span>
+
+                            @GetDateSummary(objInvoice)
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="invoice-profile-actions">
+
+                <a href="@GetJobUrl(objInvoice.JobId)"
+                   class="btn btn-soft-secondary">
+
+                    <span class="material-symbols-outlined">
+                        work
+                    </span>
+
+                    Open job
+
+                </a>
+
+                @if (objInvoice.Status ==InvoiceStatus.Draft)
+                {
+                    <a href="@GetEditUrl(objInvoice.Id)"
+                       class="btn btn-primary">
+
+                        <span class="material-symbols-outlined">
+                            edit
+                        </span>
+
+                        Edit invoice
+
+                    </a>
+                }
+
+            </div>
+
+        </div>
+
+        <div class="invoice-layout">
+
+            <div class="invoice-main-column">
+
+                <div class="crm-card">
+
+                    <div class="crm-card-header">
+
+                        <div>
+
+                            <h3>
+                                Invoice lines
+                            </h3>
+
+                            <p>
+                                Items and agreed prices captured on this invoice.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="invoice-card-body">
+
+                        @if (objInvoice.Lines.Count == 0)
+                        {
+                            <div class="invoice-empty">
+
+                                <span class="material-symbols-outlined">
+                                    receipt_long
+                                </span>
+
+                                <span>
+                                    This invoice has no lines.
+                                </span>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="invoice-lines-desktop">
+
+                                <table class="table invoice-lines-table">
+
+                                    <thead>
+
+                                        <tr>
+
+                                            <th>
+                                                Description
+                                            </th>
+
+                                            <th class="text-end">
+                                                Qty
+                                            </th>
+
+                                            <th class="text-end">
+                                                Unit price
+                                            </th>
+
+                                            <th class="text-end">
+                                                Total
+                                            </th>
+
+                                        </tr>
+
+                                    </thead>
+
+                                    <tbody>
+
+                                        @foreach (InvoiceLine objLine
+                                            in objInvoice.Lines
+                                                .OrderBy(objLine =>
+                                                    objLine.SortOrder))
+                                        {
+                                            <tr>
+
+                                                <td>
+
+                                                    <strong>
+                                                        @objLine.Description
+                                                    </strong>
+
+                                                </td>
+
+                                                <td class="text-end">
+                                                    @FormatQuantity(
+                                                        objLine.Quantity)
+                                                </td>
+
+                                                <td class="text-end">
+                                                    @objLine.UnitPrice.ToString("C")
+                                                </td>
+
+                                                <td class="text-end invoice-line-total">
+                                                    @objLine.LineTotal.ToString("C")
+                                                </td>
+
+                                            </tr>
+                                        }
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                            <div class="invoice-lines-mobile">
+
+                                @foreach (InvoiceLine objLine
+                                    in objInvoice.Lines
+                                        .OrderBy(objLine =>
+                                            objLine.SortOrder))
+                                {
+                                    <div class="invoice-line-card">
+
+                                        <strong>
+                                            @objLine.Description
+                                        </strong>
+
+                                        <div class="invoice-line-meta">
+
+                                            <span>
+                                                @FormatQuantity(
+                                                    objLine.Quantity)
+                                                ×
+                                                @objLine.UnitPrice.ToString("C")
+                                            </span>
+
+                                            <strong>
+                                                @objLine.LineTotal.ToString("C")
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+                                }
+
+                            </div>
+
+                            <div class="invoice-totals">
+
+                                <div>
+
+                                    <span>
+                                        Subtotal
+                                    </span>
+
+                                    <strong>
+                                        @objInvoice.Subtotal.ToString("C")
+                                    </strong>
+
+                                </div>
+
+                                <div class="invoice-total-row">
+
+                                    <span>
+                                        Total
+                                    </span>
+
+                                    <strong>
+                                        @objInvoice.Total.ToString("C")
+                                    </strong>
+
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="crm-card">
+
+                    <div class="crm-card-header">
+
+                        <div>
+
+                            <h3>
+                                Customer
+                            </h3>
+
+                            <p>
+                                Billing details captured when the invoice was created.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="invoice-card-body">
+
+                        <div class="invoice-details-grid">
+
+                            <div>
+
+                                <small>
+                                    Customer
+                                </small>
+
+                                <strong>
+                                    @DisplayValue(
+                                        objInvoice.CustomerName)
+                                </strong>
+
+                            </div>
+
+                            <div>
+
+                                <small>
+                                    Address
+                                </small>
+
+                                <strong>
+                                    @FormatAddress(
+                                        objInvoice)
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                @if (!String.IsNullOrWhiteSpace(
+                    objInvoice.Notes))
+                {
+                    <div class="crm-card">
+
+                        <div class="crm-card-header">
+
+                            <div>
+
+                                <h3>
+                                    Notes
+                                </h3>
+
+                            </div>
+
+                        </div>
+
+                        <div class="invoice-card-body">
+
+                            <p class="invoice-notes">
+                                @objInvoice.Notes
+                            </p>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+            <aside class="invoice-side-column">
+
+                <div class="crm-card">
+
+                    <div class="invoice-card-body">
+
+                        <h4 class="invoice-side-heading">
+                            Overview
+                        </h4>
+
+                        <div class="invoice-summary-list">
+
+                            <div>
+
+                                <span>
+                                    Status
+                                </span>
+
+                                <strong>
+                                    @objInvoice.Status.GetDisplay().Name
+                                </strong>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Issue date
+                                </span>
+
+                                <strong>
+                                    @FormatDate(
+                                        objInvoice.IssueDateUtc)
+                                </strong>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Due date
+                                </span>
+
+                                <strong>
+                                    @FormatDate(
+                                        objInvoice.DueDateUtc)
+                                </strong>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Total
+                                </span>
+
+                                <strong>
+                                    @objInvoice.Total.ToString("C")
+                                </strong>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Created
+                                </span>
+
+                                <strong>
+                                    @FormatDate(
+                                        objInvoice.Entity.CreatedUtc)
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="crm-card">
+
+                    <div class="invoice-card-body">
+
+                        <h4 class="invoice-side-heading">
+                            Linked records
+                        </h4>
+
+                        <div class="invoice-action-list">
+
+                            <a href="@GetJobUrl(objInvoice.JobId)"
+                               class="btn btn-soft-secondary w-100">
+
+                                <span class="material-symbols-outlined">
+                                    work
+                                </span>
+
+                                @objInvoice.Job.Name
+
+                            </a>
+
+                            @if (objInvoice.CompanyId.HasValue)
+                            {
+                                <a href="@GetCompanyUrl(
+                                                                       objInvoice.CompanyId.Value)"
+                                   class="btn btn-soft-secondary w-100">
+
+                                    <span class="material-symbols-outlined">
+                                        business
+                                    </span>
+
+                                    Open company
+
+                                </a>
+                            }
+
+                            @if (objInvoice.ContactId.HasValue)
+                            {
+                                <a href="@GetContactUrl(
+                                                                       objInvoice.ContactId.Value)"
+                                   class="btn btn-soft-secondary w-100">
+
+                                    <span class="material-symbols-outlined">
+                                        person
+                                    </span>
+
+                                    Open contact
+
+                                </a>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </div>
+    }
+
+</section>
+
+@code {
+    [Parameter]
+    public Guid InvoiceId { get; set; }
+
+    private Invoice? objInvoice;
+
+    private String strPageTitle =
+        "Invoice";
+
+    private String? strSuccessMessage;
+
+    private String? strErrorMessage;
+
+    private Boolean blnLoading =
+        true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadInvoiceAsync();
+    }
+
+    private RenderFragment GetHeaderActions()
+    {
+        return @<a href="/invoices"
+               class="btn btn-soft-secondary">
+
+            <span class="material-symbols-outlined">
+                arrow_back
+            </span>
+
+            Invoices
+
+        </a>;
+    }
+
+    private async Task LoadInvoiceAsync()
+    {
+        blnLoading =
+            true;
+
+        strErrorMessage =
+            null;
+
+        try
+        {
+            objInvoice =
+                await InvoiceService.GetInvoiceByIdAsync(
+                    InvoiceId);
+
+            if (objInvoice == null)
+            {
+                strPageTitle =
+                    "Invoice not found";
+
+                HeaderState.SetHeader(
+                    "Invoice not found",
+                    "The selected invoice could not be loaded",
+                    GetHeaderActions());
+
+                return;
+            }
+
+            strPageTitle =
+                objInvoice.InvoiceNumber;
+
+            HeaderState.SetHeader(
+                objInvoice.InvoiceNumber,
+                objInvoice.CustomerName ??
+                    objInvoice.Job.Name,
+                GetHeaderActions());
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                objError.Message;
+
+            HeaderState.SetHeader(
+                "Invoice",
+                "Unable to load invoice",
+                GetHeaderActions());
+        }
+        finally
+        {
+            blnLoading =
+                false;
+        }
+    }
+
+    private static String GetStatusStyle(InvoiceStatus enmStatus)
+    {
+        return
+            $"--invoice-status-color: {enmStatus.GetUI().ColorHex};";
+    }
+
+    private static String GetDateSummary(Invoice objInvoice)
+    {
+        if (!objInvoice.IssueDateUtc.HasValue)
+        {
+            return "Not issued";
+        }
+
+        if (objInvoice.DueDateUtc.HasValue)
+        {
+            return
+                $"Due {FormatDate(objInvoice.DueDateUtc)}";
+        }
+
+        return
+            $"Issued {FormatDate(objInvoice.IssueDateUtc)}";
+    }
+
+    private static String FormatAddress(Invoice objInvoice)
+    {
+        List<String> colParts =
+            new[]
+            {
+                objInvoice.AddressLine1,
+                objInvoice.AddressLine2,
+                objInvoice.Town,
+                objInvoice.County,
+                objInvoice.Postcode
+            }
+            .Where(strValue =>
+                !String.IsNullOrWhiteSpace(
+                    strValue))
+            .Select(strValue =>
+                strValue!.Trim())
+            .ToList();
+
+        return colParts.Count == 0
+            ? "-"
+            : String.Join(
+                ", ",
+                colParts);
+    }
+
+    private static String FormatQuantity(Decimal dcmQuantity)
+    {
+        return dcmQuantity.ToString(
+            dcmQuantity % 1m == 0m
+                ? "0"
+                : "0.##");
+    }
+
+    private static String FormatDate(DateTime? dteDate)
+    {
+        return dteDate.HasValue
+            ? dteDate.Value
+                .ToLocalTime()
+                .ToString("dd MMM yyyy")
+            : "-";
+    }
+
+    private static String DisplayValue(String? strValue)
+    {
+        return String.IsNullOrWhiteSpace(
+            strValue)
+            ? "-"
+            : strValue;
+    }
+
+    private static String GetJobUrl(Guid objJobId)
+    {
+        return
+            $"/jobs/{objJobId}";
+    }
+
+    private static String GetCompanyUrl(Guid objCompanyId)
+    {
+        return
+            $"/companies/{objCompanyId}";
+    }
+
+    private static String GetContactUrl(Guid objContactId)
+    {
+        return
+            $"/contacts/{objContactId}";
+    }
+
+    private static String GetEditUrl(Guid objInvoiceId)
+    {
+        return
+            $"/invoices/{objInvoiceId}/edit";
+    }
+}

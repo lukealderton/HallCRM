@@ -3,15 +3,20 @@
 @attribute [Authorize]
 @rendermode InteractiveServer
 
+@using CRM.Core.Invoices.Abstractions
+@using CRM.Core.Invoices.Domain
 @using CRM.Core.Jobs.Abstractions
 @using CRM.Core.Jobs.Domain
 @using CRM.Core.Users.Abstraction.Services
 @using CRM.Core.Users.Domain
 @using CRM.Web.Components.Activities.Shared
 @using CRM.Web.State
+@using CRM.Web.Users.Abstraction
 
 @inject IJobService JobService
+@inject IInvoiceService InvoiceService
 @inject IUserService UserService
+@inject ICurrentUserState CurrentUserState
 @inject NavigationManager Navigation
 @inject PageHeaderState HeaderState
 
@@ -289,6 +294,20 @@
 
                                 @FormatServiceCount(
                                     objJob.ServiceLinks.Count)
+
+                            </span>
+                        }
+
+                        @if (colInvoices.Count > 0)
+                        {
+                            <span>
+
+                                <span class="material-symbols-outlined">
+                                    receipt_long
+                                </span>
+
+                                @FormatInvoiceCount(
+                                    colInvoices.Count)
 
                             </span>
                         }
@@ -789,6 +808,172 @@
                         <div>
 
                             <h3>
+                                Invoices
+                            </h3>
+
+                            <p>
+                                Billing records created from this job.
+                            </p>
+
+                        </div>
+
+                        <button type="button"
+                                class="btn btn-soft-primary btn-sm"
+                                disabled="@(blnCreatingInvoice || !CanCreateInvoice)"
+                                @onclick="CreateInvoiceAsync">
+
+                            @if (blnCreatingInvoice)
+                            {
+                                <span class="spinner-border spinner-border-sm"></span>
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined">
+                                    receipt_long
+                                </span>
+                            }
+
+                            @(blnCreatingInvoice
+                                ? "Creating..."
+                                : "Create invoice")
+
+                        </button>
+
+                    </div>
+
+                    <div class="job-card-body">
+
+                        @if (!CanCreateInvoice &&
+                             colInvoices.Count == 0)
+                        {
+                            <div class="job-invoice-warning">
+
+                                <span class="material-symbols-outlined">
+                                    info
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Invoice not ready
+                                    </strong>
+
+                                    <span>
+                                        @GetInvoiceReadinessMessage()
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+
+                        @if (colInvoices.Count == 0)
+                        {
+                            <div class="job-invoices-empty">
+
+                                <span class="material-symbols-outlined">
+                                    receipt_long
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        No invoices yet
+                                    </strong>
+
+                                    <span>
+                                        Once the job services are priced,
+                                        you can create a draft invoice here.
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="job-invoices-list">
+
+                                @foreach (Invoice objInvoice
+                                    in colInvoices
+                                        .OrderByDescending(objInvoice =>
+                                            objInvoice.IssueDateUtc ??
+                                            objInvoice.Entity.CreatedUtc))
+                                {
+                                    <a href="@GetInvoiceUrl(
+                                                                               objInvoice.Id)"
+                                       class="job-invoice-item">
+
+                                        <div class="job-invoice-icon">
+
+                                            <span class="material-symbols-outlined">
+                                                receipt_long
+                                            </span>
+
+                                        </div>
+
+                                        <div class="job-invoice-main">
+
+                                            <strong>
+                                                @objInvoice.InvoiceNumber
+                                            </strong>
+
+                                            <span>
+                                                @DisplayValue(
+                                                    objInvoice.CustomerName)
+                                            </span>
+
+                                        </div>
+
+                                        <div class="job-invoice-status">
+
+                                            <span class="invoice-status-pill"
+                                                  style="@GetInvoiceStatusStyle(
+                                                                                                      objInvoice.Status)">
+
+                                                <span class="material-symbols-outlined">
+                                                    @objInvoice.Status.GetUI().IconName
+                                                </span>
+
+                                                @objInvoice.Status.GetDisplay().Name
+
+                                            </span>
+
+                                        </div>
+
+                                        <div class="job-invoice-total">
+
+                                            <small>
+                                                Total
+                                            </small>
+
+                                            <strong>
+                                                @objInvoice.Total.ToString("C")
+                                            </strong>
+
+                                        </div>
+
+                                        <span class="material-symbols-outlined job-invoice-arrow">
+                                            chevron_right
+                                        </span>
+
+                                    </a>
+                                }
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="crm-card">
+
+                    <div class="crm-card-header">
+
+                        <div>
+
+                            <h3>
                                 Description
                             </h3>
 
@@ -862,6 +1047,29 @@
                                 Add activity
 
                             </a>
+
+                            @if (CanCreateInvoice)
+                            {
+                                <button type="button"
+                                        class="btn btn-soft-primary w-100"
+                                        disabled="@blnCreatingInvoice"
+                                        @onclick="CreateInvoiceAsync">
+
+                                    @if (blnCreatingInvoice)
+                                    {
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="material-symbols-outlined">
+                                            receipt_long
+                                        </span>
+                                    }
+
+                                    Create invoice
+
+                                </button>
+                            }
 
                             <a href="@GetJobSheetUrl()"
                                target="_blank"
@@ -1067,6 +1275,32 @@
                             <div>
 
                                 <span>
+                                    Invoices
+                                </span>
+
+                                <strong>
+                                    @FormatInvoiceCount(
+                                        colInvoices.Count)
+                                </strong>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Invoiced
+                                </span>
+
+                                <strong>
+                                    @FormatMoney(
+                                        GetInvoicedTotal())
+                                </strong>
+
+                            </div>
+
+                            <div>
+
+                                <span>
                                     Source
                                 </span>
 
@@ -1153,6 +1387,9 @@
 
     private User? objAssignedUser;
 
+    private List<Invoice> colInvoices =
+        [];
+
     private String strPageTitle =
         "Job";
 
@@ -1165,9 +1402,18 @@
 
     private Boolean blnSaving;
 
+    private Boolean blnCreatingInvoice;
+
     private Boolean blnConfirmArchive;
 
     private Boolean blnConfirmDelete;
+
+    private Boolean CanCreateInvoice =>
+        objJob != null &&
+        objJob.ServiceLinks.Count > 0 &&
+        objJob.ServiceLinks.All(
+            objLink =>
+                objLink.UnitPrice.HasValue);
 
     protected override async Task OnParametersSetAsync()
     {
@@ -1208,6 +1454,9 @@
         objAssignedUser =
             null;
 
+        colInvoices =
+            [];
+
         HeaderState.SetHeader(
             "Job",
             "Loading job...",
@@ -1232,12 +1481,19 @@
                 return;
             }
 
+            Task<List<Invoice>> objInvoicesTask =
+                InvoiceService.GetInvoicesAsync(
+                    objJobId: JobId);
+
             if (objJob.AssignedUserId.HasValue)
             {
                 objAssignedUser =
                     await UserService.GetUserAsync(
                         objJob.AssignedUserId.Value);
             }
+
+            colInvoices =
+                await objInvoicesTask;
 
             strPageTitle =
                 objJob.Name;
@@ -1267,6 +1523,51 @@
         }
     }
 
+    private async Task CreateInvoiceAsync()
+    {
+        if (blnCreatingInvoice ||
+            !CanCreateInvoice)
+        {
+            return;
+        }
+
+        blnCreatingInvoice =
+            true;
+
+        strErrorMessage =
+            null;
+
+        strSuccessMessage =
+            null;
+
+        try
+        {
+            Guid? objUserId =
+                await CurrentUserState
+                    .GetCurrentUserIdAsync();
+
+            Invoice objInvoice =
+                await InvoiceService.CreateFromJobAsync(
+                    JobId,
+                    objUserId);
+
+            Navigation.NavigateTo(
+                GetInvoiceUrl(
+                    objInvoice.Id));
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                "Failed to create invoice: " +
+                objError.Message;
+        }
+        finally
+        {
+            blnCreatingInvoice =
+                false;
+        }
+    }
+
     private String GetAssigneeText()
     {
         if (objJob == null ||
@@ -1277,6 +1578,46 @@
 
         return objAssignedUser?.DisplayName ??
             "Unknown user";
+    }
+
+    private String GetInvoiceReadinessMessage()
+    {
+        if (objJob == null)
+        {
+            return
+                "The job could not be loaded.";
+        }
+
+        if (objJob.ServiceLinks.Count == 0)
+        {
+            return
+                "Add at least one service to the job before creating an invoice.";
+        }
+
+        Int32 intUnpricedCount =
+            objJob.ServiceLinks.Count(
+                objLink =>
+                    !objLink.UnitPrice.HasValue);
+
+        if (intUnpricedCount > 0)
+        {
+            return intUnpricedCount == 1
+                ? "One service still needs a unit price before an invoice can be created."
+                : $"{intUnpricedCount} services still need a unit price before an invoice can be created.";
+        }
+
+        return
+            "The job is ready to invoice.";
+    }
+
+    private Decimal GetInvoicedTotal()
+    {
+        return colInvoices
+            .Where(objInvoice =>
+                objInvoice.Status !=
+                InvoiceStatus.Void)
+            .Sum(objInvoice =>
+                objInvoice.Total);
     }
 
     private void GoToEdit()
@@ -1620,6 +1961,13 @@
             $"/contacts/{objContactId}";
     }
 
+    private static String GetInvoiceUrl(
+        Guid objInvoiceId)
+    {
+        return
+            $"/invoices/{objInvoiceId}";
+    }
+
     private static String GetJobInitial(
         Job objJob)
     {
@@ -1666,6 +2014,13 @@
         };
     }
 
+    private static String GetInvoiceStatusStyle(
+        InvoiceStatus enmStatus)
+    {
+        return
+            $"--invoice-status-color: {enmStatus.GetUI().ColorHex};";
+    }
+
     private static String GetServicesSummary(
         Job objJob)
     {
@@ -1694,6 +2049,14 @@
         return intCount == 1
             ? "1 service"
             : $"{intCount} services";
+    }
+
+    private static String FormatInvoiceCount(
+        Int32 intCount)
+    {
+        return intCount == 1
+            ? "1 invoice"
+            : $"{intCount} invoices";
     }
 
     private static String FormatMoney(

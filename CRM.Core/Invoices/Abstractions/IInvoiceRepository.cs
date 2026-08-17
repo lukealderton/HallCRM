@@ -45,5 +45,21 @@ namespace CRM.Core.Invoices.Abstractions
             String strInvoiceNumber,
             Guid? objExcludeInvoiceId = null,
             CancellationToken objToken = default);
+
+        /// <summary>
+        /// Issues an invoice by setting its status to "Issued" and updating the issue and due dates.
+        /// </summary>
+        /// <param name="objInvoiceId"></param>
+        /// <param name="dteIssueDateUtc"></param>
+        /// <param name="dteDueDateUtc"></param>
+        /// <param name="objUserId"></param>
+        /// <param name="objToken"></param>
+        /// <returns></returns>
+        Task<Invoice?> IssueInvoiceAsync(
+            Guid objInvoiceId,
+            DateTime dteIssueDateUtc,
+            DateTime dteDueDateUtc,
+            Guid? objUserId = null,
+            CancellationToken objToken = default);
     }
 }
