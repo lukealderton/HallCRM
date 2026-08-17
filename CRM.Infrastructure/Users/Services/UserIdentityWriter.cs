@@ -46,8 +46,8 @@ namespace CRM.Infrastructure.Users.Services
                 return objResult;
             }
 
-            objUser.Forename = CleanString(objRequest.Forename);
-            objUser.Surname = CleanString(objRequest.Surname);
+            objUser.Forename = CleanString(objRequest.Forename) ?? "";
+            objUser.Surname = CleanString(objRequest.Surname) ?? "";
             //objUser.AccessLevel = objRequest.AccessLevel;
             objUser.Enabled = objRequest.Enabled;
             objUser.UpdatedUtc = DateTimeOffset.UtcNow;

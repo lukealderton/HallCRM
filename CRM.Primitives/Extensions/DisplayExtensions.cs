@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
-namespace CRM.Core.Common.Extensions
+namespace CRM.Primitives.Extensions
 {
-    public static class EnumExtensions
+    public static class DisplayExtensions
     {
         /// <summary>
         /// Designed for enums without the flag attribute. Gets the Name value of the Display attribue.
