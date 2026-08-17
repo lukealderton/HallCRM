@@ -640,6 +640,9 @@
     [SupplyParameterFromQuery(Name = "overdue")]
     public Boolean Overdue { get; set; }
 
+    [SupplyParameterFromQuery(Name = "companyId")]
+    public Guid? CompanyId { get; set; }
+
     private List<Invoice> colInvoices = [];
 
     private String strSearchInput = String.Empty;
@@ -684,6 +687,7 @@
                 await InvoiceService.GetInvoicesAsync(
                     strSearch: Search,
                     enmStatus: Status,
+                    objCompanyId: CompanyId,
                     blnOutstandingOnly:
                         Outstanding || Overdue,
                     blnOverdueOnly:
@@ -789,6 +793,8 @@
                     blnOutstanding
                         ? true
                         : null,
+
+                ["companyId"] = CompanyId,
 
                 ["overdue"] =
                     blnOverdue

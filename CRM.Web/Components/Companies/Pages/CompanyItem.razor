@@ -6,6 +6,8 @@
 @using CRM.Core.Companies.Domain
 @using CRM.Core.Contacts.Abstractions
 @using CRM.Core.Contacts.Domain
+@using CRM.Core.Invoices.Abstractions
+@using CRM.Core.Invoices.Domain
 @using CRM.Core.Jobs.Abstractions
 @using CRM.Core.Jobs.Domain
 @using CRM.Core.Tickets.Abstractions
@@ -18,6 +20,7 @@
 @inject ICompanyService CompanyService
 @inject IContactService ContactService
 @inject IJobService JobService
+@inject IInvoiceService InvoiceService
 @inject IActivityService ActivityService
 @inject ITicketService TicketService
 @inject NavigationManager objNavigationManager
@@ -30,26 +33,34 @@
     @if (blnLoading)
     {
         <div class="crm-card">
+
             <div class="crm-loading">
+
                 <span class="spinner-border spinner-border-sm"></span>
+
                 Loading company...
+
             </div>
+
         </div>
     }
     else if (!blnFound)
     {
         <div class="alert alert-danger">
+
             <span class="material-symbols-outlined">
                 error
             </span>
 
             <div class="alert-content">
+
                 <strong class="alert-title">
                     Company not found
                 </strong>
 
                 <p>
-                    @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+                    @if (!String.IsNullOrWhiteSpace(
+                        strErrorMessage))
                     {
                         @strErrorMessage
                     }
@@ -60,19 +71,24 @@
                         </text>
                     }
                 </p>
+
             </div>
+
         </div>
     }
     else
     {
-        @if (!String.IsNullOrWhiteSpace(strMessage))
+        @if (!String.IsNullOrWhiteSpace(
+            strMessage))
         {
             <div class="alert alert-success">
+
                 <span class="material-symbols-outlined">
                     check_circle
                 </span>
 
                 <div class="alert-content">
+
                     <strong class="alert-title">
                         @strMessage
                     </strong>
@@ -80,18 +96,23 @@
                     <p>
                         The company record has been updated.
                     </p>
+
                 </div>
+
             </div>
         }
 
-        @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+        @if (!String.IsNullOrWhiteSpace(
+            strErrorMessage))
         {
             <div class="alert alert-danger">
+
                 <span class="material-symbols-outlined">
                     error
                 </span>
 
                 <div class="alert-content">
+
                     <strong class="alert-title">
                         Unable to update company
                     </strong>
@@ -99,18 +120,22 @@
                     <p>
                         @strErrorMessage
                     </p>
+
                 </div>
+
             </div>
         }
 
         @if (blnConfirmArchive)
         {
             <div class="alert alert-warning">
+
                 <span class="material-symbols-outlined">
                     archive
                 </span>
 
                 <div class="alert-content">
+
                     <strong class="alert-title">
                         Archive this company?
                     </strong>
@@ -119,32 +144,42 @@
                         Archived companies are hidden from normal CRM views
                         but can be restored later.
                     </p>
+
                 </div>
 
                 <div class="alert-actions">
+
                     <button class="btn btn-soft-danger btn-sm"
                             type="button"
                             @onclick="ArchiveCompanyAsync">
+
                         Archive company
+
                     </button>
 
                     <button class="btn btn-soft-secondary btn-sm"
                             type="button"
                             @onclick="CancelActions">
+
                         Cancel
+
                     </button>
+
                 </div>
+
             </div>
         }
 
         @if (blnConfirmDelete)
         {
             <div class="alert alert-danger">
+
                 <span class="material-symbols-outlined">
                     delete
                 </span>
 
                 <div class="alert-content">
+
                     <strong class="alert-title">
                         Delete this company?
                     </strong>
@@ -153,32 +188,44 @@
                         This will mark the company as deleted.
                         It will no longer appear in normal company lists.
                     </p>
+
                 </div>
 
                 <div class="alert-actions">
+
                     <button class="btn btn-soft-danger btn-sm"
                             type="button"
                             @onclick="DeleteCompanyAsync">
+
                         Delete company
+
                     </button>
 
                     <button class="btn btn-soft-secondary btn-sm"
                             type="button"
                             @onclick="CancelActions">
+
                         Cancel
+
                     </button>
+
                 </div>
+
             </div>
         }
 
         <div class="company-profile-card crm-card">
+
             <div class="company-profile-main">
+
                 <div class="company-avatar">
                     @GetCompanyInitial()
                 </div>
 
                 <div>
+
                     <div class="company-title-row">
+
                         <h2>
                             @objCompany.Name
                         </h2>
@@ -186,9 +233,11 @@
                         <span class="@GetStatusBadgeClass()">
                             @GetStatusText()
                         </span>
+
                     </div>
 
-                    @if (!String.IsNullOrWhiteSpace(objCompany.TradingName))
+                    @if (!String.IsNullOrWhiteSpace(
+                        objCompany.TradingName))
                     {
                         <p class="company-trading-name">
                             Trading as @objCompany.TradingName
@@ -196,29 +245,55 @@
                     }
 
                     <div class="company-meta-row">
-                        @if (!String.IsNullOrWhiteSpace(objCompany.Industry))
+
+                        @if (!String.IsNullOrWhiteSpace(
+                            objCompany.Industry))
                         {
                             <span>
+
                                 <span class="material-symbols-outlined">
                                     category
                                 </span>
 
                                 @objCompany.Industry
+
                             </span>
                         }
 
                         <span>
+
                             <span class="material-symbols-outlined">
                                 location_on
                             </span>
 
                             @GetLocation()
+
                         </span>
+
+                        @if (colInvoices.Count > 0)
+                        {
+                            <span>
+
+                                <span class="material-symbols-outlined">
+                                    receipt_long
+                                </span>
+
+                                @GetPluralText(
+                                    colInvoices.Count,
+                                    "invoice",
+                                    "invoices")
+
+                            </span>
+                        }
+
                     </div>
+
                 </div>
+
             </div>
 
             <div class="company-profile-actions">
+
                 <a href="@($"/companies/{CompanyId}/edit")"
                    class="btn btn-primary">
 
@@ -227,6 +302,7 @@
                     </span>
 
                     Edit company
+
                 </a>
 
                 @if (IsArchived())
@@ -240,6 +316,7 @@
                         </span>
 
                         Restore
+
                     </button>
                 }
                 else
@@ -254,6 +331,7 @@
                         </span>
 
                         Archive
+
                     </button>
                 }
 
@@ -267,8 +345,11 @@
                     </span>
 
                     Delete
+
                 </button>
+
             </div>
+
         </div>
 
         <div class="company-layout">
@@ -276,8 +357,11 @@
             <div class="company-main">
 
                 <div class="crm-card">
+
                     <div class="crm-card-header">
+
                         <div>
+
                             <h3>
                                 Company details
                             </h3>
@@ -285,7 +369,9 @@
                             <p>
                                 Contact details and primary company address.
                             </p>
+
                         </div>
+
                     </div>
 
                     <div class="company-card-body">
@@ -293,16 +379,19 @@
                         <div class="company-info-grid">
 
                             <div class="company-info-item">
+
                                 <span class="material-symbols-outlined">
                                     mail
                                 </span>
 
                                 <div>
+
                                     <small>
                                         Email
                                     </small>
 
-                                    @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
+                                    @if (!String.IsNullOrWhiteSpace(
+                                        objCompany.PrimaryEmail))
                                     {
                                         <a href="mailto:@objCompany.PrimaryEmail">
                                             @objCompany.PrimaryEmail
@@ -314,20 +403,25 @@
                                             -
                                         </strong>
                                     }
+
                                 </div>
+
                             </div>
 
                             <div class="company-info-item">
+
                                 <span class="material-symbols-outlined">
                                     call
                                 </span>
 
                                 <div>
+
                                     <small>
                                         Phone
                                     </small>
 
-                                    @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
+                                    @if (!String.IsNullOrWhiteSpace(
+                                        objCompany.PrimaryPhone))
                                     {
                                         <a href="tel:@objCompany.PrimaryPhone">
                                             @objCompany.PrimaryPhone
@@ -339,26 +433,32 @@
                                             -
                                         </strong>
                                     }
+
                                 </div>
+
                             </div>
 
                             <div class="company-info-item">
+
                                 <span class="material-symbols-outlined">
                                     language
                                 </span>
 
                                 <div>
+
                                     <small>
                                         Website
                                     </small>
 
-                                    @if (!String.IsNullOrWhiteSpace(objCompany.Website))
+                                    @if (!String.IsNullOrWhiteSpace(
+                                        objCompany.Website))
                                     {
                                         <a href="@objCompany.Website"
                                            target="_blank"
                                            rel="noopener noreferrer">
 
                                             @objCompany.Website
+
                                         </a>
                                     }
                                     else
@@ -367,15 +467,19 @@
                                             -
                                         </strong>
                                     }
+
                                 </div>
+
                             </div>
 
                             <div class="company-info-item">
+
                                 <span class="material-symbols-outlined">
                                     category
                                 </span>
 
                                 <div>
+
                                     <small>
                                         Industry
                                     </small>
@@ -383,19 +487,25 @@
                                     <strong>
                                         @(objCompany.Industry ?? "-")
                                     </strong>
+
                                 </div>
+
                             </div>
 
                         </div>
 
                         <div class="company-details-address">
+
                             <div class="company-details-address-icon">
+
                                 <span class="material-symbols-outlined">
                                     location_on
                                 </span>
+
                             </div>
 
                             <div>
+
                                 <small>
                                     Address
                                 </small>
@@ -403,47 +513,55 @@
                                 @if (HasAddress())
                                 {
                                     <div class="company-address-lines">
-                                        @if (!String.IsNullOrWhiteSpace(objCompany.AddressLine1))
+
+                                        @if (!String.IsNullOrWhiteSpace(
+                                            objCompany.AddressLine1))
                                         {
                                             <div>
                                                 @objCompany.AddressLine1
                                             </div>
                                         }
 
-                                        @if (!String.IsNullOrWhiteSpace(objCompany.AddressLine2))
+                                        @if (!String.IsNullOrWhiteSpace(
+                                            objCompany.AddressLine2))
                                         {
                                             <div>
                                                 @objCompany.AddressLine2
                                             </div>
                                         }
 
-                                        @if (!String.IsNullOrWhiteSpace(objCompany.Town))
+                                        @if (!String.IsNullOrWhiteSpace(
+                                            objCompany.Town))
                                         {
                                             <div>
                                                 @objCompany.Town
                                             </div>
                                         }
 
-                                        @if (!String.IsNullOrWhiteSpace(objCompany.County))
+                                        @if (!String.IsNullOrWhiteSpace(
+                                            objCompany.County))
                                         {
                                             <div>
                                                 @objCompany.County
                                             </div>
                                         }
 
-                                        @if (!String.IsNullOrWhiteSpace(objCompany.Postcode))
+                                        @if (!String.IsNullOrWhiteSpace(
+                                            objCompany.Postcode))
                                         {
                                             <div>
                                                 @objCompany.Postcode
                                             </div>
                                         }
 
-                                        @if (!String.IsNullOrWhiteSpace(objCompany.Country))
+                                        @if (!String.IsNullOrWhiteSpace(
+                                            objCompany.Country))
                                         {
                                             <div>
                                                 @objCompany.Country
                                             </div>
                                         }
+
                                     </div>
                                 }
                                 else
@@ -452,15 +570,315 @@
                                         No address has been added yet.
                                     </strong>
                                 }
+
                             </div>
+
                         </div>
 
                     </div>
+
+                </div>
+
+                <div class="crm-card company-finance-card">
+
+                    <div class="crm-card-header">
+
+                        <div>
+
+                            <h3>
+                                Finance
+                            </h3>
+
+                            <p>
+                                Invoice history, payments and outstanding balances.
+                            </p>
+
+                        </div>
+
+                        <a href="@GetCompanyInvoicesUrl()"
+                           class="btn btn-sm btn-light">
+
+                            View all invoices
+
+                        </a>
+
+                    </div>
+
+                    <div class="company-card-body">
+
+                        <div class="company-finance-summary">
+
+                            <a href="@GetCompanyInvoicesUrl()"
+                               class="company-finance-stat">
+
+                                <span class="company-finance-stat-icon">
+
+                                    <span class="material-symbols-outlined">
+                                        receipt_long
+                                    </span>
+
+                                </span>
+
+                                <span class="company-finance-stat-content">
+
+                                    <small>
+                                        Invoiced
+                                    </small>
+
+                                    <strong>
+                                        @GetTotalInvoiced().ToString("C")
+                                    </strong>
+
+                                    <span>
+                                        @GetPluralText(
+                                            GetIssuedInvoiceCount(),
+                                            "issued invoice",
+                                            "issued invoices")
+                                    </span>
+
+                                </span>
+
+                            </a>
+
+                            <a href="@GetCompanyInvoicesUrl(
+                                                               "Paid")"
+                               class="company-finance-stat">
+
+                                <span class="company-finance-stat-icon company-finance-stat-icon-paid">
+
+                                    <span class="material-symbols-outlined">
+                                        payments
+                                    </span>
+
+                                </span>
+
+                                <span class="company-finance-stat-content">
+
+                                    <small>
+                                        Paid
+                                    </small>
+
+                                    <strong class="company-finance-paid">
+                                        @GetTotalPaid().ToString("C")
+                                    </strong>
+
+                                    <span>
+                                        Payments received
+                                    </span>
+
+                                </span>
+
+                            </a>
+
+                            <a href="@GetCompanyInvoicesUrl(
+                                                               blnOutstanding: true)"
+                               class="company-finance-stat">
+
+                                <span class="company-finance-stat-icon company-finance-stat-icon-outstanding">
+
+                                    <span class="material-symbols-outlined">
+                                        account_balance_wallet
+                                    </span>
+
+                                </span>
+
+                                <span class="company-finance-stat-content">
+
+                                    <small>
+                                        Outstanding
+                                    </small>
+
+                                    <strong class="@GetOutstandingValueClass()">
+                                        @GetTotalOutstanding().ToString("C")
+                                    </strong>
+
+                                    <span>
+                                        @GetPluralText(
+                                            GetOutstandingInvoiceCount(),
+                                            "invoice",
+                                            "invoices")
+                                    </span>
+
+                                </span>
+
+                            </a>
+
+                            <a href="@GetCompanyInvoicesUrl(
+                                                               blnOverdue: true)"
+                               class="company-finance-stat">
+
+                                <span class="company-finance-stat-icon company-finance-stat-icon-overdue">
+
+                                    <span class="material-symbols-outlined">
+                                        warning
+                                    </span>
+
+                                </span>
+
+                                <span class="company-finance-stat-content">
+
+                                    <small>
+                                        Overdue
+                                    </small>
+
+                                    <strong class="@GetOverdueValueClass()">
+                                        @GetTotalOverdue().ToString("C")
+                                    </strong>
+
+                                    <span>
+                                        @GetPluralText(
+                                            GetOverdueInvoiceCount(),
+                                            "invoice",
+                                            "invoices")
+                                    </span>
+
+                                </span>
+
+                            </a>
+
+                        </div>
+
+                        <div class="company-finance-history">
+
+                            <div class="company-finance-history-heading">
+
+                                <div>
+
+                                    <h4>
+                                        Recent invoices
+                                    </h4>
+
+                                    <span>
+                                        Latest billing activity for this company.
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            @if (colInvoices.Count == 0)
+                            {
+                                <div class="company-finance-empty">
+
+                                    <span class="material-symbols-outlined">
+                                        receipt_long
+                                    </span>
+
+                                    <div>
+
+                                        <strong>
+                                            No invoices yet
+                                        </strong>
+
+                                        <span>
+                                            Invoices created for this company will appear here.
+                                        </span>
+
+                                    </div>
+
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="company-invoice-list">
+
+                                    @foreach (Invoice objInvoice
+                                        in GetRecentInvoices())
+                                    {
+                                        <a href="@($"/invoices/{objInvoice.Id}")"
+                                           class="company-invoice-item">
+
+                                            <span class="company-invoice-icon">
+
+                                                <span class="material-symbols-outlined">
+                                                    receipt_long
+                                                </span>
+
+                                            </span>
+
+                                            <span class="company-invoice-main">
+
+                                                <span class="company-invoice-title-row">
+
+                                                    <strong>
+                                                        @objInvoice.InvoiceNumber
+                                                    </strong>
+
+                                                    <span class="company-invoice-status"
+                                                          style="@GetInvoiceStatusStyle(
+                                                                                                                      objInvoice.Status)">
+
+                                                        @objInvoice.Status.GetDisplay().Name
+
+                                                    </span>
+
+                                                </span>
+
+                                                <span class="company-invoice-meta">
+
+                                                    <span>
+                                                        @objInvoice.Job.Name
+                                                    </span>
+
+                                                    <span>
+                                                        @GetInvoiceDateText(
+                                                            objInvoice)
+                                                    </span>
+
+                                                </span>
+
+                                            </span>
+
+                                            <span class="company-invoice-money">
+
+                                                <strong>
+                                                    @objInvoice.Total.ToString("C")
+                                                </strong>
+
+                                                @if (IsOutstanding(
+                                                    objInvoice))
+                                                {
+                                                    <small class="@GetInvoiceOutstandingClass(
+                                                                                                                objInvoice)">
+
+                                                        @GetOutstanding(
+                                                            objInvoice).ToString("C")
+                                                        outstanding
+
+                                                    </small>
+                                                }
+                                                else if (objInvoice.Status ==
+                                                    InvoiceStatus.Paid)
+                                                {
+                                                    <small class="company-invoice-paid">
+                                                        Paid
+                                                    </small>
+                                                }
+
+                                            </span>
+
+                                            <span class="material-symbols-outlined company-invoice-arrow">
+                                                chevron_right
+                                            </span>
+
+                                        </a>
+                                    }
+
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+
                 </div>
 
                 <div class="crm-card">
+
                     <div class="crm-card-header">
+
                         <div>
+
                             <h3>
                                 Related records
                             </h3>
@@ -469,7 +887,9 @@
                                 Contacts, jobs, tickets, activities and notes
                                 linked to this company.
                             </p>
+
                         </div>
+
                     </div>
 
                     <div class="company-card-body">
@@ -477,9 +897,13 @@
                         <div class="company-related-grid">
 
                             <section class="company-related-section">
+
                                 <div class="company-related-heading">
+
                                     <div>
+
                                         <div class="company-related-title-row">
+
                                             <h4>
                                                 Contacts
                                             </h4>
@@ -487,21 +911,25 @@
                                             <span class="company-related-count">
                                                 @colContacts.Count
                                             </span>
+
                                         </div>
 
                                         <span>
                                             People linked to this company.
                                         </span>
+
                                     </div>
 
                                     <a href="@($"/contacts?companyId={CompanyId}")">
                                         View all
                                     </a>
+
                                 </div>
 
                                 @if (colContacts.Count == 0)
                                 {
                                     <div class="company-related-empty">
+
                                         <span class="material-symbols-outlined">
                                             person_off
                                         </span>
@@ -509,43 +937,58 @@
                                         <span>
                                             No contacts are linked to this company.
                                         </span>
+
                                     </div>
                                 }
                                 else
                                 {
                                     <div class="company-related-list">
-                                        @foreach (Contact objContact in colContacts.Take(5))
+
+                                        @foreach (Contact objContact
+                                            in colContacts.Take(5))
                                         {
                                             <a href="@($"/contacts/{objContact.Id}")"
                                                class="company-related-list-item">
 
                                                 <span class="company-related-avatar">
-                                                    @GetContactInitials(objContact)
+                                                    @GetContactInitials(
+                                                        objContact)
                                                 </span>
 
                                                 <span class="company-related-list-content">
+
                                                     <strong>
-                                                        @GetContactName(objContact)
+                                                        @GetContactName(
+                                                            objContact)
                                                     </strong>
 
                                                     <small>
-                                                        @GetContactSubtitle(objContact)
+                                                        @GetContactSubtitle(
+                                                            objContact)
                                                     </small>
+
                                                 </span>
 
                                                 <span class="material-symbols-outlined">
                                                     chevron_right
                                                 </span>
+
                                             </a>
                                         }
+
                                     </div>
                                 }
+
                             </section>
 
                             <section class="company-related-section">
+
                                 <div class="company-related-heading">
+
                                     <div>
+
                                         <div class="company-related-title-row">
+
                                             <h4>
                                                 Jobs
                                             </h4>
@@ -553,21 +996,25 @@
                                             <span class="company-related-count">
                                                 @colJobs.Count
                                             </span>
+
                                         </div>
 
                                         <span>
                                             Work and opportunities for this company.
                                         </span>
+
                                     </div>
 
                                     <a href="@($"/jobs?companyId={CompanyId}")">
                                         View all
                                     </a>
+
                                 </div>
 
                                 @if (colJobs.Count == 0)
                                 {
                                     <div class="company-related-empty">
+
                                         <span class="material-symbols-outlined">
                                             work_off
                                         </span>
@@ -575,28 +1022,35 @@
                                         <span>
                                             No jobs are linked to this company.
                                         </span>
+
                                     </div>
                                 }
                                 else
                                 {
                                     <div class="company-related-list">
-                                        @foreach (Job objJob in colJobs.Take(5))
+
+                                        @foreach (Job objJob
+                                            in colJobs.Take(5))
                                         {
                                             <a href="@($"/jobs/{objJob.Id}")"
                                                class="company-related-list-item">
 
                                                 <span class="company-related-record-icon">
+
                                                     <span class="material-symbols-outlined">
                                                         work
                                                     </span>
+
                                                 </span>
 
                                                 <span class="company-related-list-content">
+
                                                     <strong>
                                                         @objJob.Name
                                                     </strong>
 
                                                     <small>
+
                                                         @objJob.Stage.GetDisplay().Name
 
                                                         @if (objJob.Value.HasValue)
@@ -605,22 +1059,31 @@
                                                                 · @objJob.Value.Value.ToString("C")
                                                             </text>
                                                         }
+
                                                     </small>
+
                                                 </span>
 
                                                 <span class="material-symbols-outlined">
                                                     chevron_right
                                                 </span>
+
                                             </a>
                                         }
+
                                     </div>
                                 }
+
                             </section>
 
                             <section class="company-related-section company-related-section-wide">
+
                                 <div class="company-related-heading">
+
                                     <div>
+
                                         <div class="company-related-title-row">
+
                                             <h4>
                                                 Tickets
                                             </h4>
@@ -628,21 +1091,25 @@
                                             <span class="company-related-count">
                                                 @colTickets.Count
                                             </span>
+
                                         </div>
 
                                         <span>
                                             Maintenance and support work.
                                         </span>
+
                                     </div>
 
                                     <a href="@($"/tickets?companyId={CompanyId}")">
                                         View all
                                     </a>
+
                                 </div>
 
                                 @if (colTickets.Count == 0)
                                 {
                                     <div class="company-related-empty">
+
                                         <span class="material-symbols-outlined">
                                             confirmation_number
                                         </span>
@@ -650,23 +1117,29 @@
                                         <span>
                                             No tickets are linked to this company.
                                         </span>
+
                                     </div>
                                 }
                                 else
                                 {
                                     <div class="company-related-list">
-                                        @foreach (Ticket objTicket in colTickets.Take(5))
+
+                                        @foreach (Ticket objTicket
+                                            in colTickets.Take(5))
                                         {
                                             <a href="@($"/tickets/{objTicket.Id}")"
                                                class="company-related-list-item">
 
                                                 <span class="company-related-record-icon">
+
                                                     <span class="material-symbols-outlined">
                                                         confirmation_number
                                                     </span>
+
                                                 </span>
 
                                                 <span class="company-related-list-content">
+
                                                     <strong>
                                                         @objTicket.Title
                                                     </strong>
@@ -676,19 +1149,25 @@
                                                         ·
                                                         @objTicket.Priority.GetDisplay().Name
                                                     </small>
+
                                                 </span>
 
                                                 <span class="material-symbols-outlined">
                                                     chevron_right
                                                 </span>
+
                                             </a>
                                         }
+
                                     </div>
                                 }
+
                             </section>
 
                         </div>
+
                     </div>
+
                 </div>
 
                 <EntityActivities CompanyId="@CompanyId"
@@ -706,7 +1185,9 @@
             <aside class="company-side">
 
                 <div class="crm-card">
+
                     <div class="company-card-body">
+
                         <h4 class="company-side-heading">
                             Create
                         </h4>
@@ -721,6 +1202,7 @@
                                 </span>
 
                                 Add contact
+
                             </a>
 
                             <a href="@($"/jobs/add?companyId={CompanyId}")"
@@ -731,6 +1213,7 @@
                                 </span>
 
                                 Add job
+
                             </a>
 
                             <a href="@($"/tickets/new?companyId={CompanyId}")"
@@ -741,6 +1224,7 @@
                                 </span>
 
                                 Add ticket
+
                             </a>
 
                             <a href="@($"/activities/add?companyId={CompanyId}")"
@@ -751,25 +1235,34 @@
                                 </span>
 
                                 Add activity
+
                             </a>
 
                         </div>
+
                     </div>
+
                 </div>
 
-                @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail) ||
-                     !String.IsNullOrWhiteSpace(objCompany.PrimaryPhone) ||
-                     !String.IsNullOrWhiteSpace(objCompany.Website))
+                @if (!String.IsNullOrWhiteSpace(
+                         objCompany.PrimaryEmail) ||
+                     !String.IsNullOrWhiteSpace(
+                         objCompany.PrimaryPhone) ||
+                     !String.IsNullOrWhiteSpace(
+                         objCompany.Website))
                 {
                     <div class="crm-card">
+
                         <div class="company-card-body">
+
                             <h4 class="company-side-heading">
                                 Contact
                             </h4>
 
                             <div class="company-action-list">
 
-                                @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryEmail))
+                                @if (!String.IsNullOrWhiteSpace(
+                                    objCompany.PrimaryEmail))
                                 {
                                     <a href="mailto:@objCompany.PrimaryEmail"
                                        class="btn btn-soft-secondary w-100">
@@ -779,10 +1272,12 @@
                                         </span>
 
                                         Send email
+
                                     </a>
                                 }
 
-                                @if (!String.IsNullOrWhiteSpace(objCompany.PrimaryPhone))
+                                @if (!String.IsNullOrWhiteSpace(
+                                    objCompany.PrimaryPhone))
                                 {
                                     <a href="tel:@objCompany.PrimaryPhone"
                                        class="btn btn-soft-secondary w-100">
@@ -792,10 +1287,12 @@
                                         </span>
 
                                         Call company
+
                                     </a>
                                 }
 
-                                @if (!String.IsNullOrWhiteSpace(objCompany.Website))
+                                @if (!String.IsNullOrWhiteSpace(
+                                    objCompany.Website))
                                 {
                                     <a href="@objCompany.Website"
                                        target="_blank"
@@ -807,22 +1304,107 @@
                                         </span>
 
                                         Open website
+
                                     </a>
                                 }
 
                             </div>
+
                         </div>
+
                     </div>
                 }
 
                 <div class="crm-card">
+
                     <div class="company-card-body">
+
+                        <h4 class="company-side-heading">
+                            Finance
+                        </h4>
+
+                        <div class="company-meta-list">
+
+                            <div>
+
+                                <span>
+                                    Invoiced
+                                </span>
+
+                                <strong>
+                                    @GetTotalInvoiced().ToString("C")
+                                </strong>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Paid
+                                </span>
+
+                                <strong class="company-side-paid">
+                                    @GetTotalPaid().ToString("C")
+                                </strong>
+
+                            </div>
+
+                            <div>
+
+                                <span>
+                                    Outstanding
+                                </span>
+
+                                <strong class="@GetSidebarOutstandingClass()">
+                                    @GetTotalOutstanding().ToString("C")
+                                </strong>
+
+                            </div>
+
+                            @if (GetTotalOverdue() > 0m)
+                            {
+                                <div>
+
+                                    <span>
+                                        Overdue
+                                    </span>
+
+                                    <strong class="company-side-overdue">
+                                        @GetTotalOverdue().ToString("C")
+                                    </strong>
+
+                                </div>
+                            }
+
+                        </div>
+
+                        <a href="@GetCompanyInvoicesUrl()"
+                           class="btn btn-soft-secondary w-100 company-finance-view-button">
+
+                            <span class="material-symbols-outlined">
+                                receipt_long
+                            </span>
+
+                            View invoices
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <div class="crm-card">
+
+                    <div class="company-card-body">
+
                         <h4 class="company-side-heading">
                             Registration
                         </h4>
 
                         <div class="company-meta-list">
+
                             <div>
+
                                 <span>
                                     Company number
                                 </span>
@@ -830,11 +1412,14 @@
                                 <strong>
                                     @(objCompany.CompanyNumber ?? "-")
                                 </strong>
+
                             </div>
 
-                            @if (!String.IsNullOrWhiteSpace(objCompany.CharityNumber))
+                            @if (!String.IsNullOrWhiteSpace(
+                                objCompany.CharityNumber))
                             {
                                 <div>
+
                                     <span>
                                         Charity number
                                     </span>
@@ -842,10 +1427,12 @@
                                     <strong>
                                         @objCompany.CharityNumber
                                     </strong>
+
                                 </div>
                             }
 
                             <div>
+
                                 <span>
                                     VAT number
                                 </span>
@@ -853,19 +1440,27 @@
                                 <strong>
                                     @(objCompany.VatNumber ?? "-")
                                 </strong>
+
                             </div>
+
                         </div>
+
                     </div>
+
                 </div>
 
                 <div class="crm-card">
+
                     <div class="company-card-body">
+
                         <h4 class="company-side-heading">
                             Record details
                         </h4>
 
                         <div class="company-meta-list">
+
                             <div>
+
                                 <span>
                                     Created
                                 </span>
@@ -874,9 +1469,11 @@
                                     @FormatNullableDate(
                                         objCompany.Entity?.CreatedUtc)
                                 </strong>
+
                             </div>
 
                             <div>
+
                                 <span>
                                     Updated
                                 </span>
@@ -885,11 +1482,13 @@
                                     @FormatNullableDate(
                                         objCompany.Entity?.UpdatedUtc)
                                 </strong>
+
                             </div>
 
                             @if (objCompany.Entity?.ArchivedUtc != null)
                             {
                                 <div>
+
                                     <span>
                                         Archived
                                     </span>
@@ -898,12 +1497,14 @@
                                         @FormatNullableDate(
                                             objCompany.Entity.ArchivedUtc)
                                     </strong>
+
                                 </div>
                             }
 
                             @if (objCompany.Entity?.DeletedUtc != null)
                             {
                                 <div>
+
                                     <span>
                                         Deleted
                                     </span>
@@ -912,15 +1513,21 @@
                                         @FormatNullableDate(
                                             objCompany.Entity.DeletedUtc)
                                     </strong>
+
                                 </div>
                             }
+
                         </div>
+
                     </div>
+
                 </div>
 
             </aside>
+
         </div>
     }
+
 </div>
 
 @code {
@@ -942,15 +1549,23 @@
     private List<Ticket> colTickets =
         [];
 
-    private Boolean blnLoading = true;
+    private List<Invoice> colInvoices =
+        [];
+
+    private Boolean blnLoading =
+        true;
+
     private Boolean blnFound;
+
     private Boolean blnConfirmArchive;
+
     private Boolean blnConfirmDelete;
 
     private String strPageTitle =
         "Company";
 
     private String? strMessage;
+
     private String? strErrorMessage;
 
     protected override async Task OnParametersSetAsync()
@@ -961,31 +1576,51 @@
     private RenderFragment GetHeaderActions()
     {
         return @<a href="/companies"
-                   class="btn btn-soft-secondary">
+               class="btn btn-soft-secondary">
 
             <span class="material-symbols-outlined">
                 arrow_back
             </span>
 
             Back to companies
+
         </a>;
     }
 
     private async Task LoadCompanyAsync()
     {
-        blnLoading = true;
-        blnFound = false;
+        blnLoading =
+            true;
 
-        strMessage = null;
-        strErrorMessage = null;
+        blnFound =
+            false;
 
-        blnConfirmArchive = false;
-        blnConfirmDelete = false;
+        strMessage =
+            null;
 
-        colContacts = [];
-        colJobs = [];
-        colActivities = [];
-        colTickets = [];
+        strErrorMessage =
+            null;
+
+        blnConfirmArchive =
+            false;
+
+        blnConfirmDelete =
+            false;
+
+        colContacts =
+            [];
+
+        colJobs =
+            [];
+
+        colActivities =
+            [];
+
+        colTickets =
+            [];
+
+        colInvoices =
+            [];
 
         HeaderState.SetHeader(
             "Company",
@@ -1013,7 +1648,8 @@
 
             await LoadRelatedRecordsAsync();
 
-            blnFound = true;
+            blnFound =
+                true;
 
             strPageTitle =
                 objCompany.Name;
@@ -1035,7 +1671,8 @@
         }
         finally
         {
-            blnLoading = false;
+            blnLoading =
+                false;
         }
     }
 
@@ -1053,17 +1690,23 @@
             ActivityService.GetActivitiesAsync(
                 objCompanyId: CompanyId);
 
+        Task<List<Invoice>> objInvoicesTask =
+            InvoiceService.GetInvoicesAsync(
+                objCompanyId: CompanyId);
+
         Task<TicketSearchResult> objTicketsTask =
             TicketService.GetTicketsAsync(
                 new TicketSearchRequest
                 {
-                    CompanyId = CompanyId
+                    CompanyId =
+                        CompanyId
                 });
 
         await Task.WhenAll(
             objContactsTask,
             objJobsTask,
             objActivitiesTask,
+            objInvoicesTask,
             objTicketsTask);
 
         colContacts =
@@ -1075,12 +1718,237 @@
         colActivities =
             await objActivitiesTask;
 
+        colInvoices =
+            await objInvoicesTask;
+
         TicketSearchResult objTicketResult =
             await objTicketsTask;
 
         colTickets =
             objTicketResult.Tickets?.ToList() ??
             [];
+    }
+
+    private IEnumerable<Invoice> GetRecentInvoices()
+    {
+        return colInvoices
+            .OrderByDescending(
+                objInvoice =>
+                    objInvoice.IssueDateUtc ??
+                    objInvoice.Entity.CreatedUtc)
+            .Take(5);
+    }
+
+    private static Decimal GetAmountPaid(
+        Invoice objInvoice)
+    {
+        return objInvoice.Payments
+            .Where(
+                objPayment =>
+                    !objPayment.Entity.DeletedUtc.HasValue)
+            .Sum(
+                objPayment =>
+                    objPayment.Amount);
+    }
+
+    private static Decimal GetOutstanding(
+        Invoice objInvoice)
+    {
+        if (objInvoice.Status ==
+                InvoiceStatus.Draft ||
+            objInvoice.Status ==
+                InvoiceStatus.Void)
+        {
+            return 0m;
+        }
+
+        return Math.Max(
+            0m,
+            objInvoice.Total -
+            GetAmountPaid(
+                objInvoice));
+    }
+
+    private static Boolean IsActiveInvoice(
+        Invoice objInvoice)
+    {
+        return
+            objInvoice.Status !=
+                InvoiceStatus.Draft &&
+            objInvoice.Status !=
+                InvoiceStatus.Void;
+    }
+
+    private static Boolean IsOutstanding(
+        Invoice objInvoice)
+    {
+        return
+            IsActiveInvoice(
+                objInvoice) &&
+            GetOutstanding(
+                objInvoice) > 0m;
+    }
+
+    private static Boolean IsOverdue(
+        Invoice objInvoice)
+    {
+        return
+            IsOutstanding(
+                objInvoice) &&
+            objInvoice.DueDateUtc.HasValue &&
+            objInvoice.DueDateUtc.Value.Date <
+                DateTime.UtcNow.Date;
+    }
+
+    private Decimal GetTotalInvoiced()
+    {
+        return colInvoices
+            .Where(
+                IsActiveInvoice)
+            .Sum(
+                objInvoice =>
+                    objInvoice.Total);
+    }
+
+    private Decimal GetTotalPaid()
+    {
+        return colInvoices
+            .Where(
+                IsActiveInvoice)
+            .Sum(
+                GetAmountPaid);
+    }
+
+    private Decimal GetTotalOutstanding()
+    {
+        return colInvoices
+            .Where(
+                IsOutstanding)
+            .Sum(
+                GetOutstanding);
+    }
+
+    private Decimal GetTotalOverdue()
+    {
+        return colInvoices
+            .Where(
+                IsOverdue)
+            .Sum(
+                GetOutstanding);
+    }
+
+    private Int32 GetIssuedInvoiceCount()
+    {
+        return colInvoices.Count(
+            IsActiveInvoice);
+    }
+
+    private Int32 GetOutstandingInvoiceCount()
+    {
+        return colInvoices.Count(
+            IsOutstanding);
+    }
+
+    private Int32 GetOverdueInvoiceCount()
+    {
+        return colInvoices.Count(
+            IsOverdue);
+    }
+
+    private String GetOutstandingValueClass()
+    {
+        return GetTotalOutstanding() > 0m
+            ? "company-finance-outstanding"
+            : "company-finance-paid";
+    }
+
+    private String GetOverdueValueClass()
+    {
+        return GetTotalOverdue() > 0m
+            ? "company-finance-overdue"
+            : "company-finance-paid";
+    }
+
+    private String GetSidebarOutstandingClass()
+    {
+        return GetTotalOutstanding() > 0m
+            ? "company-side-outstanding"
+            : "company-side-paid";
+    }
+
+    private static String GetInvoiceOutstandingClass(
+        Invoice objInvoice)
+    {
+        return IsOverdue(
+            objInvoice)
+            ? "company-invoice-outstanding company-invoice-overdue"
+            : "company-invoice-outstanding";
+    }
+
+    private static String GetInvoiceStatusStyle(
+        InvoiceStatus enmStatus)
+    {
+        return
+            $"--invoice-status-color: {enmStatus.GetUI().ColorHex};";
+    }
+
+    private static String GetInvoiceDateText(
+        Invoice objInvoice)
+    {
+        if (IsOverdue(
+            objInvoice))
+        {
+            return
+                $"Overdue · due {FormatNullableDate(objInvoice.DueDateUtc)}";
+        }
+
+        if (objInvoice.DueDateUtc.HasValue &&
+            IsOutstanding(
+                objInvoice))
+        {
+            return
+                $"Due {FormatNullableDate(objInvoice.DueDateUtc)}";
+        }
+
+        if (objInvoice.IssueDateUtc.HasValue)
+        {
+            return
+                $"Issued {FormatNullableDate(objInvoice.IssueDateUtc)}";
+        }
+
+        return
+            $"Created {FormatNullableDate(objInvoice.Entity.CreatedUtc)}";
+    }
+
+    private String GetCompanyInvoicesUrl(
+        String? strStatus = null,
+        Boolean blnOutstanding = false,
+        Boolean blnOverdue = false)
+    {
+        Dictionary<String, Object?> dicQuery =
+            new()
+            {
+                ["companyId"] =
+                    CompanyId,
+
+                ["status"] =
+                    strStatus,
+
+                ["outstanding"] =
+                    blnOutstanding
+                        ? true
+                        : null,
+
+                ["overdue"] =
+                    blnOverdue
+                        ? true
+                        : null
+            };
+
+        return objNavigationManager
+            .GetUriWithQueryParameters(
+                "/invoices",
+                dicQuery);
     }
 
     private static String GetContactName(
@@ -1090,22 +1958,26 @@
             $"{objContact.FirstName} {objContact.LastName}"
                 .Trim();
 
-        if (!String.IsNullOrWhiteSpace(strName))
+        if (!String.IsNullOrWhiteSpace(
+            strName))
         {
             return strName;
         }
 
-        if (!String.IsNullOrWhiteSpace(objContact.PrimaryEmail))
+        if (!String.IsNullOrWhiteSpace(
+            objContact.PrimaryEmail))
         {
             return objContact.PrimaryEmail;
         }
 
-        if (!String.IsNullOrWhiteSpace(objContact.PrimaryPhone))
+        if (!String.IsNullOrWhiteSpace(
+            objContact.PrimaryPhone))
         {
             return objContact.PrimaryPhone;
         }
 
-        if (!String.IsNullOrWhiteSpace(objContact.MobilePhone))
+        if (!String.IsNullOrWhiteSpace(
+            objContact.MobilePhone))
         {
             return objContact.MobilePhone;
         }
@@ -1116,34 +1988,35 @@
     private static String GetContactSubtitle(
         Contact objContact)
     {
-        if (!String.IsNullOrWhiteSpace(objContact.JobTitle))
+        if (!String.IsNullOrWhiteSpace(
+            objContact.JobTitle))
         {
-            if (!String.IsNullOrWhiteSpace(objContact.PrimaryPhone))
+            if (!String.IsNullOrWhiteSpace(
+                objContact.PrimaryPhone))
             {
                 return
                     $"{objContact.JobTitle} · {objContact.PrimaryPhone}";
             }
 
-            return
-                objContact.JobTitle;
+            return objContact.JobTitle;
         }
 
-        if (!String.IsNullOrWhiteSpace(objContact.Department))
+        if (!String.IsNullOrWhiteSpace(
+            objContact.Department))
         {
-            return
-                objContact.Department;
+            return objContact.Department;
         }
 
-        if (!String.IsNullOrWhiteSpace(objContact.PrimaryEmail))
+        if (!String.IsNullOrWhiteSpace(
+            objContact.PrimaryEmail))
         {
-            return
-                objContact.PrimaryEmail;
+            return objContact.PrimaryEmail;
         }
 
-        if (!String.IsNullOrWhiteSpace(objContact.PrimaryPhone))
+        if (!String.IsNullOrWhiteSpace(
+            objContact.PrimaryPhone))
         {
-            return
-                objContact.PrimaryPhone;
+            return objContact.PrimaryPhone;
         }
 
         return "Contact";
@@ -1160,15 +2033,18 @@
             objContact.LastName?.Trim() ??
             String.Empty;
 
-        if (!String.IsNullOrWhiteSpace(strFirstName) &&
-            !String.IsNullOrWhiteSpace(strLastName))
+        if (!String.IsNullOrWhiteSpace(
+                strFirstName) &&
+            !String.IsNullOrWhiteSpace(
+                strLastName))
         {
             return
                 $"{strFirstName[0]}{strLastName[0]}"
                     .ToUpperInvariant();
         }
 
-        if (!String.IsNullOrWhiteSpace(strFirstName))
+        if (!String.IsNullOrWhiteSpace(
+            strFirstName))
         {
             return
                 strFirstName[0]
@@ -1176,7 +2052,8 @@
                     .ToUpperInvariant();
         }
 
-        if (!String.IsNullOrWhiteSpace(strLastName))
+        if (!String.IsNullOrWhiteSpace(
+            strLastName))
         {
             return
                 strLastName[0]
@@ -1189,26 +2066,41 @@
 
     private void ShowArchiveConfirmation()
     {
-        blnConfirmArchive = true;
-        blnConfirmDelete = false;
+        blnConfirmArchive =
+            true;
 
-        strMessage = null;
-        strErrorMessage = null;
+        blnConfirmDelete =
+            false;
+
+        strMessage =
+            null;
+
+        strErrorMessage =
+            null;
     }
 
     private void ShowDeleteConfirmation()
     {
-        blnConfirmDelete = true;
-        blnConfirmArchive = false;
+        blnConfirmDelete =
+            true;
 
-        strMessage = null;
-        strErrorMessage = null;
+        blnConfirmArchive =
+            false;
+
+        strMessage =
+            null;
+
+        strErrorMessage =
+            null;
     }
 
     private void CancelActions()
     {
-        blnConfirmArchive = false;
-        blnConfirmDelete = false;
+        blnConfirmArchive =
+            false;
+
+        blnConfirmDelete =
+            false;
     }
 
     private async Task ArchiveCompanyAsync()
@@ -1231,7 +2123,8 @@
 
     private async Task DeleteCompanyAsync()
     {
-        strErrorMessage = null;
+        strErrorMessage =
+            null;
 
         try
         {
@@ -1262,11 +2155,17 @@
         Func<Task<Boolean>> objAction,
         String strSuccessMessage)
     {
-        strErrorMessage = null;
-        strMessage = null;
+        strErrorMessage =
+            null;
 
-        blnConfirmArchive = false;
-        blnConfirmDelete = false;
+        strMessage =
+            null;
+
+        blnConfirmArchive =
+            false;
+
+        blnConfirmDelete =
+            false;
 
         try
         {
@@ -1342,27 +2241,35 @@
 
     private String GetCompanyInitial()
     {
-        if (String.IsNullOrWhiteSpace(objCompany.Name))
+        if (String.IsNullOrWhiteSpace(
+            objCompany.Name))
         {
             return "?";
         }
 
-        return
-            objCompany.Name
-                .Trim()
-                .Substring(0, 1)
-                .ToUpperInvariant();
+        return objCompany.Name
+            .Trim()
+            .Substring(
+                0,
+                1)
+            .ToUpperInvariant();
     }
 
     private Boolean HasAddress()
     {
         return
-            !String.IsNullOrWhiteSpace(objCompany.AddressLine1) ||
-            !String.IsNullOrWhiteSpace(objCompany.AddressLine2) ||
-            !String.IsNullOrWhiteSpace(objCompany.Town) ||
-            !String.IsNullOrWhiteSpace(objCompany.County) ||
-            !String.IsNullOrWhiteSpace(objCompany.Postcode) ||
-            !String.IsNullOrWhiteSpace(objCompany.Country);
+            !String.IsNullOrWhiteSpace(
+                objCompany.AddressLine1) ||
+            !String.IsNullOrWhiteSpace(
+                objCompany.AddressLine2) ||
+            !String.IsNullOrWhiteSpace(
+                objCompany.Town) ||
+            !String.IsNullOrWhiteSpace(
+                objCompany.County) ||
+            !String.IsNullOrWhiteSpace(
+                objCompany.Postcode) ||
+            !String.IsNullOrWhiteSpace(
+                objCompany.Country);
     }
 
     private String GetLocation()
@@ -1370,19 +2277,22 @@
         List<String> colLocationParts =
             [];
 
-        if (!String.IsNullOrWhiteSpace(objCompany.Town))
+        if (!String.IsNullOrWhiteSpace(
+            objCompany.Town))
         {
             colLocationParts.Add(
                 objCompany.Town);
         }
 
-        if (!String.IsNullOrWhiteSpace(objCompany.County))
+        if (!String.IsNullOrWhiteSpace(
+            objCompany.County))
         {
             colLocationParts.Add(
                 objCompany.County);
         }
 
-        if (!String.IsNullOrWhiteSpace(objCompany.Country))
+        if (!String.IsNullOrWhiteSpace(
+            objCompany.Country))
         {
             colLocationParts.Add(
                 objCompany.Country);
@@ -1393,10 +2303,9 @@
             return "-";
         }
 
-        return
-            String.Join(
-                ", ",
-                colLocationParts);
+        return String.Join(
+            ", ",
+            colLocationParts);
     }
 
     private static String FormatNullableDate(
@@ -1407,9 +2316,19 @@
             return "-";
         }
 
-        return
-            dtmDate.Value
-                .ToLocalTime()
-                .ToString("dd MMM yyyy");
+        return dtmDate.Value
+            .ToLocalTime()
+            .ToString(
+                "dd MMM yyyy");
+    }
+
+    private static String GetPluralText(
+        Int32 intCount,
+        String strSingular,
+        String strPlural)
+    {
+        return intCount == 1
+            ? $"{intCount} {strSingular}"
+            : $"{intCount} {strPlural}";
     }
 }

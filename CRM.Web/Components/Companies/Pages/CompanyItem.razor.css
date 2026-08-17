@@ -36,7 +36,7 @@
     align-items: center;
     justify-content: center;
     color: #ffffff;
-    background: linear-gradient(135deg, #0b5cff, #0946bd);
+    background: linear-gradient( 135deg, #0b5cff, #0946bd);
     border-radius: 1rem;
     box-shadow: 0 10px 24px rgba(13, 110, 253, .22);
     font-size: 1.55rem;
@@ -85,7 +85,8 @@
         gap: .3rem;
     }
 
-    .company-meta-row .material-symbols-outlined {
+    .company-meta-row
+    .material-symbols-outlined {
         flex: 0 0 auto;
         color: #64748b;
         font-size: 18px;
@@ -107,7 +108,8 @@
         gap: .4rem;
     }
 
-    .company-profile-actions .material-symbols-outlined {
+    .company-profile-actions
+    .material-symbols-outlined {
         font-size: 19px;
     }
 
@@ -161,7 +163,8 @@
     border-radius: .85rem;
 }
 
-    .company-info-item > .material-symbols-outlined {
+    .company-info-item >
+    .material-symbols-outlined {
         width: 38px;
         height: 38px;
         flex: 0 0 38px;
@@ -234,11 +237,13 @@
     border-radius: .8rem;
 }
 
-    .company-details-address-icon .material-symbols-outlined {
+    .company-details-address-icon
+    .material-symbols-outlined {
         font-size: 21px;
     }
 
-.company-details-address > div:last-child {
+.company-details-address >
+div:last-child {
     min-width: 0;
 }
 
@@ -281,6 +286,328 @@
     border: 1px dashed #cbd5e1;
     border-radius: .85rem;
 }
+
+/* ---------------------------------
+   Finance
+---------------------------------- */
+
+.company-finance-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .75rem;
+}
+
+.company-finance-stat {
+    min-width: 0;
+    min-height: 88px;
+    padding: .8rem;
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    color: inherit;
+    background: #fbfdff;
+    border: 1px solid #e8edf4;
+    border-radius: .85rem;
+    text-decoration: none;
+    transition: background-color .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+
+    .company-finance-stat:hover {
+        color: inherit;
+        background: #f8fbff;
+        border-color: #d4deec;
+        transform: translateY(-1px);
+        box-shadow: 0 5px 14px rgba(15, 23, 42, .05);
+    }
+
+.company-finance-stat-icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    background: #eef4ff;
+    border-radius: .7rem;
+}
+
+.company-finance-stat-icon-paid {
+    color: #15803d;
+    background: #ecfdf3;
+}
+
+.company-finance-stat-icon-outstanding {
+    color: #b45309;
+    background: #fffbeb;
+}
+
+.company-finance-stat-icon-overdue {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+.company-finance-stat-icon
+.material-symbols-outlined {
+    font-size: 21px;
+}
+
+.company-finance-stat-content {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+    .company-finance-stat-content small,
+    .company-finance-stat-content strong,
+    .company-finance-stat-content > span {
+        display: block;
+    }
+
+    .company-finance-stat-content small {
+        color: #64748b;
+        font-size: .7rem;
+        font-weight: 700;
+    }
+
+    .company-finance-stat-content strong {
+        margin-top: .08rem;
+        color: #0f172a;
+        font-size: .95rem;
+        font-weight: 850;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    .company-finance-stat-content > span {
+        margin-top: .12rem;
+        color: #94a3b8;
+        font-size: .67rem;
+        line-height: 1.3;
+    }
+
+.company-finance-paid {
+    color: #15803d !important;
+}
+
+.company-finance-outstanding {
+    color: #b45309 !important;
+}
+
+.company-finance-overdue {
+    color: #b91c1c !important;
+}
+
+/* ---------------------------------
+   Invoice history
+---------------------------------- */
+
+.company-finance-history {
+    margin-top: 1rem;
+    overflow: hidden;
+    border: 1px solid #e8edf4;
+    border-radius: .9rem;
+}
+
+.company-finance-history-heading {
+    padding: .85rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: #fbfdff;
+    border-bottom: 1px solid #eef2f7;
+}
+
+    .company-finance-history-heading h4 {
+        margin: 0;
+        color: #0f172a;
+        font-size: .9rem;
+        font-weight: 850;
+    }
+
+    .company-finance-history-heading span {
+        display: block;
+        margin-top: .15rem;
+        color: #64748b;
+        font-size: .73rem;
+    }
+
+.company-invoice-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.company-invoice-item {
+    min-width: 0;
+    min-height: 68px;
+    padding: .75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    color: inherit;
+    border-bottom: 1px solid #eef2f7;
+    text-decoration: none;
+    transition: background-color .15s ease;
+}
+
+    .company-invoice-item:last-child {
+        border-bottom: 0;
+    }
+
+    .company-invoice-item:hover {
+        color: inherit;
+        background: #f8fbff;
+    }
+
+.company-invoice-icon {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    background: #eef4ff;
+    border-radius: .7rem;
+}
+
+    .company-invoice-icon
+    .material-symbols-outlined {
+        font-size: 20px;
+    }
+
+.company-invoice-main {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.company-invoice-title-row {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+
+    .company-invoice-title-row >
+    strong {
+        color: #0f172a;
+        font-size: .83rem;
+        font-weight: 800;
+    }
+
+.company-invoice-status {
+    min-height: 22px;
+    padding: .15rem .4rem;
+    display: inline-flex;
+    align-items: center;
+    color: var(--invoice-status-color);
+    background: color-mix( in srgb, var(--invoice-status-color) 10%, white);
+    border: 1px solid color-mix( in srgb, var(--invoice-status-color) 20%, white);
+    border-radius: 999px;
+    font-size: .62rem;
+    font-weight: 800;
+}
+
+.company-invoice-meta {
+    margin-top: .2rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .25rem .7rem;
+    color: #64748b;
+    font-size: .7rem;
+}
+
+.company-invoice-money {
+    min-width: 110px;
+    flex: 0 0 auto;
+    text-align: right;
+}
+
+    .company-invoice-money strong,
+    .company-invoice-money small {
+        display: block;
+    }
+
+    .company-invoice-money strong {
+        color: #0f172a;
+        font-size: .82rem;
+        font-weight: 850;
+    }
+
+    .company-invoice-money small {
+        margin-top: .1rem;
+        font-size: .66rem;
+    }
+
+.company-invoice-outstanding {
+    color: #b45309;
+}
+
+.company-invoice-overdue {
+    color: #b91c1c;
+    font-weight: 750;
+}
+
+.company-invoice-paid {
+    color: #15803d;
+    font-weight: 750;
+}
+
+.company-invoice-arrow {
+    flex: 0 0 auto;
+    color: #94a3b8;
+    font-size: 20px;
+}
+
+.company-invoice-item:hover
+.company-invoice-arrow {
+    color: #2563eb;
+}
+
+.company-finance-empty {
+    min-height: 100px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+    color: #64748b;
+}
+
+    .company-finance-empty >
+    .material-symbols-outlined {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        background: #f1f5f9;
+        border-radius: .7rem;
+    }
+
+    .company-finance-empty > div {
+        min-width: 0;
+    }
+
+    .company-finance-empty strong,
+    .company-finance-empty div > span {
+        display: block;
+    }
+
+    .company-finance-empty strong {
+        color: #334155;
+        font-size: .82rem;
+        font-weight: 800;
+    }
+
+    .company-finance-empty div > span {
+        margin-top: .12rem;
+        font-size: .72rem;
+    }
 
 /* ---------------------------------
    Related records
@@ -349,7 +676,9 @@
     font-weight: 850;
 }
 
-.company-related-heading > div > span:not(.company-related-count) {
+.company-related-heading >
+div >
+span:not(.company-related-count) {
     display: block;
     margin-top: .2rem;
     color: #64748b;
@@ -396,7 +725,8 @@
         background: #f8fbff;
     }
 
-    .company-related-list-item > .material-symbols-outlined {
+    .company-related-list-item >
+    .material-symbols-outlined {
         margin-left: auto;
         flex: 0 0 auto;
         color: #94a3b8;
@@ -404,7 +734,8 @@
         transition: color .15s ease, transform .15s ease;
     }
 
-    .company-related-list-item:hover > .material-symbols-outlined {
+    .company-related-list-item:hover >
+    .material-symbols-outlined {
         color: #0b5cff;
         transform: translateX(2px);
     }
@@ -428,7 +759,8 @@
     letter-spacing: -.02em;
 }
 
-.company-related-record-icon .material-symbols-outlined {
+.company-related-record-icon
+.material-symbols-outlined {
     font-size: 19px;
 }
 
@@ -472,7 +804,8 @@
     text-align: center;
 }
 
-    .company-related-empty .material-symbols-outlined {
+    .company-related-empty
+    .material-symbols-outlined {
         flex: 0 0 auto;
         color: #94a3b8;
         font-size: 20px;
@@ -501,7 +834,8 @@
         text-align: left;
     }
 
-    .company-action-list .material-symbols-outlined {
+    .company-action-list
+    .material-symbols-outlined {
         flex: 0 0 auto;
         font-size: 19px;
     }
@@ -542,6 +876,32 @@
         overflow-wrap: anywhere;
     }
 
+.company-side-paid {
+    color: #15803d !important;
+}
+
+.company-side-outstanding {
+    color: #b45309 !important;
+}
+
+.company-side-overdue {
+    color: #b91c1c !important;
+}
+
+.company-finance-view-button {
+    min-height: 42px;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: .4rem;
+}
+
+    .company-finance-view-button
+    .material-symbols-outlined {
+        font-size: 19px;
+    }
+
 /* ---------------------------------
    Alerts
 ---------------------------------- */
@@ -555,7 +915,8 @@
     flex: 1 1 auto;
 }
 
-    .company-page .alert-content p {
+    .company-page
+    .alert-content p {
         overflow-wrap: anywhere;
     }
 
@@ -569,6 +930,10 @@
         grid-template-columns: 1fr;
     }
 
+    .company-finance-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .company-side {
         position: static;
         display: grid;
@@ -576,7 +941,8 @@
         align-items: start;
     }
 
-        .company-side > .crm-card:last-child {
+        .company-side >
+        .crm-card:last-child {
             grid-column: 1 / -1;
         }
 }
@@ -656,7 +1022,8 @@
             width: 100%;
         }
 
-        .company-meta-row .material-symbols-outlined {
+        .company-meta-row
+        .material-symbols-outlined {
             font-size: 17px;
         }
 
@@ -713,7 +1080,8 @@
         gap: .7rem;
     }
 
-        .company-info-item > .material-symbols-outlined {
+        .company-info-item >
+        .material-symbols-outlined {
             width: 38px;
             height: 38px;
             flex-basis: 38px;
@@ -752,6 +1120,55 @@
         font-size: .8rem;
     }
 
+    /* Finance */
+
+    .company-finance-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .55rem;
+    }
+
+    .company-finance-stat {
+        min-height: 78px;
+        padding: .7rem;
+    }
+
+    .company-finance-stat-icon {
+        width: 36px;
+        height: 36px;
+        flex-basis: 36px;
+    }
+
+    .company-finance-stat-content strong {
+        font-size: .84rem;
+    }
+
+    .company-finance-history {
+        margin-top: .75rem;
+    }
+
+    .company-finance-history-heading {
+        padding: .75rem .8rem;
+    }
+
+    .company-invoice-item {
+        min-height: 66px;
+        padding: .7rem .8rem;
+    }
+
+    .company-invoice-icon {
+        width: 36px;
+        height: 36px;
+        flex-basis: 36px;
+    }
+
+    .company-invoice-money {
+        min-width: 85px;
+    }
+
+    .company-invoice-arrow {
+        display: none;
+    }
+
     /* Related records */
 
     .company-related-grid {
@@ -776,7 +1193,9 @@
         font-size: .67rem !important;
     }
 
-    .company-related-heading > div > span:not(.company-related-count) {
+    .company-related-heading >
+    div >
+    span:not(.company-related-count) {
         margin-top: .12rem;
         font-size: .7rem;
     }
@@ -844,6 +1263,10 @@
             font-size: .78rem;
         }
 
+    .company-finance-view-button {
+        min-height: 44px;
+    }
+
     /* Alerts */
 
     .company-page .alert {
@@ -851,14 +1274,16 @@
         flex-wrap: wrap;
     }
 
-    .company-page .alert-actions {
+    .company-page
+    .alert-actions {
         width: 100%;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: .5rem;
     }
 
-        .company-page .alert-actions .btn {
+        .company-page
+        .alert-actions .btn {
             width: 100%;
             min-height: 42px;
             justify-content: center;
@@ -903,6 +1328,43 @@
         padding: .75rem;
     }
 
+    /* Finance */
+
+    .company-finance-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .company-finance-stat {
+        min-height: 70px;
+    }
+
+    .company-invoice-item {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .company-invoice-main {
+        min-width: calc(100% - 50px);
+    }
+
+    .company-invoice-money {
+        width: 100%;
+        min-width: 0;
+        padding: .55rem 0 0 46px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .5rem;
+        text-align: left;
+        border-top: 1px solid #eef2f7;
+    }
+
+        .company-invoice-money small {
+            margin: 0;
+        }
+
+    /* Related */
+
     .company-related-heading {
         padding: .75rem;
     }
@@ -919,6 +1381,8 @@
         overflow-wrap: anywhere;
     }
 
+    /* Sidebar */
+
     .company-meta-list > div {
         flex-direction: column;
         gap: .15rem;
@@ -928,7 +1392,10 @@
         text-align: left;
     }
 
-    .company-page .alert-actions {
+    /* Alerts */
+
+    .company-page
+    .alert-actions {
         grid-template-columns: 1fr;
     }
 }
