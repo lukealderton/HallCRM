@@ -1,8 +1,13 @@
 ﻿.activity-edit-page {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
+
+/* ---------------------------------
+   Layout
+---------------------------------- */
 
 .activity-edit-layout {
     display: grid;
@@ -11,23 +16,31 @@
     align-items: start;
 }
 
-.activity-edit-main {
+.activity-edit-main,
+.activity-edit-side {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    min-width: 0;
 }
 
 .activity-edit-side {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    min-width: 0;
+    position: sticky;
+    top: 138px;
 }
 
+/* ---------------------------------
+   Card body
+---------------------------------- */
+
 .activity-edit-card-body {
+    min-width: 0;
     padding: 1.25rem;
 }
+
+/* ---------------------------------
+   Save panel
+---------------------------------- */
 
 .activity-save-panel {
     padding: 1.5rem;
@@ -41,9 +54,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 1rem;
-    background: #eef4ff;
     color: #0b5cff;
+    background: #eef4ff;
+    border-radius: 1rem;
 }
 
     .activity-save-icon .material-symbols-outlined {
@@ -65,13 +78,15 @@
 }
 
 .activity-save-actions {
+    margin-top: 1.25rem;
     display: flex;
     flex-direction: column;
     gap: .65rem;
-    margin-top: 1.25rem;
 }
 
     .activity-save-actions .btn {
+        width: 100%;
+        min-height: 42px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -82,6 +97,10 @@
         font-size: 19px;
     }
 
+/* ---------------------------------
+   Sidebar headings
+---------------------------------- */
+
 .activity-side-heading {
     margin: 0 0 1rem;
     color: #111827;
@@ -89,17 +108,21 @@
     font-weight: 800;
 }
 
+/* ---------------------------------
+   Meta list
+---------------------------------- */
+
 .activity-meta-list {
     display: flex;
     flex-direction: column;
 }
 
     .activity-meta-list > div {
+        padding: .7rem 0;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
-        padding: .7rem 0;
         border-bottom: 1px solid #edf0f4;
     }
 
@@ -118,21 +141,27 @@
     }
 
     .activity-meta-list strong {
+        min-width: 0;
         color: #111827;
         font-size: .85rem;
         font-weight: 750;
         text-align: right;
+        overflow-wrap: anywhere;
     }
 
+/* ---------------------------------
+   Related summary
+---------------------------------- */
+
 .activity-related-summary {
-    display: flex;
-    gap: .75rem;
-    align-items: flex-start;
     margin-top: 1rem;
     padding: .9rem 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    background: #f8fbff;
     border: 1px solid #dbe6f5;
     border-radius: .75rem;
-    background: #f8fbff;
 }
 
     .activity-related-summary > .material-symbols-outlined {
@@ -142,14 +171,14 @@
         font-size: 21px;
     }
 
-    .activity-related-summary div {
+    .activity-related-summary > div {
         min-width: 0;
     }
 
-        .activity-related-summary strong,
-        .activity-related-summary div > span {
-            display: block;
-        }
+    .activity-related-summary strong,
+    .activity-related-summary div > span {
+        display: block;
+    }
 
     .activity-related-summary strong {
         color: #1e293b;
@@ -161,17 +190,22 @@
         margin-top: .15rem;
         color: #64748b;
         font-size: .8rem;
+        line-height: 1.4;
         overflow-wrap: anywhere;
     }
 
+/* ---------------------------------
+   Status
+---------------------------------- */
+
 .activity-status {
+    margin-bottom: 1rem;
+    padding: .9rem 1rem;
     display: flex;
     align-items: flex-start;
     gap: .75rem;
-    margin-bottom: 1rem;
-    padding: .9rem 1rem;
-    border-radius: .75rem;
     border: 1px solid transparent;
+    border-radius: .75rem;
 }
 
     .activity-status > .material-symbols-outlined {
@@ -179,7 +213,7 @@
         font-size: 23px;
     }
 
-    .activity-status div {
+    .activity-status > div {
         min-width: 0;
     }
 
@@ -196,75 +230,316 @@
     .activity-status div > span {
         margin-top: .15rem;
         font-size: .8rem;
+        line-height: 1.4;
     }
 
 .activity-status-open {
+    color: #1d4ed8;
     background: #eff6ff;
     border-color: #dbeafe;
-    color: #1d4ed8;
 }
 
 .activity-status-today {
+    color: #b45309;
     background: #fffbeb;
     border-color: #fde68a;
-    color: #b45309;
 }
 
 .activity-status-overdue {
+    color: #b91c1c;
     background: #fef2f2;
     border-color: #fecaca;
-    color: #b91c1c;
 }
 
 .activity-status-completed {
+    color: #15803d;
     background: #f0fdf4;
     border-color: #bbf7d0;
-    color: #15803d;
 }
 
-.activity-edit-side .btn-soft-success {
+/* ---------------------------------
+   Buttons
+---------------------------------- */
+
+.activity-edit-side .btn-soft-success,
+.activity-edit-side .btn-soft-secondary {
+    min-height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: .4rem;
 }
 
-    .activity-edit-side .btn-soft-success .material-symbols-outlined {
+    .activity-edit-side .btn-soft-success .material-symbols-outlined,
+    .activity-edit-side .btn-soft-secondary .material-symbols-outlined {
         font-size: 19px;
     }
 
+/* ---------------------------------
+   Form elements
+---------------------------------- */
+
+.activity-edit-page .form-control,
+.activity-edit-page .form-select {
+    min-width: 0;
+}
+
+.activity-edit-page textarea.form-control {
+    resize: vertical;
+}
+
+/* ---------------------------------
+   Tablet
+---------------------------------- */
+
 @media (max-width: 1199.98px) {
+
     .activity-edit-layout {
         grid-template-columns: minmax(0, 1fr) 290px;
     }
 }
 
 @media (max-width: 991.98px) {
+
     .activity-edit-layout {
         grid-template-columns: 1fr;
     }
 
     .activity-edit-side {
+        position: static;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
     }
+
+        /*
+        Keep save panel after the informational
+        cards rather than forcing it to the top.
+    */
+
+        .activity-edit-side > .crm-card:nth-child(2),
+        .activity-edit-side > .crm-card:nth-child(3),
+        .activity-edit-side > .crm-card:nth-child(4) {
+            min-width: 0;
+        }
 
     .activity-save-panel {
         grid-column: 1 / -1;
+        order: 99;
     }
 }
 
-@media (max-width: 575.98px) {
-    .activity-edit-card-body {
-        padding: 1rem;
+/* ---------------------------------
+   Mobile
+---------------------------------- */
+
+@media (max-width: 767.98px) {
+
+    .activity-edit-page {
+        gap: .8rem;
     }
 
-    .activity-save-panel {
-        padding: 1.25rem 1rem;
+    .activity-edit-layout {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: .8rem;
     }
+
+    .activity-edit-main,
+    .activity-edit-side {
+        width: 100%;
+        gap: .8rem;
+    }
+
+    /*
+        Flatten the sidebar so we can put the
+        save panel at the end of the whole side flow.
+    */
 
     .activity-edit-side {
         display: flex;
         flex-direction: column;
+    }
+
+    .activity-save-panel {
+        order: 99;
+    }
+
+    .activity-edit-card-body {
+        padding: .9rem;
+    }
+
+    /* Inputs */
+
+    .activity-edit-page .form-control,
+    .activity-edit-page .form-select {
+        min-height: 44px;
+    }
+
+    .activity-edit-page textarea.form-control {
+        min-height: 120px;
+    }
+
+    .activity-edit-page textarea[rows="6"] {
+        min-height: 145px;
+    }
+
+    .activity-edit-page .form-label {
+        margin-bottom: .35rem;
+        font-size: .8rem;
+        font-weight: 700;
+    }
+
+    .activity-edit-page .form-text {
+        font-size: .7rem;
+        line-height: 1.4;
+    }
+
+    /* Related summary */
+
+    .activity-related-summary {
+        margin-top: .8rem;
+        padding: .75rem;
+        gap: .6rem;
+    }
+
+        .activity-related-summary > .material-symbols-outlined {
+            font-size: 19px;
+        }
+
+        .activity-related-summary strong {
+            font-size: .78rem;
+        }
+
+        .activity-related-summary div > span {
+            font-size: .72rem;
+        }
+
+    /* Assignment */
+
+    .activity-edit-side .form-select {
+        width: 100%;
+    }
+
+    /* Status */
+
+    .activity-status {
+        margin-bottom: .75rem;
+        padding: .75rem;
+        gap: .6rem;
+    }
+
+        .activity-status > .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        .activity-status strong {
+            font-size: .8rem;
+        }
+
+        .activity-status div > span {
+            font-size: .72rem;
+        }
+
+    .activity-edit-side .btn-soft-success,
+    .activity-edit-side .btn-soft-secondary {
+        width: 100%;
+        min-height: 44px;
+    }
+
+    /* Record status */
+
+    .activity-meta-list > div {
+        padding: .6rem 0;
+    }
+
+    .activity-meta-list span {
+        font-size: .72rem;
+    }
+
+    .activity-meta-list strong {
+        font-size: .78rem;
+    }
+
+    /* Save */
+
+    .activity-save-panel {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .activity-save-icon {
+        width: 46px;
+        height: 46px;
+        margin-bottom: .7rem;
+        border-radius: .8rem;
+    }
+
+        .activity-save-icon .material-symbols-outlined {
+            font-size: 24px;
+        }
+
+    .activity-save-panel h3 {
+        font-size: 1rem;
+    }
+
+    .activity-save-panel > p {
+        margin-top: .3rem;
+        font-size: .76rem;
+        line-height: 1.4;
+    }
+
+    .activity-save-actions {
+        margin-top: .85rem;
+        gap: .5rem;
+    }
+
+        .activity-save-actions .btn {
+            min-height: 44px;
+        }
+
+    /* Alerts */
+
+    .activity-edit-page .alert {
+        min-width: 0;
+        align-items: flex-start;
+    }
+
+        .activity-edit-page .alert .alert-content {
+            min-width: 0;
+        }
+
+        .activity-edit-page .alert p {
+            overflow-wrap: anywhere;
+        }
+}
+
+/* ---------------------------------
+   Small phones
+---------------------------------- */
+
+@media (max-width: 575.98px) {
+
+    .activity-edit-card-body {
+        padding: .8rem;
+    }
+
+    .activity-save-panel {
+        padding: .85rem;
+    }
+
+    .activity-meta-list > div {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: .12rem;
+    }
+
+    .activity-meta-list strong {
+        text-align: left;
+    }
+
+    .activity-edit-page .row {
+        --bs-gutter-y: .8rem;
     }
 }

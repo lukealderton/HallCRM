@@ -1,11 +1,13 @@
 ﻿.activities-page {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-
-/* Company context filter */
+/* ---------------------------------
+   Company context
+---------------------------------- */
 
 .activities-context-filter {
     min-height: 64px;
@@ -14,16 +16,16 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+    background: #f7faff;
     border: 1px solid #cbdcfb;
     border-radius: .9rem;
-    background: #f7faff;
 }
 
 .activities-context-filter-main {
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: .75rem;
-    min-width: 0;
 }
 
     .activities-context-filter-main > .material-symbols-outlined {
@@ -33,9 +35,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: .75rem;
-        background: #eaf2ff;
         color: #0b5cff;
+        background: #eaf2ff;
+        border-radius: .75rem;
         font-size: 20px;
     }
 
@@ -55,10 +57,12 @@
         margin-top: .1rem;
         color: #64748b;
         font-size: .8rem;
+        line-height: 1.4;
     }
 
-
-/* Toolbar */
+/* ---------------------------------
+   Toolbar
+---------------------------------- */
 
 .activities-toolbar {
     padding: 1rem 1.25rem;
@@ -72,9 +76,13 @@
     min-width: 0;
 }
 
+    .activities-search .input-group {
+        min-width: 0;
+    }
+
     .activities-search .input-group-text {
-        background: #ffffff;
         color: #64748b;
+        background: #ffffff;
     }
 
     .activities-search .material-symbols-outlined {
@@ -96,6 +104,7 @@
 .activities-filter-divider {
     width: 1px;
     height: 2.25rem;
+    flex: 0 0 auto;
     background: #e5eaf2;
 }
 
@@ -104,17 +113,33 @@
     justify-content: flex-end;
 }
 
+    .activities-toolbar-actions .btn {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .4rem;
+    }
 
-/* Summary cards */
+/* ---------------------------------
+   Summary
+---------------------------------- */
+
+.activities-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
 
 .activities-summary-card {
+    min-width: 0;
     min-height: 120px;
+    padding: 1.1rem 1.25rem;
     position: relative;
     overflow: hidden;
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 1.1rem 1.25rem;
     background: #ffffff;
     border: 1px solid #e5eaf2;
     border-radius: 1rem;
@@ -123,9 +148,9 @@
 
     .activities-summary-card::before {
         content: "";
+        width: 4px;
         position: absolute;
         inset: 0 auto 0 0;
-        width: 4px;
         background: #0b5cff;
     }
 
@@ -136,10 +161,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: .85rem;
-        background: #eaf2ff;
         color: #0b5cff;
+        background: #eaf2ff;
+        border-radius: .85rem;
         font-size: 28px;
+    }
+
+    .activities-summary-card > div {
+        min-width: 0;
     }
 
     .activities-summary-card small,
@@ -172,8 +201,8 @@
 }
 
 .activities-summary-danger > .material-symbols-outlined {
-    background: #fee2e2;
     color: #dc2626;
+    background: #fee2e2;
 }
 
 .activities-summary-warning::before {
@@ -181,8 +210,8 @@
 }
 
 .activities-summary-warning > .material-symbols-outlined {
-    background: #fef3c7;
     color: #d97706;
+    background: #fef3c7;
 }
 
 .activities-summary-success::before {
@@ -190,26 +219,37 @@
 }
 
 .activities-summary-success > .material-symbols-outlined {
-    background: #dcfce7;
     color: #16a34a;
+    background: #dcfce7;
 }
 
-
-/* Card header actions */
+/* ---------------------------------
+   Header actions
+---------------------------------- */
 
 .activities-header-actions {
     display: flex;
     align-items: center;
     gap: .5rem;
+    flex-wrap: wrap;
 }
 
+/* ---------------------------------
+   Desktop table
+---------------------------------- */
 
-/* Activity table */
+.activities-table-view {
+    display: block;
+}
 
 .activities-name-cell {
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: .75rem;
+}
+
+.activities-name-content {
     min-width: 0;
 }
 
@@ -220,8 +260,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #eef4ff;
     color: #0b5cff;
+    background: #eef4ff;
     border-radius: .7rem;
 }
 
@@ -240,25 +280,29 @@
         text-decoration: underline;
     }
 
-
-/* Type */
+/* ---------------------------------
+   Type
+---------------------------------- */
 
 .activity-type {
-    display: inline-flex;
-    align-items: center;
     min-height: 1.75rem;
     padding: .2rem .65rem;
-    background: #eef2ff;
+    display: inline-flex;
+    align-items: center;
     color: #3730a3;
+    background: #eef2ff;
     border-radius: 999px;
     font-size: .78rem;
     font-weight: 800;
+    white-space: nowrap;
 }
 
-
-/* Related records */
+/* ---------------------------------
+   Related
+---------------------------------- */
 
 .activities-related {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: .15rem;
@@ -268,14 +312,16 @@
         color: #2563eb;
         font-weight: 650;
         text-decoration: none;
+        overflow-wrap: anywhere;
     }
 
         .activities-related a:hover {
             text-decoration: underline;
         }
 
-
-/* Due dates */
+/* ---------------------------------
+   Due
+---------------------------------- */
 
 .activities-due-overdue {
     color: #b91c1c;
@@ -287,8 +333,39 @@
     font-weight: 800;
 }
 
+/* ---------------------------------
+   Status
+---------------------------------- */
 
-/* Row actions */
+.activities-status {
+    min-height: 1.55rem;
+    padding: .15rem .55rem;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.activities-status-open {
+    color: #1d4ed8;
+    background: #eff6ff;
+}
+
+.activities-status-overdue {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+.activities-status-completed {
+    color: #166534;
+    background: #dcfce7;
+}
+
+/* ---------------------------------
+   Row actions
+---------------------------------- */
 
 .activities-row-actions {
     display: inline-flex;
@@ -306,12 +383,23 @@
     opacity: .72;
 }
 
+/* ---------------------------------
+   Mobile cards
+---------------------------------- */
 
-/* Responsive */
+.activities-mobile-list {
+    display: none;
+}
+
+/* ---------------------------------
+   Tablet
+---------------------------------- */
 
 @media (max-width: 1199.98px) {
+
     .activities-toolbar {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
 
     .activities-filters {
@@ -321,46 +409,416 @@
     .activities-toolbar-actions {
         justify-content: flex-start;
     }
+
+    .activities-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
+/* ---------------------------------
+   Mobile
+---------------------------------- */
+
 @media (max-width: 767.98px) {
+
+    .activities-page {
+        gap: .8rem;
+    }
+
+    /* Context */
+
     .activities-context-filter {
-        align-items: stretch;
+        width: 100%;
+        padding: .8rem;
         flex-direction: column;
+        align-items: stretch;
+        gap: .75rem;
     }
 
         .activities-context-filter > .btn {
             width: 100%;
+            min-height: 42px;
+            justify-content: center;
+        }
+
+    /* Toolbar */
+
+    .activities-toolbar {
+        width: 100%;
+        padding: .85rem;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: .85rem;
+    }
+
+    .activities-search,
+    .activities-search .input-group {
+        width: 100%;
+    }
+
+        .activities-search .form-control {
+            min-width: 0;
+            min-height: 44px;
+        }
+
+        .activities-search .input-group-text {
+            min-width: 44px;
+            justify-content: center;
         }
 
     .activities-filters {
+        width: 100%;
         flex-direction: column;
         align-items: stretch;
+        gap: .7rem;
+        white-space: normal;
     }
 
     .activities-type-filter,
     .activities-status-filter {
         width: 100%;
+        min-height: 44px;
     }
 
     .activities-filter-divider {
         display: none;
     }
 
+    .activities-filters .form-check {
+        margin: 0;
+    }
+
+    .activities-filters .form-check-label {
+        color: #475569;
+        font-size: .78rem;
+    }
+
     .activities-toolbar-actions {
-        justify-content: flex-start;
+        width: 100%;
     }
 
         .activities-toolbar-actions .btn {
             width: 100%;
+            min-height: 44px;
         }
 
-    .activities-header-actions {
-        flex-wrap: wrap;
+    /* Summary */
+
+    .activities-summary {
+        width: 100%;
+        grid-template-columns: 1fr;
+        gap: .65rem;
     }
 
-    .activities-row-actions {
+    .activities-summary-card {
+        width: 100%;
+        min-height: 76px;
+        padding: .8rem .9rem;
+        gap: .8rem;
+        border-radius: .9rem;
+    }
+
+        .activities-summary-card::before {
+            width: 3px;
+        }
+
+        .activities-summary-card > .material-symbols-outlined {
+            width: 40px;
+            height: 40px;
+            flex-basis: 40px;
+            border-radius: .7rem;
+            font-size: 21px;
+        }
+
+        .activities-summary-card small {
+            font-size: .72rem;
+        }
+
+        .activities-summary-card strong {
+            margin-top: .08rem;
+            font-size: 1.35rem;
+        }
+
+        .activities-summary-card div > span {
+            margin-top: .12rem;
+            font-size: .68rem;
+        }
+
+    /* Results header */
+
+    .activities-results .crm-card-header {
+        align-items: flex-start;
+        gap: .75rem;
+    }
+
+    .activities-header-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .5rem;
+    }
+
+        .activities-header-actions .btn {
+            width: 100%;
+            min-height: 42px;
+            justify-content: center;
+        }
+
+            .activities-header-actions .btn:only-child {
+                grid-column: 1 / -1;
+            }
+
+    /* Hide table */
+
+    .activities-table-view {
+        display: none;
+    }
+
+    /* Mobile list */
+
+    .activities-mobile-list {
+        width: 100%;
+        padding: .55rem;
+        display: flex;
         flex-direction: column;
-        align-items: stretch;
+        gap: .65rem;
+    }
+
+    .activities-mobile-card {
+        width: 100%;
+        overflow: hidden;
+        background: #ffffff;
+        border: 1px solid #e5eaf2;
+        border-radius: .9rem;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+    }
+
+    .activities-mobile-main {
+        min-width: 0;
+        padding: .8rem;
+        display: flex;
+        align-items: flex-start;
+        gap: .7rem;
+        color: inherit;
+        text-decoration: none;
+    }
+
+        .activities-mobile-main:active {
+            background: #f8fafc;
+        }
+
+    .activities-mobile-icon {
+        width: 40px;
+        height: 40px;
+        flex-basis: 40px;
+    }
+
+    .activities-mobile-heading {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .activities-mobile-title-row {
+        min-width: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: .5rem;
+    }
+
+    .activities-mobile-title {
+        min-width: 0;
+        color: #111827;
+        font-size: .88rem;
+        font-weight: 800;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+    }
+
+    .activities-mobile-title-row .activity-type {
+        min-height: 1.4rem;
+        padding: .12rem .45rem;
+        flex: 0 0 auto;
+        font-size: .62rem;
+    }
+
+    .activities-mobile-description {
+        margin: .35rem 0 0;
+        display: -webkit-box;
+        overflow: hidden;
+        color: #64748b;
+        font-size: .74rem;
+        line-height: 1.45;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow-wrap: anywhere;
+    }
+
+    .activities-mobile-chevron {
+        flex: 0 0 auto;
+        align-self: center;
+        color: #a6afbc;
+        font-size: 20px;
+    }
+
+    /* Details */
+
+    .activities-mobile-details {
+        padding: .7rem .8rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .7rem;
+        background: #f8fafc;
+        border-top: 1px solid #edf0f4;
+    }
+
+    .activities-mobile-detail {
+        min-width: 0;
+        display: flex;
+        align-items: flex-start;
+        gap: .45rem;
+    }
+
+        .activities-mobile-detail > .material-symbols-outlined {
+            width: 18px;
+            flex: 0 0 18px;
+            color: #64748b;
+            font-size: 17px;
+        }
+
+        .activities-mobile-detail > div {
+            min-width: 0;
+        }
+
+        .activities-mobile-detail small {
+            display: block;
+            margin-bottom: .08rem;
+            color: #94a3b8;
+            font-size: .65rem;
+        }
+
+        .activities-mobile-detail strong {
+            display: block;
+            color: #334155;
+            font-size: .75rem;
+            font-weight: 750;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .activities-mobile-detail .activities-status {
+            min-height: 1.35rem;
+            padding: .1rem .4rem;
+            font-size: .62rem;
+        }
+
+    /* Related records */
+
+    .activities-mobile-related {
+        padding: .6rem .8rem;
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+        border-top: 1px solid #edf0f4;
+    }
+
+        .activities-mobile-related a {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            color: #2563eb;
+            font-size: .72rem;
+            font-weight: 700;
+            line-height: 1.35;
+            text-decoration: none;
+            overflow-wrap: anywhere;
+        }
+
+        .activities-mobile-related .material-symbols-outlined {
+            width: 17px;
+            flex: 0 0 17px;
+            color: #64748b;
+            font-size: 16px;
+        }
+
+    /* Actions */
+
+    .activities-mobile-actions {
+        padding: .55rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .5rem;
+        border-top: 1px solid #edf0f4;
+    }
+
+        .activities-mobile-actions .btn {
+            width: 100%;
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .35rem;
+        }
+
+            .activities-mobile-actions .btn:only-child {
+                grid-column: 1 / -1;
+            }
+
+        .activities-mobile-actions .material-symbols-outlined {
+            font-size: 18px;
+        }
+}
+
+/* ---------------------------------
+   Small phones
+---------------------------------- */
+
+@media (max-width: 575.98px) {
+
+    .activities-toolbar {
+        padding: .75rem;
+    }
+
+    .activities-summary-card {
+        min-height: 72px;
+        padding: .75rem .85rem;
+    }
+
+    .activities-header-actions {
+        grid-template-columns: 1fr;
+    }
+
+        .activities-header-actions .btn {
+            grid-column: auto;
+        }
+
+    .activities-mobile-list {
+        padding: .45rem;
+        gap: .55rem;
+    }
+
+    .activities-mobile-main {
+        padding: .75rem;
+    }
+
+    .activities-mobile-title-row {
+        flex-direction: column;
+        gap: .3rem;
+    }
+
+    .activities-mobile-details {
+        padding: .65rem .75rem;
+        grid-template-columns: 1fr;
+        gap: .55rem;
+    }
+
+    .activities-mobile-related {
+        padding: .6rem .75rem;
+    }
+
+    .activities-mobile-actions {
+        padding: .5rem;
     }
 }

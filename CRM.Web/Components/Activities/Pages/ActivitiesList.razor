@@ -15,7 +15,9 @@
     @if (CompanyId.HasValue)
     {
         <div class="activities-context-filter">
+
             <div class="activities-context-filter-main">
+
                 <span class="material-symbols-outlined">
                     apartment
                 </span>
@@ -27,6 +29,7 @@
                         Showing activities linked to this company.
                     </span>
                 </div>
+
             </div>
 
             <button type="button"
@@ -39,12 +42,16 @@
 
                 Clear company filter
             </button>
+
         </div>
     }
 
     <div class="crm-card activities-toolbar">
+
         <div class="activities-search">
+
             <div class="input-group">
+
                 <span class="input-group-text">
                     <span class="material-symbols-outlined">
                         search
@@ -52,13 +59,16 @@
                 </span>
 
                 <input class="form-control"
-                       placeholder="Search activities, companies, contacts or jobs..."
+                       placeholder="Search activities..."
                        @bind="strSearch"
                        @bind:event="oninput" />
+
             </div>
+
         </div>
 
         <div class="activities-filters">
+
             <select class="form-select activities-type-filter"
                     @bind="strSelectedType"
                     @bind:after="FiltersChangedAsync">
@@ -73,6 +83,7 @@
                         @enmType.GetDisplay().Name
                     </option>
                 }
+
             </select>
 
             <select class="form-select activities-status-filter"
@@ -90,11 +101,14 @@
                 <option value="completed">
                     Completed
                 </option>
+
             </select>
 
-            <div class="activities-filter-divider"></div>
+            <div class="activities-filter-divider">
+            </div>
 
             <div class="form-check form-switch">
+
                 <input id="activityArchived"
                        class="form-check-input"
                        type="checkbox"
@@ -105,10 +119,13 @@
                        for="activityArchived">
                     Include archived
                 </label>
+
             </div>
+
         </div>
 
         <div class="activities-toolbar-actions">
+
             <button class="btn btn-primary"
                     type="button"
                     @onclick="LoadActivitiesAsync">
@@ -119,99 +136,119 @@
 
                 Search
             </button>
+
         </div>
+
     </div>
 
-    <div class="row g-3">
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="activities-summary-card">
-                <span class="material-symbols-outlined">
-                    pending_actions
-                </span>
+    <div class="activities-summary">
 
-                <div>
-                    <small>Open shown</small>
+        <div class="activities-summary-card">
 
-                    <strong>
-                        @intOpenCount
-                    </strong>
+            <span class="material-symbols-outlined">
+                pending_actions
+            </span>
 
-                    <span>
-                        @intTotalCount total shown
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="activities-summary-card activities-summary-danger">
-                <span class="material-symbols-outlined">
-                    assignment_late
-                </span>
-
-                <div>
-                    <small>Overdue shown</small>
-
-                    <strong>
-                        @intOverdueCount
-                    </strong>
-
-                    <span>
-                        Past their due date
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="activities-summary-card activities-summary-warning">
-                <span class="material-symbols-outlined">
-                    today
-                </span>
-
-                <div>
-                    <small>Due today</small>
-
-                    <strong>
-                        @intDueTodayCount
-                    </strong>
-
-                    <span>
-                        Scheduled for today
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-            <div class="activities-summary-card activities-summary-success">
-                <span class="material-symbols-outlined">
-                    task_alt
-                </span>
-
-                <div>
-                    <small>Completed shown</small>
-
-                    <strong>
-                        @intCompletedCount
-                    </strong>
-
-                    <span>
-                        Finished activities
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="crm-card">
-        <div class="crm-card-header">
             <div>
-                <h3>Activity records</h3>
-                <p>@strResultSummary</p>
+                <small>
+                    Open shown
+                </small>
+
+                <strong>
+                    @intOpenCount
+                </strong>
+
+                <span>
+                    @intTotalCount total shown
+                </span>
+            </div>
+
+        </div>
+
+        <div class="activities-summary-card activities-summary-danger">
+
+            <span class="material-symbols-outlined">
+                assignment_late
+            </span>
+
+            <div>
+                <small>
+                    Overdue shown
+                </small>
+
+                <strong>
+                    @intOverdueCount
+                </strong>
+
+                <span>
+                    Past their due date
+                </span>
+            </div>
+
+        </div>
+
+        <div class="activities-summary-card activities-summary-warning">
+
+            <span class="material-symbols-outlined">
+                today
+            </span>
+
+            <div>
+                <small>
+                    Due today
+                </small>
+
+                <strong>
+                    @intDueTodayCount
+                </strong>
+
+                <span>
+                    Scheduled for today
+                </span>
+            </div>
+
+        </div>
+
+        <div class="activities-summary-card activities-summary-success">
+
+            <span class="material-symbols-outlined">
+                task_alt
+            </span>
+
+            <div>
+                <small>
+                    Completed shown
+                </small>
+
+                <strong>
+                    @intCompletedCount
+                </strong>
+
+                <span>
+                    Finished activities
+                </span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="crm-card activities-results">
+
+        <div class="crm-card-header">
+
+            <div>
+                <h3>
+                    Activity records
+                </h3>
+
+                <p>
+                    @strResultSummary
+                </p>
             </div>
 
             <div class="activities-header-actions">
+
                 @if (HasActiveFilters)
                 {
                     <button class="btn btn-soft-secondary btn-sm"
@@ -235,24 +272,33 @@
 
                     Add activity
                 </a>
+
             </div>
+
         </div>
 
         @if (blnLoading)
         {
             <div class="crm-loading">
-                <span class="spinner-border spinner-border-sm"></span>
+
+                <span class="spinner-border spinner-border-sm">
+                </span>
+
                 Loading activities...
+
             </div>
         }
         else if (!colActivities.Any())
         {
             <div class="crm-empty-state">
+
                 <span class="material-symbols-outlined">
                     pending_actions
                 </span>
 
-                <h4>No activities found</h4>
+                <h4>
+                    No activities found
+                </h4>
 
                 <p>
                     @if (CompanyId.HasValue)
@@ -278,154 +324,319 @@
 
                     Add activity
                 </a>
+
             </div>
         }
         else
         {
-            <div class="table-responsive">
-                <table class="table table-hover align-middle crm-table activities-table">
-                    <thead>
-                        <tr>
-                            <th>Activity</th>
-                            <th>Type</th>
-                            <th>Related to</th>
-                            <th>Due</th>
-                            <th>Status</th>
-                            <th class="text-end">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
+            <div class="activities-table-view">
 
-                    <tbody>
-                        @foreach (Activity objActivity in colActivities)
-                        {
-                            <tr class="@GetRowClass(objActivity)">
-                                <td>
-                                    <div class="activities-name-cell">
-                                        <div class="activities-icon">
-                                            <span class="material-symbols-outlined">
-                                                @GetActivityIcon(objActivity.Type)
-                                            </span>
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle crm-table activities-table">
+
+                        <thead>
+                            <tr>
+                                <th>Activity</th>
+                                <th>Type</th>
+                                <th>Related to</th>
+                                <th>Due</th>
+                                <th>Status</th>
+                                <th class="text-end">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (Activity objActivity in colActivities)
+                            {
+                                <tr class="@GetRowClass(objActivity)">
+
+                                    <td>
+                                        <div class="activities-name-cell">
+
+                                            <div class="activities-icon">
+                                                <span class="material-symbols-outlined">
+                                                    @GetActivityIcon(objActivity.Type)
+                                                </span>
+                                            </div>
+
+                                            <div class="activities-name-content">
+
+                                                <a href="@($"/activities/{objActivity.Id}")"
+                                                   class="activities-name-link">
+                                                    @objActivity.Subject
+                                                </a>
+
+                                                @if (!String.IsNullOrWhiteSpace(objActivity.Description))
+                                                {
+                                                    <small class="text-muted d-block">
+                                                        @GetDescriptionPreview(objActivity.Description)
+                                                    </small>
+                                                }
+
+                                            </div>
+
                                         </div>
+                                    </td>
 
-                                        <div>
-                                            <a href="@($"/activities/{objActivity.Id}")"
-                                               class="activities-name-link">
-                                                @objActivity.Subject
+                                    <td>
+                                        <span class="activity-type">
+                                            @objActivity.Type.GetDisplay().Name
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="activities-related">
+
+                                            @if (objActivity.Company != null)
+                                            {
+                                                <a href="@($"/companies/{objActivity.Company.Id}")">
+                                                    @objActivity.Company.Name
+                                                </a>
+                                            }
+
+                                            @if (objActivity.Job != null)
+                                            {
+                                                <a href="@($"/jobs/{objActivity.Job.Id}")">
+                                                    @objActivity.Job.Name
+                                                </a>
+                                            }
+
+                                            @if (objActivity.Contact != null)
+                                            {
+                                                <a href="@($"/contacts/{objActivity.Contact.Id}")">
+                                                    @objActivity.Contact.Entity.DisplayName
+                                                </a>
+                                            }
+
+                                            @if (objActivity.Company == null &&
+                                                 objActivity.Contact == null &&
+                                                 objActivity.Job == null)
+                                            {
+                                                <span class="text-muted">
+                                                    Not linked
+                                                </span>
+                                            }
+
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="@GetDueClass(objActivity)">
+                                            @FormatDate(objActivity.DueUtc)
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="@GetStatusBadgeClass(objActivity)">
+                                            @GetStatusText(objActivity)
+                                        </span>
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        <div class="activities-row-actions">
+
+                                            @if (!objActivity.IsCompleted)
+                                            {
+                                                <button class="btn btn-soft-success btn-sm"
+                                                        type="button"
+                                                        @onclick="() => CompleteAsync(objActivity.Id)">
+
+                                                    <span class="material-symbols-outlined">
+                                                        check
+                                                    </span>
+
+                                                    Complete
+                                                </button>
+                                            }
+
+                                            <a href="@($"/activities/{objActivity.Id}/edit")"
+                                               class="btn btn-soft-secondary btn-sm">
+
+                                                <span class="material-symbols-outlined">
+                                                    edit
+                                                </span>
+
+                                                Edit
                                             </a>
 
-                                            @if (!String.IsNullOrWhiteSpace(objActivity.Description))
-                                            {
-                                                <small class="text-muted d-block">
-                                                    @GetDescriptionPreview(objActivity.Description)
-                                                </small>
-                                            }
                                         </div>
-                                    </div>
-                                </td>
 
-                                <td>
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="activities-mobile-list">
+
+                @foreach (Activity objActivity in colActivities)
+                {
+                    <article class="activities-mobile-card @GetRowClass(objActivity)">
+
+                        <a href="@($"/activities/{objActivity.Id}")"
+                           class="activities-mobile-main">
+
+                            <div class="activities-icon activities-mobile-icon">
+
+                                <span class="material-symbols-outlined">
+                                    @GetActivityIcon(objActivity.Type)
+                                </span>
+
+                            </div>
+
+                            <div class="activities-mobile-heading">
+
+                                <div class="activities-mobile-title-row">
+
+                                    <strong class="activities-mobile-title">
+                                        @objActivity.Subject
+                                    </strong>
+
                                     <span class="activity-type">
                                         @objActivity.Type.GetDisplay().Name
                                     </span>
-                                </td>
 
-                                <td>
-                                    <div class="activities-related">
-                                        @if (objActivity.Company != null)
-                                        {
-                                            <a href="@($"/companies/{objActivity.Company.Id}")">
-                                                @objActivity.Company.Name
-                                            </a>
-                                        }
+                                </div>
 
-                                        @if (objActivity.Job != null)
-                                        {
-                                            <a href="@($"/jobs/{objActivity.Job.Id}")">
-                                                @objActivity.Job.Name
-                                            </a>
-                                        }
+                                @if (!String.IsNullOrWhiteSpace(objActivity.Description))
+                                {
+                                    <p class="activities-mobile-description">
+                                        @objActivity.Description
+                                    </p>
+                                }
 
-                                        @if (objActivity.Contact != null)
-                                        {
-                                            <a href="@($"/contacts/{objActivity.Contact.Id}")">
-                                                @objActivity.Contact.Entity.DisplayName
-                                            </a>
-                                        }
+                            </div>
 
-                                        @if (objActivity.Company == null &&
-                                             objActivity.Contact == null &&
-                                             objActivity.Job == null)
-                                        {
-                                            <span class="text-muted">
-                                                Not linked
-                                            </span>
-                                        }
-                                    </div>
-                                </td>
+                            <span class="material-symbols-outlined activities-mobile-chevron">
+                                chevron_right
+                            </span>
 
-                                <td>
-                                    <span class="@GetDueClass(objActivity)">
+                        </a>
+
+                        <div class="activities-mobile-details">
+
+                            <div class="activities-mobile-detail">
+
+                                <span class="material-symbols-outlined">
+                                    event
+                                </span>
+
+                                <div>
+                                    <small>Due</small>
+
+                                    <strong class="@GetDueClass(objActivity)">
                                         @FormatDate(objActivity.DueUtc)
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                            <div class="activities-mobile-detail">
+
+                                <span class="material-symbols-outlined">
+                                    task_alt
+                                </span>
+
+                                <div>
+                                    <small>Status</small>
+
+                                    <span class="@GetStatusBadgeClass(objActivity)">
+                                        @GetStatusText(objActivity)
                                     </span>
-                                </td>
+                                </div>
 
-                                <td>
-                                    @if (objActivity.IsCompleted)
-                                    {
-                                        <span class="badge text-bg-success">
-                                            Completed
+                            </div>
+
+                        </div>
+
+                        @if (objActivity.Company != null ||
+                             objActivity.Job != null ||
+                             objActivity.Contact != null)
+                        {
+                            <div class="activities-mobile-related">
+
+                                @if (objActivity.Company != null)
+                                {
+                                    <a href="@($"/companies/{objActivity.Company.Id}")">
+                                        <span class="material-symbols-outlined">
+                                            apartment
                                         </span>
-                                    }
-                                    else if (IsOverdue(objActivity))
-                                    {
-                                        <span class="badge text-bg-danger">
-                                            Overdue
+
+                                        @objActivity.Company.Name
+                                    </a>
+                                }
+
+                                @if (objActivity.Job != null)
+                                {
+                                    <a href="@($"/jobs/{objActivity.Job.Id}")">
+                                        <span class="material-symbols-outlined">
+                                            track_changes
                                         </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge text-bg-primary">
-                                            Open
+
+                                        @objActivity.Job.Name
+                                    </a>
+                                }
+
+                                @if (objActivity.Contact != null)
+                                {
+                                    <a href="@($"/contacts/{objActivity.Contact.Id}")">
+                                        <span class="material-symbols-outlined">
+                                            person
                                         </span>
-                                    }
-                                </td>
 
-                                <td class="text-end">
-                                    <div class="activities-row-actions">
+                                        @objActivity.Contact.Entity.DisplayName
+                                    </a>
+                                }
 
-                                        @if (!objActivity.IsCompleted)
-                                        {
-                                            <button class="btn btn-soft-success btn-sm"
-                                                    type="button"
-                                                    @onclick="() => CompleteAsync(objActivity.Id)">
-
-                                                <span class="material-symbols-outlined">
-                                                    check
-                                                </span>
-
-                                                Complete
-                                            </button>
-                                        }
-
-                                        <a href="@($"/activities/{objActivity.Id}/edit")"
-                                           class="btn btn-soft-secondary btn-sm">
-
-                                            <span class="material-symbols-outlined">
-                                                edit
-                                            </span>
-
-                                            Edit
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
+                            </div>
                         }
-                    </tbody>
-                </table>
+
+                        <div class="activities-mobile-actions">
+
+                            @if (!objActivity.IsCompleted)
+                            {
+                                <button class="btn btn-soft-success"
+                                        type="button"
+                                        @onclick="() => CompleteAsync(objActivity.Id)">
+
+                                    <span class="material-symbols-outlined">
+                                        check
+                                    </span>
+
+                                    Complete
+                                </button>
+                            }
+
+                            <a href="@($"/activities/{objActivity.Id}/edit")"
+                               class="btn btn-soft-secondary">
+
+                                <span class="material-symbols-outlined">
+                                    edit
+                                </span>
+
+                                Edit
+                            </a>
+
+                        </div>
+
+                    </article>
+                }
+
             </div>
         }
+
     </div>
 
 </section>
@@ -646,11 +857,13 @@
 
         intOpenCount =
             colActivities.Count(
-                x => !x.IsCompleted);
+                objActivity =>
+                    !objActivity.IsCompleted);
 
         intCompletedCount =
             colActivities.Count(
-                x => x.IsCompleted);
+                objActivity =>
+                    objActivity.IsCompleted);
 
         intOverdueCount =
             colActivities.Count(
@@ -658,11 +871,13 @@
 
         intDueTodayCount =
             colActivities.Count(
-                x =>
-                    !x.IsCompleted &&
-                    x.DueUtc.HasValue &&
-                    x.DueUtc.Value >= dteTodayUtc &&
-                    x.DueUtc.Value < dteTomorrowUtc);
+                objActivity =>
+                    !objActivity.IsCompleted &&
+                    objActivity.DueUtc.HasValue &&
+                    objActivity.DueUtc.Value >=
+                        dteTodayUtc &&
+                    objActivity.DueUtc.Value <
+                        dteTomorrowUtc);
     }
 
     private void SetResultSummary()
@@ -780,6 +995,38 @@
             _ =>
                 "task_alt"
         };
+    }
+
+    private static String GetStatusBadgeClass(
+        Activity objActivity)
+    {
+        if (objActivity.IsCompleted)
+        {
+            return "activities-status activities-status-completed";
+        }
+
+        if (IsOverdue(objActivity))
+        {
+            return "activities-status activities-status-overdue";
+        }
+
+        return "activities-status activities-status-open";
+    }
+
+    private static String GetStatusText(
+        Activity objActivity)
+    {
+        if (objActivity.IsCompleted)
+        {
+            return "Completed";
+        }
+
+        if (IsOverdue(objActivity))
+        {
+            return "Overdue";
+        }
+
+        return "Open";
     }
 
     private static String GetDescriptionPreview(
