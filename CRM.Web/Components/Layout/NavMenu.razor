@@ -1,51 +1,109 @@
 ﻿<nav class="crm-nav">
-    <NavLink class="crm-nav-link" href="/dashboard" Match="NavLinkMatch.All">
-        <span class="material-symbols-outlined">dashboard</span>
+    <NavLink class="crm-nav-link"
+             href="/dashboard"
+             Match="NavLinkMatch.All"
+             @onclick="HandleNavigate">
+        <span class="material-symbols-outlined">
+            dashboard
+        </span>
         <span>Dashboard</span>
     </NavLink>
 
-    <NavLink class="crm-nav-link" href="/companies">
-        <span class="material-symbols-outlined">apartment</span>
+    <NavLink class="crm-nav-link"
+             href="/companies"
+             @onclick="HandleNavigate">
+        <span class="material-symbols-outlined">
+            apartment
+        </span>
         <span>Companies</span>
     </NavLink>
 
-    <NavLink class="crm-nav-link" href="/contacts">
-        <span class="material-symbols-outlined">person</span>
+    <NavLink class="crm-nav-link"
+             href="/contacts"
+             @onclick="HandleNavigate">
+        <span class="material-symbols-outlined">
+            person
+        </span>
         <span>Contacts</span>
     </NavLink>
 
-    <NavLink class="crm-nav-link" href="/jobs">
-        <span class="material-symbols-outlined">ads_click</span>
+    <NavLink class="crm-nav-link"
+             href="/jobs"
+             @onclick="HandleNavigate">
+        <span class="material-symbols-outlined">
+            ads_click
+        </span>
         <span>Jobs</span>
     </NavLink>
 
-    <NavLink class="crm-nav-link" href="/notes">
-        <span class="material-symbols-outlined">sticky_note_2</span>
+    <NavLink class="crm-nav-link"
+             href="/notes"
+             @onclick="HandleNavigate">
+        <span class="material-symbols-outlined">
+            sticky_note_2
+        </span>
         <span>Notes</span>
     </NavLink>
 
-    <NavLink class="crm-nav-link" href="/tickets">
-        <span class="material-symbols-outlined">business_center</span>
+    <NavLink class="crm-nav-link"
+             href="/tickets"
+             @onclick="HandleNavigate">
+        <span class="material-symbols-outlined">
+            business_center
+        </span>
         <span>Tickets</span>
     </NavLink>
 
-    <NavLink class="crm-nav-link" href="/activities">
-        <span class="material-symbols-outlined">calendar_month</span>
+    <NavLink class="crm-nav-link"
+             href="/activities"
+             @onclick="HandleNavigate">
+        <span class="material-symbols-outlined">
+            calendar_month
+        </span>
         <span>Activities</span>
     </NavLink>
 
-    <NavLink class="crm-nav-link" href="/logs">
-        <span class="material-symbols-outlined">list_alt</span>
+    <div class="crm-nav-divider"></div>
+
+    <div class="crm-nav-label">
+        Administration
+    </div>
+
+    <NavLink class="crm-nav-link"
+             href="/logs"
+             @onclick="HandleNavigate">
+        <span class="material-symbols-outlined">
+            list_alt
+        </span>
         <span>Logs</span>
     </NavLink>
 
-    <NavLink class="crm-nav-link" href="/settings/users">
-        <span class="material-symbols-outlined">group</span>
+    <NavLink class="crm-nav-link"
+             href="/settings/users"
+             @onclick="HandleNavigate">
+        <span class="material-symbols-outlined">
+            group
+        </span>
         <span>Users</span>
     </NavLink>
 
-    <NavLink class="crm-nav-link" href="/settings" Match="NavLinkMatch.All">
-        <span class="material-symbols-outlined">settings</span>
+    <NavLink class="crm-nav-link"
+             href="/settings"
+             Match="NavLinkMatch.All"
+             @onclick="HandleNavigate">
+        <span class="material-symbols-outlined">
+            settings
+        </span>
         <span>Settings</span>
     </NavLink>
 </nav>
+
+@code {
+    [Parameter]
+    public EventCallback OnNavigate { get; set; }
+
+    private Task HandleNavigate()
+    {
+        return OnNavigate.InvokeAsync();
+    }
+}
