@@ -16,6 +16,8 @@ namespace CRM.Core.Entities.Domain
         Activity = 5,
         [Display(Name = "Service")]
         Service = 6,
+        [Display(Name = "Invoice")]
+        Invoice = 7,
 
         [Display(Name = "Custom Record")]
         CustomRecord = 100

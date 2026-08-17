@@ -1,6 +1,7 @@
 ﻿using CRM.Core.Companies.Domain;
 using CRM.Core.Contacts.Domain;
 using CRM.Core.Entities.Domain;
+using CRM.Core.Invoices.Domain;
 
 namespace CRM.Core.Jobs.Domain
 {
@@ -58,5 +59,7 @@ namespace CRM.Core.Jobs.Domain
         public Contact? Contact { get; set; }
 
         public ICollection<JobServiceLink> ServiceLinks { get; set; } = [];
+
+        public ICollection<Invoice> Invoices { get; set; } = [];
     }
 }
