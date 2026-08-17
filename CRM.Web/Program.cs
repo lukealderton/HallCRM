@@ -2,6 +2,7 @@ using CRM.Core;
 using CRM.Core.Common.Abstraction;
 using CRM.Core.Common.Configuration;
 using CRM.Core.Invoices.Abstractions;
+using CRM.Core.Invoices.Domain;
 using CRM.Core.Jobs.Abstractions;
 using CRM.Infrastructure;
 using CRM.Infrastructure.Data;
@@ -121,27 +122,46 @@ objApp.MapGet(
     "/invoices/{invoiceId:guid}/invoice.pdf",
     async (
         Guid invoiceId,
+        IInvoiceService objInvoiceService,
         IInvoiceDocumentService objInvoiceDocumentService,
         CancellationToken objToken) =>
     {
-        try
-        {
-            Byte[] bytPdf =
-                await objInvoiceDocumentService
-                    .GenerateInvoiceAsync(
-                        invoiceId,
-                        objToken);
+        Invoice? objInvoice =
+            await objInvoiceService.GetInvoiceByIdAsync(
+                invoiceId,
+                objToken);
 
-            return Results.File(
-                bytPdf,
-                "application/pdf",
-                $"invoice-{invoiceId:N}.pdf");
+        if (objInvoice == null)
+        {
+            return Results.NotFound();
         }
-        catch (InvalidOperationException objError)
+
+        if (objInvoice.Status ==
+            InvoiceStatus.Draft)
         {
             return Results.BadRequest(
-                objError.Message);
+                "Draft invoices cannot be generated as customer invoices.");
         }
+
+        Byte[] bytPdf =
+            await objInvoiceDocumentService
+                .GenerateInvoiceAsync(
+                    invoiceId,
+                    objToken);
+
+        String strFileNumber =
+            objInvoice.InvoiceNumber
+                .Replace(
+                    "/",
+                    "-")
+                .Replace(
+                    "\\",
+                    "-");
+
+        return Results.File(
+            bytPdf,
+            "application/pdf",
+            $"{strFileNumber}.pdf");
     })
     .RequireAuthorization();
 

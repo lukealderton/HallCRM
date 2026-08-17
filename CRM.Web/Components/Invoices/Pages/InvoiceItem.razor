@@ -182,11 +182,9 @@
 
             <div class="invoice-profile-actions">
 
-                @if (objInvoice.Status ==
-                    InvoiceStatus.Draft)
+                @if (objInvoice.Status == InvoiceStatus.Draft)
                 {
-                    <a href="@GetEditUrl(
-                                   objInvoice.Id)"
+                    <a href="@GetEditUrl(objInvoice.Id)"
                        class="btn btn-primary">
 
                         <span class="material-symbols-outlined">
@@ -194,13 +192,11 @@
                         </span>
 
                         Edit invoice
-
                     </a>
                 }
                 else
                 {
-                    <a href="@GetInvoicePdfUrl(
-                                   objInvoice.Id)"
+                    <a href="@GetInvoicePdfUrl(objInvoice.Id)"
                        class="btn btn-primary"
                        target="_blank">
 
@@ -209,20 +205,17 @@
                         </span>
 
                         Open PDF
-
                     </a>
                 }
 
-                <a href="@GetJobUrl(
-                           objInvoice.JobId)"
-                   class="btn btn-soft-secondary">
+                <a href="@GetJobUrl(objInvoice.JobId)"
+                   class="btn btn-soft-secondary ms-3">
 
                     <span class="material-symbols-outlined">
                         work
                     </span>
 
                     Open job
-
                 </a>
 
             </div>
@@ -815,6 +808,6 @@
 
     private static String GetInvoicePdfUrl(Guid objInvoiceId)
     {
-        return "/invoices/{objInvoiceId}/invoice.pdf";
+        return $"/invoices/{objInvoiceId}/invoice.pdf";
     }
 }
