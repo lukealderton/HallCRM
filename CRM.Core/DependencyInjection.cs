@@ -6,6 +6,8 @@ using CRM.Core.Contacts.Abstractions;
 using CRM.Core.Contacts.Services;
 using CRM.Core.Entities.Abstractions;
 using CRM.Core.Entities.Services;
+using CRM.Core.Invoices.Abstractions;
+using CRM.Core.Invoices.Services;
 using CRM.Core.Jobs.Abstractions;
 using CRM.Core.Jobs.Services;
 using CRM.Core.Logging.Abstraction;
@@ -44,6 +46,8 @@ namespace CRM.Core
             colServices.AddScoped<IActivityService, ActivityService>();
 
             colServices.AddScoped<IServiceService, ServiceService>();
+
+            colServices.AddScoped<IInvoiceService, InvoiceService>();
 
             return colServices;
         }

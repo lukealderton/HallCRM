@@ -3,13 +3,13 @@ using CRM.Core.Companies.Abstractions;
 using CRM.Core.Contacts.Abstractions;
 using CRM.Core.Entities.Abstractions;
 using CRM.Core.Geocoding.Abstraction;
+using CRM.Core.Invoices.Abstractions;
 using CRM.Core.Jobs.Abstractions;
 using CRM.Core.Logging.Abstraction;
 using CRM.Core.Mailing.Abstraction;
 using CRM.Core.Notes.Abstractions;
 using CRM.Core.Notifications.Abstractions;
 using CRM.Core.Services.Abstractions;
-using CRM.Core.Services.Domain;
 using CRM.Core.Tickets.Abstractions;
 using CRM.Core.Users.Abstraction.Repositories;
 using CRM.Infrastructure.Activities.Repositories;
@@ -18,6 +18,7 @@ using CRM.Infrastructure.Contacts.Repositories;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Entities.Repositories;
 using CRM.Infrastructure.Geocoding.Services;
+using CRM.Infrastructure.Invoices.Repositories;
 using CRM.Infrastructure.Jobs.Repositories;
 using CRM.Infrastructure.Jobs.Services;
 using CRM.Infrastructure.Logging.Repositories;
@@ -75,6 +76,8 @@ namespace CRM.Infrastructure
             colServices.AddScoped<IServiceRepository, ServiceRepository>();
 
             colServices.AddScoped<IJobSheetService, JobSheetService>();
+
+            colServices.AddScoped<IInvoiceRepository, InvoiceRepository>();
 
             return colServices;
         }

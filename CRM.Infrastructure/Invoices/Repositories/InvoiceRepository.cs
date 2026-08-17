@@ -1,0 +1,398 @@
+﻿using CRM.Core.Invoices.Abstractions;
+using CRM.Core.Invoices.Domain;
+using CRM.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+
+namespace CRM.Infrastructure.Invoices.Repositories
+{
+    public sealed class InvoiceRepository : IInvoiceRepository
+    {
+        private readonly IDbContextFactory<CRMDbContext> _dbContextFactory;
+
+        public InvoiceRepository(
+            IDbContextFactory<CRMDbContext> objDbContextFactory)
+        {
+            _dbContextFactory =
+                objDbContextFactory;
+        }
+
+        ///<inheritdoc/>
+        public async Task<Invoice?> GetInvoiceByIdAsync(
+            Guid objInvoiceId,
+            Boolean blnAsTracking = false,
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objContext =
+                await _dbContextFactory.CreateDbContextAsync(
+                    objToken);
+
+            IQueryable<Invoice> objQuery =
+                objContext
+                    .Set<Invoice>()
+                    .Include(objInvoice =>
+                        objInvoice.Entity)
+                    .Include(objInvoice =>
+                        objInvoice.Job)
+                        .ThenInclude(objJob =>
+                            objJob.Entity)
+                    .Include(objInvoice =>
+                        objInvoice.Company)
+                    .Include(objInvoice =>
+                        objInvoice.Contact)
+                            .ThenInclude(objContact =>
+                                objContact!.Entity)
+                    .Include(objInvoice =>
+                        objInvoice.Lines)
+                        .ThenInclude(objLine =>
+                            objLine.Service);
+
+            if (!blnAsTracking)
+            {
+                objQuery =
+                    objQuery.AsNoTracking();
+            }
+
+            return await objQuery
+                .FirstOrDefaultAsync(
+                    objInvoice =>
+                        objInvoice.Id ==
+                        objInvoiceId,
+                    objToken);
+        }
+
+        ///<inheritdoc/>
+        public async Task<List<Invoice>> GetInvoicesAsync(
+            String? strSearch = null,
+            InvoiceStatus? enmStatus = null,
+            Guid? objJobId = null,
+            Guid? objCompanyId = null,
+            Boolean blnIncludeArchived = false,
+            Boolean blnIncludeDeleted = false,
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objContext =
+                await _dbContextFactory.CreateDbContextAsync(
+                    objToken);
+
+            IQueryable<Invoice> objQuery =
+                objContext
+                    .Set<Invoice>()
+                    .AsNoTracking()
+                    .Include(objInvoice =>
+                        objInvoice.Entity)
+                    .Include(objInvoice =>
+                        objInvoice.Job)
+                    .Include(objInvoice =>
+                        objInvoice.Company)
+                    .Include(objInvoice =>
+                        objInvoice.Contact)
+                            .ThenInclude(objContact =>
+                                objContact!.Entity)
+                    .Include(objInvoice =>
+                        objInvoice.Lines);
+
+            if (!blnIncludeDeleted)
+            {
+                objQuery =
+                    objQuery.Where(
+                        objInvoice =>
+                            !objInvoice.Entity.DeletedUtc.HasValue);
+            }
+
+            if (!blnIncludeArchived)
+            {
+                objQuery =
+                    objQuery.Where(
+                        objInvoice =>
+                            !objInvoice.Entity.ArchivedUtc.HasValue);
+            }
+
+            if (enmStatus.HasValue)
+            {
+                objQuery =
+                    objQuery.Where(
+                        objInvoice =>
+                            objInvoice.Status ==
+                            enmStatus.Value);
+            }
+
+            if (objJobId.HasValue)
+            {
+                objQuery =
+                    objQuery.Where(
+                        objInvoice =>
+                            objInvoice.JobId ==
+                            objJobId.Value);
+            }
+
+            if (objCompanyId.HasValue)
+            {
+                objQuery =
+                    objQuery.Where(
+                        objInvoice =>
+                            objInvoice.CompanyId ==
+                            objCompanyId.Value);
+            }
+
+            if (!String.IsNullOrWhiteSpace(
+                strSearch))
+            {
+                String strSearchValue =
+                    strSearch.Trim();
+
+                objQuery =
+                    objQuery.Where(
+                        objInvoice =>
+                            objInvoice.InvoiceNumber.Contains(
+                                strSearchValue) ||
+
+                            (objInvoice.CustomerName != null &&
+                             objInvoice.CustomerName.Contains(
+                                 strSearchValue)) ||
+
+                            objInvoice.Job.Name.Contains(
+                                strSearchValue) ||
+
+                            (objInvoice.Company != null &&
+                             objInvoice.Company.Name.Contains(
+                                 strSearchValue)) ||
+
+                            (objInvoice.Postcode != null &&
+                             objInvoice.Postcode.Contains(
+                                 strSearchValue)));
+            }
+
+            return await objQuery
+                .OrderByDescending(
+                    objInvoice =>
+                        objInvoice.IssueDateUtc ??
+                        objInvoice.Entity.CreatedUtc)
+                .ThenByDescending(
+                    objInvoice =>
+                        objInvoice.Entity.CreatedUtc)
+                .ToListAsync(
+                    objToken);
+        }
+
+        ///<inheritdoc/>
+        public async Task AddInvoiceAsync(
+            Invoice objInvoice,
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objContext =
+                await _dbContextFactory.CreateDbContextAsync(
+                    objToken);
+
+            /*
+             * Relationships are referenced by their foreign-key IDs.
+             * Don't let detached Job / Company / Contact / Service
+             * graphs get inserted or modified when the invoice is added.
+             */
+            objInvoice.Job =
+                null!;
+
+            objInvoice.Company =
+                null;
+
+            objInvoice.Contact =
+                null;
+
+            foreach (InvoiceLine objLine
+                in objInvoice.Lines)
+            {
+                objLine.Invoice =
+                    objInvoice;
+
+                objLine.Service =
+                    null;
+            }
+
+            objContext
+                .Set<Invoice>()
+                .Add(
+                    objInvoice);
+
+            await objContext.SaveChangesAsync(
+                objToken);
+        }
+
+        ///<inheritdoc/>
+        public async Task UpdateInvoiceAsync(
+            Invoice objInvoice,
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objContext =
+                await _dbContextFactory.CreateDbContextAsync(
+                    objToken);
+
+            /*
+             * Invoice lines are part of the Invoice aggregate.
+             * Replace the existing lines with the supplied snapshot.
+             */
+            List<InvoiceLine> colExistingLines =
+                await objContext
+                    .Set<InvoiceLine>()
+                    .Where(
+                        objLine =>
+                            objLine.InvoiceId ==
+                            objInvoice.Id)
+                    .ToListAsync(
+                        objToken);
+
+            if (colExistingLines.Count > 0)
+            {
+                objContext
+                    .Set<InvoiceLine>()
+                    .RemoveRange(
+                        colExistingLines);
+            }
+
+            Invoice? objExistingInvoice =
+                await objContext
+                    .Set<Invoice>()
+                    .Include(objExisting =>
+                        objExisting.Entity)
+                    .FirstOrDefaultAsync(
+                        objExisting =>
+                            objExisting.Id ==
+                            objInvoice.Id,
+                        objToken);
+
+            if (objExistingInvoice == null)
+            {
+                return;
+            }
+
+            objExistingInvoice.JobId =
+                objInvoice.JobId;
+
+            objExistingInvoice.CompanyId =
+                objInvoice.CompanyId;
+
+            objExistingInvoice.ContactId =
+                objInvoice.ContactId;
+
+            objExistingInvoice.InvoiceNumber =
+                objInvoice.InvoiceNumber;
+
+            objExistingInvoice.Status =
+                objInvoice.Status;
+
+            objExistingInvoice.IssueDateUtc =
+                objInvoice.IssueDateUtc;
+
+            objExistingInvoice.DueDateUtc =
+                objInvoice.DueDateUtc;
+
+            objExistingInvoice.CustomerName =
+                objInvoice.CustomerName;
+
+            objExistingInvoice.AddressLine1 =
+                objInvoice.AddressLine1;
+
+            objExistingInvoice.AddressLine2 =
+                objInvoice.AddressLine2;
+
+            objExistingInvoice.Town =
+                objInvoice.Town;
+
+            objExistingInvoice.County =
+                objInvoice.County;
+
+            objExistingInvoice.Postcode =
+                objInvoice.Postcode;
+
+            objExistingInvoice.Notes =
+                objInvoice.Notes;
+
+            objExistingInvoice.Entity.DisplayName =
+                objInvoice.Entity.DisplayName;
+
+            objExistingInvoice.Entity.UpdatedUtc =
+                objInvoice.Entity.UpdatedUtc;
+
+            objExistingInvoice.Entity.UpdatedByUserId =
+                objInvoice.Entity.UpdatedByUserId;
+
+            objExistingInvoice.Entity.ArchivedUtc =
+                objInvoice.Entity.ArchivedUtc;
+
+            objExistingInvoice.Entity.ArchivedByUserId =
+                objInvoice.Entity.ArchivedByUserId;
+
+            objExistingInvoice.Entity.DeletedUtc =
+                objInvoice.Entity.DeletedUtc;
+
+            objExistingInvoice.Entity.DeletedByUserId =
+                objInvoice.Entity.DeletedByUserId;
+
+            foreach (InvoiceLine objLine
+                in objInvoice.Lines)
+            {
+                objContext
+                    .Set<InvoiceLine>()
+                    .Add(
+                        new InvoiceLine
+                        {
+                            Id =
+                                objLine.Id == Guid.Empty
+                                    ? Guid.NewGuid()
+                                    : objLine.Id,
+
+                            InvoiceId =
+                                objInvoice.Id,
+
+                            ServiceId =
+                                objLine.ServiceId,
+
+                            SortOrder =
+                                objLine.SortOrder,
+
+                            Description =
+                                objLine.Description,
+
+                            Quantity =
+                                objLine.Quantity,
+
+                            UnitPrice =
+                                objLine.UnitPrice
+                        });
+            }
+
+            await objContext.SaveChangesAsync(
+                objToken);
+        }
+
+        ///<inheritdoc/>
+        public async Task<Boolean> InvoiceNumberExistsAsync(
+            String strInvoiceNumber,
+            Guid? objExcludeInvoiceId = null,
+            CancellationToken objToken = default)
+        {
+            await using CRMDbContext objContext =
+                await _dbContextFactory.CreateDbContextAsync(
+                    objToken);
+
+            IQueryable<Invoice> objQuery =
+                objContext
+                    .Set<Invoice>()
+                    .AsNoTracking()
+                    .Where(
+                        objInvoice =>
+                            objInvoice.InvoiceNumber ==
+                            strInvoiceNumber);
+
+            if (objExcludeInvoiceId.HasValue)
+            {
+                objQuery =
+                    objQuery.Where(
+                        objInvoice =>
+                            objInvoice.Id !=
+                            objExcludeInvoiceId.Value);
+            }
+
+            return await objQuery.AnyAsync(
+                objToken);
+        }
+    }
+}
