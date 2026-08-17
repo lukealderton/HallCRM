@@ -58,9 +58,10 @@ namespace CRM.Infrastructure.Services.Repositories
             IQueryable<Service> objQuery =
                 objDbContext.Services
                     .AsNoTracking()
-                    .Include(
-                        objService =>
-                            objService.Entity);
+                    .Include(objService =>
+                        objService.Entity)
+                    .Include(objService =>
+                        objService.JobLinks);
 
             if (!blnIncludeDeleted)
             {

@@ -1,0 +1,674 @@
+﻿@page "/services"
+
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using CRM.Core.Services.Abstractions
+@using CRM.Web.State
+@using CrmService = CRM.Core.Services.Domain.Service
+
+@inject IServiceService ServiceService
+@inject NavigationManager Navigation
+@inject PageHeaderState HeaderState
+
+<SeoHead Title="Services" />
+
+<section class="services-page">
+
+    <div class="services-toolbar crm-card">
+
+        <div class="services-search">
+
+            <label class="form-label"
+                   for="serviceSearch">
+                Search services
+            </label>
+
+            <div class="input-group">
+
+                <span class="input-group-text">
+                    <span class="material-symbols-outlined">
+                        search
+                    </span>
+                </span>
+
+                <input id="serviceSearch"
+                       type="search"
+                       class="form-control"
+                       placeholder="Search by name or description..."
+                       @bind="strSearch"
+                       @bind:event="oninput"
+                       @onkeydown="SearchKeyDownAsync" />
+
+            </div>
+
+        </div>
+
+        <div class="services-filters">
+
+            <div class="form-check form-switch">
+
+                <input id="includeArchived"
+                       class="form-check-input"
+                       type="checkbox"
+                       role="switch"
+                       @bind="blnIncludeArchived"
+                       @bind:after="LoadServicesAsync" />
+
+                <label class="form-check-label"
+                       for="includeArchived">
+                    Show archived
+                </label>
+
+            </div>
+
+        </div>
+
+        <div class="services-toolbar-actions">
+
+            <button type="button"
+                    class="btn btn-soft-secondary"
+                    disabled="@blnLoading"
+                    @onclick="LoadServicesAsync">
+
+                <span class="material-symbols-outlined">
+                    refresh
+                </span>
+
+                Refresh
+            </button>
+
+            <a href="/services/add"
+               class="btn btn-primary">
+
+                <span class="material-symbols-outlined">
+                    add
+                </span>
+
+                Add service
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="services-summary">
+
+        <div class="crm-card services-summary-card">
+
+            <div class="services-summary-icon">
+                <span class="material-symbols-outlined">
+                    home_repair_service
+                </span>
+            </div>
+
+            <div>
+                <small>Services shown</small>
+                <strong>@colServices.Count</strong>
+            </div>
+
+        </div>
+
+        <div class="crm-card services-summary-card">
+
+            <div class="services-summary-icon services-summary-icon-jobs">
+                <span class="material-symbols-outlined">
+                    work
+                </span>
+            </div>
+
+            <div>
+                <small>Linked jobs</small>
+                <strong>@GetLinkedJobCount()</strong>
+            </div>
+
+        </div>
+
+        <div class="crm-card services-summary-card">
+
+            <div class="services-summary-icon services-summary-icon-priced">
+                <span class="material-symbols-outlined">
+                    payments
+                </span>
+            </div>
+
+            <div>
+                <small>With default price</small>
+                <strong>@GetPricedServiceCount()</strong>
+            </div>
+
+        </div>
+
+        <div class="crm-card services-summary-card">
+
+            <div class="services-summary-icon services-summary-icon-archived">
+                <span class="material-symbols-outlined">
+                    archive
+                </span>
+            </div>
+
+            <div>
+                <small>Archived shown</small>
+                <strong>@GetArchivedCount()</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+    @if (!String.IsNullOrWhiteSpace(
+        strErrorMessage))
+    {
+        <div class="alert alert-danger services-alert"
+             role="alert">
+
+            <span class="material-symbols-outlined">
+                error
+            </span>
+
+            <div class="alert-content">
+
+                <strong class="alert-title">
+                    Unable to load services
+                </strong>
+
+                <p>
+                    @strErrorMessage
+                </p>
+
+            </div>
+
+        </div>
+    }
+
+    <div class="crm-card services-results">
+
+        <div class="crm-card-header">
+
+            <div>
+                <h3>Services</h3>
+
+                <p>
+                    Manage the types of work that can be linked to jobs.
+                </p>
+            </div>
+
+            @if (HasActiveFilters())
+            {
+                <button type="button"
+                        class="btn btn-soft-secondary btn-sm"
+                        @onclick="ClearFiltersAsync">
+
+                    <span class="material-symbols-outlined">
+                        filter_alt_off
+                    </span>
+
+                    Clear filters
+                </button>
+            }
+
+        </div>
+
+        @if (blnLoading)
+        {
+            <div class="crm-loading">
+
+                <span class="spinner-border spinner-border-sm"></span>
+
+                Loading services...
+
+            </div>
+        }
+        else if (colServices.Count == 0)
+        {
+            <div class="services-empty-state">
+
+                <div class="services-empty-icon">
+                    <span class="material-symbols-outlined">
+                        home_repair_service
+                    </span>
+                </div>
+
+                <h3>
+                    @(HasActiveFilters()
+                        ? "No matching services"
+                        : "No services yet")
+                </h3>
+
+                <p>
+                    @(HasActiveFilters()
+                        ? "Try changing or clearing the current filters."
+                        : "Add the types of work your business carries out.")
+                </p>
+
+                @if (!HasActiveFilters())
+                {
+                    <a href="/services/add"
+                       class="btn btn-primary">
+
+                        <span class="material-symbols-outlined">
+                            add
+                        </span>
+
+                        Add first service
+                    </a>
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="services-table-view">
+
+                <div class="table-responsive">
+
+                    <table class="table services-table align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Default price</th>
+                                <th>Jobs</th>
+                                <th>Status</th>
+                                <th class="text-end">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (CrmService objService
+                                in colServices)
+                            {
+                                <tr class="@GetRowClass(objService)">
+
+                                    <td>
+
+                                        <a href="@GetServiceUrl(objService.Id)"
+                                           class="services-name">
+
+                                            @objService.Name
+
+                                        </a>
+
+                                        @if (!String.IsNullOrWhiteSpace(
+                                            objService.Description))
+                                        {
+                                            <div class="services-description">
+                                                @GetDescriptionPreview(
+                                                    objService.Description)
+                                            </div>
+                                        }
+
+                                    </td>
+
+                                    <td>
+                                        @FormatMoney(
+                                            objService.DefaultPrice)
+                                    </td>
+
+                                    <td>
+
+                                        <span class="services-job-count">
+
+                                            <span class="material-symbols-outlined">
+                                                work
+                                            </span>
+
+                                            @objService.JobLinks.Count
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (IsArchived(objService))
+                                        {
+                                            <span class="services-status services-status-archived">
+                                                Archived
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="services-status services-status-active">
+                                                Active
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        <div class="services-row-actions">
+
+                                            <a href="@GetServiceUrl(objService.Id)"
+                                               class="btn btn-soft-secondary btn-sm"
+                                               title="View service">
+
+                                                <span class="material-symbols-outlined">
+                                                    visibility
+                                                </span>
+
+                                            </a>
+
+                                            <a href="@GetEditUrl(objService.Id)"
+                                               class="btn btn-soft-secondary btn-sm"
+                                               title="Edit service">
+
+                                                <span class="material-symbols-outlined">
+                                                    edit
+                                                </span>
+
+                                            </a>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="services-mobile-list">
+
+                @foreach (CrmService objService
+                    in colServices)
+                {
+                    <article class="services-mobile-card @GetRowClass(objService)">
+
+                        <a href="@GetServiceUrl(objService.Id)"
+                           class="services-mobile-main">
+
+                            <div class="services-mobile-icon">
+
+                                <span class="material-symbols-outlined">
+                                    home_repair_service
+                                </span>
+
+                            </div>
+
+                            <div class="services-mobile-content">
+
+                                <div class="services-mobile-title-row">
+
+                                    <strong>
+                                        @objService.Name
+                                    </strong>
+
+                                    @if (IsArchived(objService))
+                                    {
+                                        <span class="services-status services-status-archived">
+                                            Archived
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="services-status services-status-active">
+                                            Active
+                                        </span>
+                                    }
+
+                                </div>
+
+                                @if (!String.IsNullOrWhiteSpace(
+                                    objService.Description))
+                                {
+                                    <p>
+                                        @GetDescriptionPreview(
+                                            objService.Description)
+                                    </p>
+                                }
+
+                            </div>
+
+                            <span class="material-symbols-outlined services-mobile-arrow">
+                                chevron_right
+                            </span>
+
+                        </a>
+
+                        <div class="services-mobile-details">
+
+                            <div>
+                                <small>Default price</small>
+
+                                <strong>
+                                    @FormatMoney(
+                                        objService.DefaultPrice)
+                                </strong>
+                            </div>
+
+                            <div>
+                                <small>Linked jobs</small>
+
+                                <strong>
+                                    @objService.JobLinks.Count
+                                </strong>
+                            </div>
+
+                        </div>
+
+                        <div class="services-mobile-actions">
+
+                            <a href="@GetServiceUrl(objService.Id)"
+                               class="btn btn-soft-secondary">
+
+                                <span class="material-symbols-outlined">
+                                    visibility
+                                </span>
+
+                                View
+                            </a>
+
+                            <a href="@GetEditUrl(objService.Id)"
+                               class="btn btn-soft-secondary">
+
+                                <span class="material-symbols-outlined">
+                                    edit
+                                </span>
+
+                                Edit
+                            </a>
+
+                        </div>
+
+                    </article>
+                }
+
+            </div>
+        }
+
+    </div>
+
+</section>
+
+@code {
+    private List<CrmService> colServices =
+        [];
+
+    private String? strSearch;
+
+    private String? strErrorMessage;
+
+    private Boolean blnIncludeArchived;
+
+    private Boolean blnLoading =
+        true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        HeaderState.SetHeader(
+            "Services",
+            "Manage the work and services offered by the business",
+            GetHeaderActions());
+
+        await LoadServicesAsync();
+    }
+
+    private RenderFragment GetHeaderActions()
+    {
+        return @<a href="/services/add"
+               class="btn btn-primary">
+
+            <span class="material-symbols-outlined">
+                add
+            </span>
+
+            Add service
+
+        </a>;
+    }
+
+    private async Task LoadServicesAsync()
+    {
+        blnLoading =
+            true;
+
+        strErrorMessage =
+            null;
+
+        try
+        {
+            colServices =
+                await ServiceService.GetServicesAsync(
+                    strSearch,
+                    blnIncludeArchived,
+                    false);
+        }
+        catch (Exception objError)
+        {
+            strErrorMessage =
+                objError.Message;
+        }
+        finally
+        {
+            blnLoading =
+                false;
+        }
+    }
+
+    private async Task SearchKeyDownAsync(
+        KeyboardEventArgs objArgs)
+    {
+        if (objArgs.Key != "Enter")
+        {
+            return;
+        }
+
+        await LoadServicesAsync();
+    }
+
+    private async Task ClearFiltersAsync()
+    {
+        strSearch =
+            null;
+
+        blnIncludeArchived =
+            false;
+
+        await LoadServicesAsync();
+    }
+
+    private Boolean HasActiveFilters()
+    {
+        return !String.IsNullOrWhiteSpace(
+                   strSearch) ||
+               blnIncludeArchived;
+    }
+
+    private Int32 GetLinkedJobCount()
+    {
+        return colServices
+            .SelectMany(objService =>
+                objService.JobLinks)
+            .Select(objLink =>
+                objLink.JobId)
+            .Distinct()
+            .Count();
+    }
+
+    private Int32 GetPricedServiceCount()
+    {
+        return colServices.Count(
+            objService =>
+                objService.DefaultPrice.HasValue);
+    }
+
+    private Int32 GetArchivedCount()
+    {
+        return colServices.Count(
+            IsArchived);
+    }
+
+    private static Boolean IsArchived(
+        CrmService objService)
+    {
+        return objService.Entity
+            .ArchivedUtc.HasValue;
+    }
+
+    private static String GetRowClass(
+        CrmService objService)
+    {
+        return IsArchived(objService)
+            ? "is-archived"
+            : String.Empty;
+    }
+
+    private static String GetServiceUrl(
+        Guid objServiceId)
+    {
+        return $"/services/{objServiceId}";
+    }
+
+    private static String GetEditUrl(
+        Guid objServiceId)
+    {
+        return $"/services/{objServiceId}/edit";
+    }
+
+    private static String FormatMoney(
+        Decimal? dcmValue)
+    {
+        return dcmValue.HasValue
+            ? dcmValue.Value.ToString("C")
+            : "-";
+    }
+
+    private static String GetDescriptionPreview(
+        String? strDescription)
+    {
+        if (String.IsNullOrWhiteSpace(
+            strDescription))
+        {
+            return String.Empty;
+        }
+
+        String strValue =
+            strDescription.Trim();
+
+        const Int32 intMaximumLength =
+            120;
+
+        if (strValue.Length <= intMaximumLength)
+        {
+            return strValue;
+        }
+
+        return strValue
+            .Substring(
+                0,
+                intMaximumLength)
+            .TrimEnd() +
+            "…";
+    }
+}
