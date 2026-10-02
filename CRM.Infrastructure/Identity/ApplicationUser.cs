@@ -4,6 +4,13 @@ namespace CRM.Infrastructure.Identity
 {
     public class ApplicationUser : IdentityUser<string>
     {
+        public ApplicationUser()
+        {
+            // IdentityUser<string> doesn't generate a key (only the non-generic IdentityUser does)
+            Id = Guid.NewGuid().ToString();
+            SecurityStamp = Guid.NewGuid().ToString();
+        }
+
         public Guid DomainUserId { get; set; }
 
         public Boolean Enabled { get; set; } = true;
