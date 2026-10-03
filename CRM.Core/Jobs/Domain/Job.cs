@@ -10,7 +10,7 @@ namespace CRM.Core.Jobs.Domain
         public Guid? CompanyId { get; set; }
         public Guid? ContactId { get; set; }
 
-        public Guid? AssignedUserId { get; set; }
+        public Guid? AssignedContractorId { get; set; }
 
         public String Name { get; set; } =
             String.Empty;

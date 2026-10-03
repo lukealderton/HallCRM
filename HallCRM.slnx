@@ -3,5 +3,6 @@
   <Project Path="CRM.Core/CRM.Core.csproj" />
   <Project Path="CRM.Infrastructure/CRM.Infrastructure.csproj" />
   <Project Path="CRM.Primitives/CRM.Primitives.csproj" />
+  <Project Path="CRM.Tests/CRM.Tests.csproj" />
   <Project Path="CRM.Web/CRM.Web.csproj" />
 </Solution>

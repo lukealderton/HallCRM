@@ -1,0 +1,4 @@
+.contractor-edit { display: flex; flex-direction: column; gap: 1rem; }
+.contractor-form { max-width: 1000px; padding: 1.5rem; }
+.contractor-form-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .75rem; }
+@media (max-width: 575.98px) { .contractor-form { padding: 1rem; } }

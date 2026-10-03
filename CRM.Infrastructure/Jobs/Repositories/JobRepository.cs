@@ -60,7 +60,7 @@ namespace CRM.Infrastructure.Jobs.Repositories
             JobStage? enmStage = null,
             Guid? objCompanyId = null,
             Guid? objServiceId = null,
-            Guid? objAssignedUserId = null,
+            Guid? objAssignedContractorId = null,
             Boolean blnUnassignedOnly = false,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
@@ -74,6 +74,10 @@ namespace CRM.Infrastructure.Jobs.Repositories
             IQueryable<Job> objQuery =
                 objDbContext.Jobs
                     .AsNoTracking()
+                    .Include(objJob =>
+                        objJob.Invoices)
+                        .ThenInclude(objInvoice =>
+                            objInvoice.Entity)
                     .Include(objJob =>
                         objJob.Entity)
                     .Include(objJob =>
@@ -136,13 +140,13 @@ namespace CRM.Infrastructure.Jobs.Repositories
                                     objServiceId.Value));
             }
 
-            if (objAssignedUserId.HasValue)
+            if (objAssignedContractorId.HasValue)
             {
                 objQuery =
                     objQuery.Where(
                         objJob =>
-                            objJob.AssignedUserId ==
-                            objAssignedUserId.Value);
+                            objJob.AssignedContractorId ==
+                            objAssignedContractorId.Value);
             }
 
             if (blnUnassignedOnly)
@@ -150,7 +154,7 @@ namespace CRM.Infrastructure.Jobs.Repositories
                 objQuery =
                     objQuery.Where(
                         objJob =>
-                            !objJob.AssignedUserId.HasValue);
+                            !objJob.AssignedContractorId.HasValue);
             }
 
             if (blnOverdueOnly)

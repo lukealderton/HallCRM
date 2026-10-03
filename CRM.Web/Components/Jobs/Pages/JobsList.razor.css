@@ -504,14 +504,13 @@
    Dates
 ---------------------------------- */
 
-.jobs-close-date-overdue {
+.jobs-invoiced-date-overdue {
     color: #b91c1c;
     font-weight: 800;
 }
 
-.jobs-close-date-soon {
-    color: #b45309;
-    font-weight: 800;
+.jobs-mobile-meta strong.jobs-invoiced-date-overdue {
+    color: #b91c1c;
 }
 
 /* ---------------------------------

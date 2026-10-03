@@ -11,6 +11,7 @@ using CRM.Web;
 using CRM.Web.Components;
 using CRM.Web.Components.Account;
 using CRM.Web.State;
+using CRM.Web.Medias;
 using CRM.Web.Users.Abstraction;
 using CRM.Web.Users.Services;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -96,6 +97,7 @@ objApp.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 objApp.MapAdditionalIdentityEndpoints();
+objApp.MapMediaEndpoints();
 
 QuestPDF.Settings.License = LicenseType.Community;
 

@@ -1,5 +1,6 @@
 ﻿using CRM.Core.Jobs.Domain;
 using Microsoft.EntityFrameworkCore;
+using CRM.Core.Contractors.Domain;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace CRM.Infrastructure.Jobs.Configurations
@@ -98,9 +99,14 @@ namespace CRM.Infrastructure.Jobs.Configurations
 
             objEntity.Property(
                     objJob =>
-                        objJob.AssignedUserId)
+                        objJob.AssignedContractorId)
                 .HasColumnName(
-                    "jobAssignedUserId");
+                    "jobAssignedContractorId");
+
+            objEntity.HasOne<Contractor>()
+                .WithMany()
+                .HasForeignKey(objJob => objJob.AssignedContractorId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             objEntity.HasOne(objJob => objJob.Entity)
                 .WithOne()

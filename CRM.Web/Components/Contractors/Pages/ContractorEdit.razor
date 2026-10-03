@@ -1,0 +1,115 @@
+@page "/contractors/add"
+@page "/contractors/{ContractorId:guid}/edit"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using CRM.Core.Contractors.Abstractions
+@using CRM.Core.Contractors.Domain
+@inject IContractorService ContractorService
+@inject NavigationManager Navigation
+
+<SeoHead Title="@(ContractorId.HasValue ? "Edit contractor" : "New contractor")" />
+
+<section class="contractor-edit">
+    <a class="btn crm-btn-secondary align-self-start" href="/contractors">Back to contractors</a>
+    @if (strErrorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">@strErrorMessage</div>
+    }
+    @if (blnLoading)
+    {
+        <div class="crm-card contractor-form" role="status">Loading contractor…</div>
+    }
+    else if (objContractor != null)
+    {
+        <div class="crm-card contractor-form">
+            <EditForm Model="objContractor" OnValidSubmit="SaveAsync" FormName="ContractorEditForm">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="contractorName">Name</label>
+                        <InputText id="contractorName" class="form-control" @bind-Value="objContractor.Name" />
+                        <ValidationMessage For="() => objContractor.Name" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="contractorCompany">Company</label>
+                        <InputText id="contractorCompany" class="form-control" @bind-Value="objContractor.CompanyName" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="contractorPhone">Phone</label>
+                        <InputText id="contractorPhone" type="tel" class="form-control" @bind-Value="objContractor.Phone" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="contractorEmail">Email</label>
+                        <InputText id="contractorEmail" type="email" class="form-control" @bind-Value="objContractor.Email" />
+                        <ValidationMessage For="() => objContractor.Email" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="contractorNotes">Notes</label>
+                        <InputTextArea id="contractorNotes" class="form-control" rows="5" @bind-Value="objContractor.Notes" />
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <InputCheckbox id="contractorActive" class="form-check-input" @bind-Value="objContractor.Enabled" />
+                            <label class="form-check-label" for="contractorActive">Active</label>
+                        </div>
+                        <div class="form-text">Inactive contractors retain their existing jobs and cannot receive new assignments.</div>
+                    </div>
+                    <div class="col-12 contractor-form-actions">
+                        <button type="submit" class="btn crm-btn-primary" disabled="@blnSaving">@(blnSaving ? "Saving…" : "Save contractor")</button>
+                        <a class="btn crm-btn-secondary" href="/contractors">Cancel</a>
+                        @if (ContractorId.HasValue)
+                        {
+                            <a class="btn crm-btn-secondary" href="@($"/jobs?assignedContractorId={ContractorId}")">View jobs</a>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter] public Guid? ContractorId { get; set; }
+    private Contractor? objContractor;
+    private String? strErrorMessage;
+    private Boolean blnLoading = true;
+    private Boolean blnSaving;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        blnLoading = true;
+        strErrorMessage = null;
+        objContractor = null;
+        try
+        {
+            objContractor = ContractorId.HasValue
+                ? await ContractorService.GetContractorAsync(ContractorId.Value) : new Contractor();
+            if (objContractor == null) strErrorMessage = "Contractor not found.";
+            HeaderState.SetHeader(ContractorId.HasValue ? "Edit contractor" : "New contractor",
+                ContractorId.HasValue ? objContractor?.Name ?? "Contractor not found" : "Add a contractor to assign to jobs");
+        }
+        catch
+        {
+            strErrorMessage = "Unable to load the contractor. Please try again.";
+        }
+        finally { blnLoading = false; }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (blnSaving || objContractor == null) return;
+        blnSaving = true;
+        strErrorMessage = null;
+        try
+        {
+            await ContractorService.SaveContractorAsync(objContractor);
+            Navigation.NavigateTo("/contractors");
+        }
+        catch (ValidationException objError) { strErrorMessage = objError.Message; }
+        catch (KeyNotFoundException objError) { strErrorMessage = objError.Message; }
+        catch { strErrorMessage = "Unable to save the contractor. Please try again."; }
+        finally { blnSaving = false; }
+    }
+}

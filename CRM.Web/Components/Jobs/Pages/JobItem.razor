@@ -7,15 +7,16 @@
 @using CRM.Core.Invoices.Domain
 @using CRM.Core.Jobs.Abstractions
 @using CRM.Core.Jobs.Domain
-@using CRM.Core.Users.Abstraction.Services
-@using CRM.Core.Users.Domain
+@using CRM.Core.Contractors.Abstractions
+@using CRM.Core.Contractors.Domain
 @using CRM.Web.Components.Activities.Shared
+@using CRM.Web.Components.Medias.Shared
 @using CRM.Web.State
 @using CRM.Web.Users.Abstraction
 
 @inject IJobService JobService
 @inject IInvoiceService InvoiceService
-@inject IUserService UserService
+@inject IContractorService ContractorService
 @inject ICurrentUserState CurrentUserState
 @inject NavigationManager Navigation
 @inject PageHeaderState HeaderState
@@ -1206,6 +1207,8 @@
 
                 </div>
 
+                <JobMedia @key="JobId" JobId="@JobId" ReadOnly="@objJob.IsArchived" />
+
                 <EntityActivities JobId="@JobId"
                                   Title="Activities"
                                   Subtitle="Tasks, visits and follow-ups for this job."
@@ -1437,7 +1440,7 @@
                             <div>
 
                                 <span>
-                                    Assigned to
+                                    Contractor
                                 </span>
 
                                 <strong>
@@ -1627,7 +1630,7 @@
 
     private Job? objJob;
 
-    private User? objAssignedUser;
+    private Contractor? objAssignedContractor;
 
     private List<Invoice> colInvoices =
         [];
@@ -1693,7 +1696,7 @@
         blnConfirmDelete =
             false;
 
-        objAssignedUser =
+        objAssignedContractor =
             null;
 
         colInvoices =
@@ -1727,11 +1730,11 @@
                 InvoiceService.GetInvoicesAsync(
                     objJobId: JobId);
 
-            if (objJob.AssignedUserId.HasValue)
+            if (objJob.AssignedContractorId.HasValue)
             {
-                objAssignedUser =
-                    await UserService.GetUserAsync(
-                        objJob.AssignedUserId.Value);
+                objAssignedContractor =
+                    await ContractorService.GetContractorAsync(
+                        objJob.AssignedContractorId.Value);
             }
 
             colInvoices =
@@ -1784,14 +1787,14 @@
 
         try
         {
-            Guid? objUserId =
+            Guid? objContractorId =
                 await CurrentUserState
                     .GetCurrentUserIdAsync();
 
             Invoice objInvoice =
                 await InvoiceService.CreateFromJobAsync(
                     JobId,
-                    objUserId);
+                    objContractorId);
 
             Navigation.NavigateTo(
                 GetInvoiceUrl(
@@ -2019,13 +2022,13 @@
     private String GetAssigneeText()
     {
         if (objJob == null ||
-            !objJob.AssignedUserId.HasValue)
+            !objJob.AssignedContractorId.HasValue)
         {
             return "Unassigned";
         }
 
-        return objAssignedUser?.DisplayName ??
-            "Unknown user";
+        return objAssignedContractor?.DisplayName ??
+            "Unknown contractor";
     }
 
     private void GoToEdit()

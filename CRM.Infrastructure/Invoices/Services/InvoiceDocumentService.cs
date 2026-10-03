@@ -113,6 +113,14 @@ namespace CRM.Infrastructure.Invoices.Services
                                 objColumn =>
                                 {
                                     objColumn.Item()
+                                        .PaddingBottom(8)
+                                        .Text("Hall Home Maintenance")
+                                        .FontSize(16)
+                                        .SemiBold()
+                                        .FontColor(
+                                            Colors.Grey.Darken3);
+
+                                    objColumn.Item()
                                         .Text("INVOICE")
                                         .FontSize(24)
                                         .Bold()
@@ -196,6 +204,51 @@ namespace CRM.Infrastructure.Invoices.Services
                                     ComposeLines(
                                         objLines,
                                         objInvoice));
+
+                        objColumn.Item()
+                            .ShowEntire()
+                            .Column(
+                                objPayment =>
+                                {
+                                    objPayment.Spacing(4);
+
+                                    objPayment.Item()
+                                        .Text("Payment details")
+                                        .FontSize(11)
+                                        .SemiBold();
+
+                                    objPayment.Item()
+                                        .Text("Please pay within 14 days of the invoice date.")
+                                        .SemiBold();
+
+                                    objPayment.Item()
+                                        .Text("Payable to: Mrs Desiree Hall");
+
+                                    objPayment.Item()
+                                        .Text("Account number: 38953968");
+
+                                    objPayment.Item()
+                                        .Text("Sort code: 30-96-17");
+                                });
+
+                        objColumn.Item()
+                            .ShowEntire()
+                            .Column(
+                                objContact =>
+                                {
+                                    objContact.Spacing(4);
+
+                                    objContact.Item()
+                                        .Text("Contact")
+                                        .FontSize(11)
+                                        .SemiBold();
+
+                                    objContact.Item()
+                                        .Text("Phone: 07532774195 / 07878010886");
+
+                                    objContact.Item()
+                                        .Text("Email: hallhomemaintenance@gmail.com");
+                                });
 
                         if (!String.IsNullOrWhiteSpace(
                             objInvoice.Notes))

@@ -658,7 +658,7 @@
 
     private DateTime dteDueDate =
         DateTime.Today.AddDays(
-            30);
+            14);
 
     private IEnumerable<InvoiceLine> OrderedLines =>
         objInvoice?.Lines
@@ -704,7 +704,7 @@
             dteDueDate =
                 objInvoice.DueDateUtc?.ToLocalTime().Date ??
                 dteIssueDate.AddDays(
-                    30);
+                    14);
 
             HeaderState.SetHeader(
                 "Edit invoice",

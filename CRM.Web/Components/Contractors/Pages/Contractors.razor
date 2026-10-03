@@ -1,0 +1,109 @@
+@page "/contractors"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using CRM.Core.Contractors.Abstractions
+@using CRM.Core.Contractors.Domain
+@inject IContractorService ContractorService
+
+<SeoHead Title="Contractors" />
+
+<section class="contractors-page">
+    <div class="crm-card contractor-toolbar">
+        <div class="contractor-search">
+            <label class="visually-hidden" for="contractorSearch">Search contractors</label>
+            <input id="contractorSearch" class="form-control" placeholder="Search name, company, email or phone"
+                   @bind="strSearch" @bind:after="LoadAsync" />
+        </div>
+        <label class="form-check-label contractor-inactive">
+            <input type="checkbox" class="form-check-input me-2" @bind="blnIncludeInactive" @bind:after="LoadAsync" />
+            Include inactive
+        </label>
+        <a class="btn crm-btn-primary" href="/contractors/add">Add contractor</a>
+    </div>
+
+    @if (strErrorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">@strErrorMessage</div>
+    }
+
+    <div class="crm-card">
+        @if (blnLoading)
+        {
+            <div class="contractor-empty" role="status">Loading contractors…</div>
+        }
+        else if (colContractors.Count == 0)
+        {
+            <div class="contractor-empty">
+                <h3>@(String.IsNullOrWhiteSpace(strSearch) ? "No contractors yet" : "No matching contractors")</h3>
+                <p>Add contractors to assign them to jobs.</p>
+                <a class="btn crm-btn-primary" href="/contractors/add">Add contractor</a>
+            </div>
+        }
+        else
+        {
+            <div class="contractor-list">
+                @foreach (Contractor objContractor in colContractors)
+                {
+                    <div class="contractor-row" @key="objContractor.Id">
+                        <div class="contractor-name">
+                            <a href="@($"/contractors/{objContractor.Id}/edit")">@objContractor.Name</a>
+                            @if (!String.IsNullOrWhiteSpace(objContractor.CompanyName))
+                            {
+                                <small>@objContractor.CompanyName</small>
+                            }
+                        </div>
+                        <div class="contractor-contact">
+                            @if (!String.IsNullOrWhiteSpace(objContractor.Phone))
+                            {
+                                <span>@objContractor.Phone</span>
+                            }
+                            @if (!String.IsNullOrWhiteSpace(objContractor.Email))
+                            {
+                                <span>@objContractor.Email</span>
+                            }
+                        </div>
+                        <span class="badge @(objContractor.Enabled ? "bg-success" : "bg-secondary")">
+                            @(objContractor.Enabled ? "Active" : "Inactive")
+                        </span>
+                        <div class="contractor-actions">
+                            <a class="btn btn-sm crm-btn-secondary" href="@($"/jobs?assignedContractorId={objContractor.Id}")">View jobs</a>
+                            <a class="btn btn-sm crm-btn-secondary" href="@($"/contractors/{objContractor.Id}/edit")">Edit</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+@code {
+    private List<Contractor> colContractors = [];
+    private String? strSearch;
+    private String? strErrorMessage;
+    private Boolean blnIncludeInactive;
+    private Boolean blnLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        HeaderState.SetHeader("Contractors", "Manage the contractors who carry out your jobs");
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        blnLoading = true;
+        strErrorMessage = null;
+        try
+        {
+            colContractors = await ContractorService.GetContractorsAsync(blnIncludeInactive, strSearch);
+        }
+        catch
+        {
+            strErrorMessage = "Unable to load contractors. Please try again.";
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+}

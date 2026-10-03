@@ -1,9 +1,11 @@
 ﻿using CRM.Core.Activities.Domain;
 using CRM.Core.Companies.Domain;
 using CRM.Core.Contacts.Domain;
+using CRM.Core.Contractors.Domain;
 using CRM.Core.Entities.Domain;
 using CRM.Core.Invoices.Domain;
 using CRM.Core.Jobs.Domain;
+using CRM.Core.Medias.Domain;
 using CRM.Core.Logging.Domain;
 using CRM.Core.Notes.Domain;
 using CRM.Core.Payments.Domain;
@@ -13,10 +15,12 @@ using CRM.Core.Users.Domain;
 using CRM.Infrastructure.Activities.Configurations;
 using CRM.Infrastructure.Companies.Configurations;
 using CRM.Infrastructure.Contacts.Configurations;
+using CRM.Infrastructure.Contractors.Configurations;
 using CRM.Infrastructure.Entities.Configurations;
 using CRM.Infrastructure.Identity;
 using CRM.Infrastructure.Invoices.Configurations;
 using CRM.Infrastructure.Jobs.Configurations;
+using CRM.Infrastructure.Medias.Configurations;
 using CRM.Infrastructure.Logging.Configurations;
 using CRM.Infrastructure.Notes.Configurations;
 using CRM.Infrastructure.Payments.Configurations;
@@ -49,7 +53,9 @@ namespace CRM.Infrastructure.Data
 
         public DbSet<Company> Companies => Set<Company>();
         public DbSet<Contact> Contacts => Set<Contact>();
+        public DbSet<Contractor> Contractors => Set<Contractor>();
         public DbSet<Job> Jobs => Set<Job>();
+        public DbSet<Media> Medias => Set<Media>();
         public DbSet<Note> Notes => Set<Note>();
         public DbSet<Log> Logs => Set<Log>();
 
@@ -85,7 +91,9 @@ namespace CRM.Infrastructure.Data
 
             objModelBuilder.ApplyConfiguration(new CompanyConfiguration());
             objModelBuilder.ApplyConfiguration(new ContactConfiguration());
+            objModelBuilder.ApplyConfiguration(new ContractorConfiguration());
             objModelBuilder.ApplyConfiguration(new JobsConfiguration());
+            objModelBuilder.ApplyConfiguration(new MediaConfiguration());
             objModelBuilder.ApplyConfiguration(new LogConfiguration());
             objModelBuilder.ApplyConfiguration(new NoteConfiguration());
 

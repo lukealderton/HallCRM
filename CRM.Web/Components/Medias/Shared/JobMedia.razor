@@ -1,0 +1,263 @@
+@using CRM.Core.Common.Configuration
+@using CRM.Core.Medias.Abstractions
+@using CRM.Core.Medias.Domain
+@using CRM.Web.Users.Abstraction
+@using Microsoft.Extensions.Options
+@implements IDisposable
+@inject IMediaService MediaService
+@inject ICurrentUserState CurrentUserState
+@inject IOptions<CRMConfiguration> Configuration
+@inject ILogger<JobMedia> Logger
+
+<div class="crm-card job-media">
+    <div class="crm-card-header">
+        <div>
+            <h3>Media</h3>
+            <p>Photos, videos and documents attached to this job.</p>
+        </div>
+    </div>
+
+    <div class="job-media-body">
+        @if (!String.IsNullOrWhiteSpace(strErrorMessage))
+        {
+            <div class="alert alert-danger" role="alert">@strErrorMessage</div>
+        }
+        @if (!String.IsNullOrWhiteSpace(strSuccessMessage))
+        {
+            <div class="alert alert-success" role="status">@strSuccessMessage</div>
+        }
+
+        @if (!ReadOnly)
+        {
+            <div class="job-media-upload">
+                <label class="form-label" for="@strInputId">Attach media</label>
+                <InputFile @key="intInputVersion" id="@strInputId" class="form-control" multiple
+                           accept=".jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.mp4,.mov,.webm,.pdf"
+                           disabled="@(blnBusy || blnLoading)" OnChange="UploadAsync" />
+                <div class="form-text">
+                    Select up to @Settings.MaxFilesPerUpload files, each up to @(Settings.MaxFileSizeBytes / (1024 * 1024)) MB.
+                    JPG, PNG, GIF, WebP, HEIC, HEIF, MP4, MOV, WebM and PDF.
+                </div>
+                @if (blnBusy)
+                {
+                    <p class="job-media-progress" role="status">
+                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                        @strProgressMessage
+                    </p>
+                }
+            </div>
+        }
+
+        @if (blnLoading)
+        {
+            <p class="text-muted" role="status">Loading media…</p>
+        }
+        else if (colMedia.Count == 0)
+        {
+            <p class="text-muted mb-0">No media has been attached yet.</p>
+        }
+        else
+        {
+            <div class="job-media-grid">
+                @foreach (Media objMedia in colMedia)
+                {
+                    <div class="job-media-item" @key="objMedia.Id">
+                        @if (objMedia.IsImage)
+                        {
+                            <a class="job-media-preview" href="@objMedia.Url" target="_blank" rel="noopener">
+                                <img src="@objMedia.Url" alt="@objMedia.FileName" loading="lazy" />
+                            </a>
+                        }
+                        else if (objMedia.IsVideo)
+                        {
+                            <div class="job-media-preview">
+                                <video controls preload="metadata" src="@objMedia.Url" aria-label="@objMedia.FileName">
+                                    Your browser cannot preview this video. Use Download to view it.
+                                </video>
+                            </div>
+                        }
+                        else
+                        {
+                            <a class="job-media-preview job-media-file" href="@(objMedia.Url + "?download=true")"
+                               aria-label="@($"Download {objMedia.FileName}")">
+                                <span class="material-symbols-outlined" aria-hidden="true">attach_file</span>
+                                <span>@(objMedia.ContentType == "application/pdf" ? "PDF document" : "Download to view")</span>
+                            </a>
+                        }
+
+                        <div class="job-media-details">
+                            <strong>@objMedia.FileName</strong>
+                            <small>@FormatSize(objMedia.SizeBytes) · @objMedia.CreatedUtc.ToLocalTime().ToString("dd MMM yyyy")</small>
+                            <div class="job-media-actions">
+                                <a class="btn btn-sm crm-btn-secondary" href="@(objMedia.Url + "?download=true")">Download</a>
+                                @if (!ReadOnly)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger" disabled="@blnBusy"
+                                            @onclick="() => objConfirmDeleteId = objMedia.Id">Remove</button>
+                                }
+                            </div>
+                            @if (!ReadOnly && objConfirmDeleteId == objMedia.Id)
+                            {
+                                <div class="job-media-confirm" role="alert">
+                                    <p>Remove this attachment permanently?</p>
+                                    <button type="button" class="btn btn-sm btn-danger" disabled="@blnBusy"
+                                            @onclick="() => DeleteAsync(objMedia)">Remove attachment</button>
+                                    <button type="button" class="btn btn-sm crm-btn-secondary" disabled="@blnBusy"
+                                            @onclick="() => objConfirmDeleteId = null">Cancel</button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Guid JobId { get; set; }
+    [Parameter] public Boolean ReadOnly { get; set; }
+
+    private readonly CancellationTokenSource objLifetime = new();
+    private readonly String strInputId = $"job-media-{Guid.NewGuid():N}";
+    private List<Media> colMedia = [];
+    private Guid? objConfirmDeleteId;
+    private String? strErrorMessage;
+    private String? strSuccessMessage;
+    private String strProgressMessage = String.Empty;
+    private Boolean blnLoading = true;
+    private Boolean blnBusy;
+    private Int32 intInputVersion;
+    private MediaSettings Settings => Configuration.Value.MediaSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await ReloadAsync();
+        }
+        catch (OperationCanceledException) when (objLifetime.IsCancellationRequested) { }
+        catch (Exception objError)
+        {
+            ShowError(objError, "Unable to load job media.");
+        }
+        finally
+        {
+            blnLoading = false;
+        }
+    }
+
+    private async Task<Guid> GetRequesterIdAsync() =>
+        await CurrentUserState.GetCurrentUserIdAsync(objLifetime.Token)
+            ?? throw new UnauthorizedAccessException("Sign in before attaching media.");
+
+    private async Task ReloadAsync()
+    {
+        colMedia = await MediaService.GetByJobIdAsync(JobId, await GetRequesterIdAsync(), objLifetime.Token);
+    }
+
+    private async Task UploadAsync(InputFileChangeEventArgs objArgs)
+    {
+        if (blnBusy || ReadOnly)
+        {
+            return;
+        }
+
+        strErrorMessage = null;
+        strSuccessMessage = null;
+        if (objArgs.FileCount > Settings.MaxFilesPerUpload)
+        {
+            strErrorMessage = $"Select no more than {Settings.MaxFilesPerUpload} files at a time.";
+            intInputVersion++;
+            return;
+        }
+
+        blnBusy = true;
+        Int32 intUploaded = 0;
+        List<String> colErrors = [];
+        try
+        {
+            Guid objRequesterId = await GetRequesterIdAsync();
+            IReadOnlyList<IBrowserFile> colFiles = objArgs.GetMultipleFiles(Settings.MaxFilesPerUpload);
+            foreach (IBrowserFile objFile in colFiles)
+            {
+                strProgressMessage = $"Uploading {objFile.Name}…";
+                await InvokeAsync(StateHasChanged);
+                try
+                {
+                    await using Stream stmContent = objFile.OpenReadStream(Settings.MaxFileSizeBytes, objLifetime.Token);
+                    await MediaService.SaveMediaAsync(JobId, objRequesterId, objFile.Name, stmContent, objLifetime.Token);
+                    intUploaded++;
+                }
+                catch (OperationCanceledException) when (objLifetime.IsCancellationRequested) { throw; }
+                catch (Exception objError)
+                {
+                    Logger.LogWarning(objError, "Failed to attach media to job {JobId}", JobId);
+                    colErrors.Add($"{objFile.Name}: {GetErrorText(objError, "Upload failed. Check the file size and try again.")}");
+                }
+            }
+
+            strSuccessMessage = intUploaded > 0 ? $"Attached {intUploaded} file{(intUploaded == 1 ? "" : "s")}." : null;
+            strErrorMessage = colErrors.Count > 0 ? String.Join(" ", colErrors) : null;
+            await ReloadAsync();
+        }
+        catch (OperationCanceledException) when (objLifetime.IsCancellationRequested) { }
+        catch (Exception objError)
+        {
+            ShowError(objError, "Unable to upload or refresh job media.");
+        }
+        finally
+        {
+            blnBusy = false;
+            intInputVersion++;
+        }
+    }
+
+    private async Task DeleteAsync(Media objMedia)
+    {
+        if (blnBusy || ReadOnly)
+        {
+            return;
+        }
+
+        blnBusy = true;
+        strProgressMessage = "Removing attachment…";
+        strErrorMessage = null;
+        strSuccessMessage = null;
+        try
+        {
+            await MediaService.DeleteAsync(objMedia.Id, await GetRequesterIdAsync(), objLifetime.Token);
+            objConfirmDeleteId = null;
+            strSuccessMessage = "Attachment removed.";
+            await ReloadAsync();
+        }
+        catch (OperationCanceledException) when (objLifetime.IsCancellationRequested) { }
+        catch (Exception objError)
+        {
+            ShowError(objError, "Unable to remove the attachment.");
+        }
+        finally
+        {
+            blnBusy = false;
+        }
+    }
+
+    private void ShowError(Exception objError, String strFallback)
+    {
+        Logger.LogWarning(objError, "Job media operation failed for {JobId}", JobId);
+        strErrorMessage = GetErrorText(objError, strFallback);
+    }
+
+    private static String GetErrorText(Exception objError, String strFallback) =>
+        objError is InvalidDataException or UnauthorizedAccessException or KeyNotFoundException
+            ? objError.Message : strFallback;
+
+    private static String FormatSize(Int64 lngBytes) => lngBytes >= 1024 * 1024
+        ? $"{lngBytes / (1024d * 1024d):0.#} MB" : $"{Math.Max(1, lngBytes / 1024d):0.#} KB";
+
+    public void Dispose()
+    {
+        objLifetime.Cancel();
+        objLifetime.Dispose();
+    }
+}

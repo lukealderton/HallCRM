@@ -11,8 +11,8 @@
 @using CRM.Core.Jobs.Abstractions
 @using CRM.Core.Jobs.Domain
 @using CRM.Core.Services.Abstractions
-@using CRM.Core.Users.Abstraction.Services
-@using CRM.Core.Users.Domain
+@using CRM.Core.Contractors.Abstractions
+@using CRM.Core.Contractors.Domain
 @using CRM.Web.State
 @using CRM.Web.Users.Abstraction
 @using CrmService = CRM.Core.Services.Domain.Service
@@ -21,8 +21,7 @@
 @inject ICompanyService CompanyService
 @inject IContactService ContactService
 @inject IServiceService ServiceService
-@inject IUserService UserService
-@inject ICurrentUserState CurrentUserState
+@inject IContractorService ContractorService
 @inject NavigationManager Navigation
 @inject PageHeaderState HeaderState
 
@@ -229,7 +228,7 @@
                                             </h3>
 
                                             <p>
-                                                Choose who is responsible for this job.
+                                                Choose the contractor responsible for this job.
                                             </p>
 
                                         </div>
@@ -241,30 +240,27 @@
                                 <div class="col-12 col-md-6">
 
                                     <label class="form-label"
-                                           for="assignedUser">
-                                        Assigned to
+                                           for="assignedContractor">
+                                        Contractor
                                     </label>
 
-                                    <InputSelect id="assignedUser"
+                                    <InputSelect id="assignedContractor"
                                                  class="form-select"
                                                  TValue="Guid?"
-                                                 @bind-Value="objJob.AssignedUserId">
+                                                 @bind-Value="objJob.AssignedContractorId">
 
                                         <option value="">
                                             Unassigned
                                         </option>
 
-                                        @foreach (User objUser
-                                            in AssignableUsers)
+                                        @foreach (Contractor objContractor
+                                            in AssignableContractors)
                                         {
-                                            <option value="@objUser.Id">
+                                            <option value="@objContractor.Id">
 
-                                                @(objUser.Id ==
-                                                    CurrentUserState.CurrentUserId
-                                                    ? $"{objUser.DisplayName} (You)"
-                                                    : objUser.Enabled
-                                                        ? objUser.DisplayName
-                                                        : $"{objUser.DisplayName} (Disabled)")
+                                                @(objContractor.Enabled
+                                                    ? objContractor.DisplayName
+                                                    : $"{objContractor.DisplayName} (Inactive)")
 
                                             </option>
                                         }
@@ -272,7 +268,7 @@
                                     </InputSelect>
 
                                     <div class="form-text">
-                                        The person currently responsible for this job.
+                                        The contractor currently responsible for this job.
                                     </div>
 
                                 </div>
@@ -728,9 +724,33 @@
                                         Source
                                     </label>
 
-                                    <InputText id="source"
-                                               class="form-control"
-                                               @bind-Value="objJob.Source" />
+                                    <InputSelect id="source"
+                                                 class="form-select"
+                                                 @bind-Value="strSelectedSource">
+
+                                        <option value="">Select a source</option>
+
+                                        @foreach (String strSource in colSourceOptions)
+                                        {
+                                            <option value="@strSource">@strSource</option>
+                                        }
+
+                                        <option value="Other">Other</option>
+
+                                    </InputSelect>
+
+                                    @if (strSelectedSource == "Other")
+                                    {
+                                        <label class="form-label mt-3"
+                                               for="otherSource">
+                                            Other source
+                                        </label>
+
+                                        <InputText id="otherSource"
+                                                   class="form-control"
+                                                   placeholder="Enter job source"
+                                                   @bind-Value="strOtherSource" />
+                                    }
 
                                 </div>
 
@@ -822,7 +842,7 @@
 
                             <div>
                                 <dt>
-                                    Assigned to
+                                    Contractor
                                 </dt>
 
                                 <dd>
@@ -986,7 +1006,7 @@
     private List<CrmService> colServices =
         [];
 
-    private List<User> colUsers =
+    private List<Contractor> colContractors =
         [];
 
     private Dictionary<Guid, JobServiceLink> dicServiceLines =
@@ -1006,14 +1026,14 @@
         JobId.HasValue &&
         JobId.Value != Guid.Empty;
 
-    private IEnumerable<User> AssignableUsers =>
-        colUsers
-            .Where(objUser =>
-                objUser.Enabled ||
-                objUser.Id ==
-                    objJob.AssignedUserId)
-            .OrderBy(objUser =>
-                objUser.DisplayName);
+    private IEnumerable<Contractor> AssignableContractors =>
+        colContractors
+            .Where(objContractor =>
+                objContractor.Enabled ||
+                objContractor.Id ==
+                    objJob.AssignedContractorId)
+            .OrderBy(objContractor =>
+                objContractor.DisplayName);
 
     private Boolean HasPricedServiceLines =>
         dicServiceLines
@@ -1026,6 +1046,31 @@
             .Values
             .Any(objLine =>
                 !objLine.UnitPrice.HasValue);
+
+    private static readonly String[] colSourceOptions =
+        ["Contracted", "Existing Customer", "Word of Mouth", "Private"];
+
+    private String strSelectedSource = String.Empty;
+
+    private String? strOtherSource;
+
+    private void LoadSourceSelection()
+    {
+        String strSource = objJob.Source?.Trim() ?? String.Empty;
+
+        String? strMatchingSource = colSourceOptions.FirstOrDefault(
+            strOption => String.Equals(
+                strOption, strSource, StringComparison.OrdinalIgnoreCase));
+
+        strSelectedSource = String.IsNullOrEmpty(strSource)
+            ? String.Empty
+            : strMatchingSource ?? "Other";
+
+        strOtherSource = strSelectedSource == "Other" &&
+            !String.Equals(strSource, "Other", StringComparison.OrdinalIgnoreCase)
+                ? strSource
+                : null;
+    }
 
     private String strSelectedCompanyId
     {
@@ -1085,15 +1130,15 @@
             Task<List<CrmService>> objServicesTask =
                 ServiceService.GetServicesAsync();
 
-            Task<List<User>> objUsersTask =
-                UserService.GetUsersAsync(
+            Task<List<Contractor>> objContractorsTask =
+                ContractorService.GetContractorsAsync(
                     true);
 
             await Task.WhenAll(
                 objCompaniesTask,
                 objContactsTask,
                 objServicesTask,
-                objUsersTask);
+                objContractorsTask);
 
             colCompanies =
                 (await objCompaniesTask)
@@ -1113,10 +1158,10 @@
                         objService.Name)
                     .ToList();
 
-            colUsers =
-                (await objUsersTask)
-                    .OrderBy(objUser =>
-                        objUser.DisplayName)
+            colContractors =
+                (await objContractorsTask)
+                    .OrderBy(objContractor =>
+                        objContractor.DisplayName)
                     .ToList();
 
             if (blnEditMode)
@@ -1139,6 +1184,8 @@
 
                 objJob =
                     objExistingJob;
+
+                LoadSourceSelection();
 
                 dicServiceLines =
                     objJob.ServiceLinks
@@ -1182,10 +1229,6 @@
                 return;
             }
 
-            Guid? objCurrentUserId =
-                await CurrentUserState
-                    .GetCurrentUserIdAsync();
-
             objJob =
                 new Job
                 {
@@ -1195,12 +1238,11 @@
                     ContactId =
                         ContactId,
 
-                    AssignedUserId =
-                        objCurrentUserId,
-
                     Stage =
                         JobStage.New
                 };
+
+            LoadSourceSelection();
 
             dicServiceLines =
                 [];
@@ -1240,6 +1282,12 @@
 
         try
         {
+            objJob.Source = strSelectedSource == "Other"
+                ? String.IsNullOrWhiteSpace(strOtherSource)
+                    ? "Other"
+                    : strOtherSource.Trim()
+                : strSelectedSource;
+
             objJob.ServiceLinks =
                 dicServiceLines
                     .Values
@@ -1390,19 +1438,19 @@
 
     private String GetAssigneeSummary()
     {
-        if (!objJob.AssignedUserId.HasValue)
+        if (!objJob.AssignedContractorId.HasValue)
         {
             return "Unassigned";
         }
 
-        User? objUser =
-            colUsers.FirstOrDefault(
-                objUser =>
-                    objUser.Id ==
-                    objJob.AssignedUserId.Value);
+        Contractor? objContractor =
+            colContractors.FirstOrDefault(
+                objContractor =>
+                    objContractor.Id ==
+                    objJob.AssignedContractorId.Value);
 
-        return objUser?.DisplayName ??
-            "Unknown user";
+        return objContractor?.DisplayName ??
+            "Unknown contractor";
     }
 
     private String GetCompanySummary()

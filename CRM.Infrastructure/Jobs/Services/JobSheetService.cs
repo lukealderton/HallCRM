@@ -1,7 +1,7 @@
 ﻿using CRM.Core.Jobs.Abstractions;
 using CRM.Core.Jobs.Domain;
-using CRM.Core.Users.Abstraction.Services;
-using CRM.Core.Users.Domain;
+using CRM.Core.Contractors.Abstractions;
+using CRM.Core.Contractors.Domain;
 using CRM.Primitives.Extensions;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -13,17 +13,17 @@ namespace CRM.Infrastructure.Jobs.Services
         : IJobSheetService
     {
         private readonly IJobService _objJobService;
-        private readonly IUserService _objUserService;
+        private readonly IContractorService _objContractorService;
 
         public JobSheetService(
             IJobService objJobService,
-            IUserService objUserService)
+            IContractorService objContractorService)
         {
             _objJobService =
                 objJobService;
 
-            _objUserService =
-                objUserService;
+            _objContractorService =
+                objContractorService;
         }
 
         public async Task<Byte[]> GenerateJobSheetAsync(
@@ -41,14 +41,14 @@ namespace CRM.Infrastructure.Jobs.Services
                     "The requested job could not be found.");
             }
 
-            User? objAssignedUser =
+            Contractor? objAssignedContractor =
                 null;
 
-            if (objJob.AssignedUserId.HasValue)
+            if (objJob.AssignedContractorId.HasValue)
             {
-                objAssignedUser =
-                    await _objUserService.GetUserAsync(
-                        objJob.AssignedUserId.Value,
+                objAssignedContractor =
+                    await _objContractorService.GetContractorAsync(
+                        objJob.AssignedContractorId.Value,
                         objToken);
             }
 
@@ -84,7 +84,7 @@ namespace CRM.Infrastructure.Jobs.Services
                                     ComposeContent(
                                         objContainer,
                                         objJob,
-                                        objAssignedUser));
+                                        objAssignedContractor));
 
                         objPage.Footer()
                             .Element(
@@ -156,7 +156,7 @@ namespace CRM.Infrastructure.Jobs.Services
         private static void ComposeContent(
             IContainer objContainer,
             Job objJob,
-            User? objAssignedUser)
+            Contractor? objAssignedContractor)
         {
             objContainer.Column(objColumn =>
             {
@@ -168,7 +168,7 @@ namespace CRM.Infrastructure.Jobs.Services
                             ComposeSummary(
                                 objSection,
                                 objJob,
-                                objAssignedUser));
+                                objAssignedContractor));
 
                 objColumn.Item()
                     .Element(
@@ -217,7 +217,7 @@ namespace CRM.Infrastructure.Jobs.Services
         private static void ComposeSummary(
             IContainer objContainer,
             Job objJob,
-            User? objAssignedUser)
+            Contractor? objAssignedContractor)
         {
             objContainer
                 .Border(1)
@@ -247,8 +247,8 @@ namespace CRM.Infrastructure.Jobs.Services
 
                             AddValueCell(
                                 objTable,
-                                "Assigned to",
-                                objAssignedUser?.DisplayName ??
+                                "Contractor",
+                                objAssignedContractor?.DisplayName ??
                                 "Unassigned");
 
                             AddValueCell(

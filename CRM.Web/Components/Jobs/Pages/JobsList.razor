@@ -1,19 +1,20 @@
-﻿@page "/jobs"
+@page "/jobs"
 
 @attribute [Authorize]
 @rendermode InteractiveServer
 
+@using CRM.Core.Invoices.Domain
 @using CRM.Core.Jobs.Domain
 @using CRM.Core.Jobs.Abstractions
 @using CRM.Core.Services.Abstractions
-@using CRM.Core.Users.Abstraction.Services
-@using CRM.Core.Users.Domain
+@using CRM.Core.Contractors.Abstractions
+@using CRM.Core.Contractors.Domain
 @using CRM.Web.State
 @using CrmService = CRM.Core.Services.Domain.Service
 
 @inject IJobService JobService
 @inject IServiceService ServiceService
-@inject IUserService UserService
+@inject IContractorService ContractorService
 @inject NavigationManager Navigation
 @inject PageHeaderState HeaderState
 
@@ -124,23 +125,23 @@
             </select>
 
             <select class="form-select jobs-assignee-filter"
-                    aria-label="Filter by assignee"
+                    aria-label="Filter by contractor"
                     @bind="strSelectedAssignee"
                     @bind:after="AssigneeChangedAsync">
 
                 <option value="">
-                    All assignees
+                    All contractors
                 </option>
 
                 <option value="unassigned">
                     Unassigned
                 </option>
 
-                @foreach (User objUser
-                    in AssignableUsers)
+                @foreach (Contractor objContractor
+                    in AssignableContractors)
                 {
-                    <option value="@objUser.Id.ToString()">
-                        @objUser.DisplayName
+                    <option value="@objContractor.Id.ToString()">
+                        @objContractor.DisplayName
                     </option>
                 }
 
@@ -427,10 +428,10 @@
                             There are no unassigned jobs matching the current filters.
                         </text>
                     }
-                    else if (AssignedUserId.HasValue)
+                    else if (AssignedContractorId.HasValue)
                     {
                         <text>
-                            No jobs are currently assigned to the selected user.
+                            No jobs are currently assigned to the selected contractor.
                         </text>
                     }
                     else
@@ -469,10 +470,10 @@
                                 <th>Job</th>
                                 <th>Site</th>
                                 <th>Company</th>
-                                <th>Assigned to</th>
+                                <th>Contractor</th>
                                 <th>Stage</th>
                                 <th>Value</th>
-                                <th>Close date</th>
+                                <th>Invoiced date</th>
                                 <th>Status</th>
 
                                 <th class="text-end">
@@ -580,7 +581,7 @@
 
                                     <td>
 
-                                        @if (objJob.AssignedUserId.HasValue)
+                                        @if (objJob.AssignedContractorId.HasValue)
                                         {
                                             <div class="jobs-assignee-cell">
 
@@ -626,9 +627,9 @@
 
                                     <td>
 
-                                        <span class="@GetCloseDateClass(objJob)">
+                                        <span class="@GetInvoicedDateClass(objJob)">
                                             @FormatDate(
-                                                objJob.ExpectedCloseDateUtc)
+                                                GetInvoicedDate(objJob))
                                         </span>
 
                                     </td>
@@ -759,7 +760,7 @@
                                 <div class="@GetMobileAssigneeClass(objJob)">
 
                                     <span class="material-symbols-outlined">
-                                        @(objJob.AssignedUserId.HasValue
+                                        @(objJob.AssignedContractorId.HasValue
                                             ? "assignment_ind"
                                             : "person_off")
                                     </span>
@@ -795,12 +796,12 @@
                             <div>
 
                                 <small>
-                                    Close date
+                                    Invoiced date
                                 </small>
 
-                                <strong class="@GetCloseDateClass(objJob)">
+                                <strong class="@GetInvoicedDateClass(objJob)">
                                     @FormatDate(
-                                        objJob.ExpectedCloseDateUtc)
+                                        GetInvoicedDate(objJob))
                                 </strong>
 
                             </div>
@@ -890,8 +891,8 @@
     [SupplyParameterFromQuery(Name = "serviceId")]
     public Guid? ServiceId { get; set; }
 
-    [SupplyParameterFromQuery(Name = "assignedUserId")]
-    public Guid? AssignedUserId { get; set; }
+    [SupplyParameterFromQuery(Name = "assignedContractorId")]
+    public Guid? AssignedContractorId { get; set; }
 
     [SupplyParameterFromQuery(Name = "unassigned")]
     public Boolean Unassigned { get; set; }
@@ -902,7 +903,7 @@
     private List<CrmService> colServices =
         [];
 
-    private List<User> colUsers =
+    private List<Contractor> colContractors =
         [];
 
     private String? strSearch;
@@ -944,12 +945,12 @@
     private DateTime dteClosingSoonCutoffUtc =
         DateTime.UtcNow.Date.AddDays(30);
 
-    private IEnumerable<User> AssignableUsers =>
-        colUsers
-            .Where(objUser =>
-                objUser.Enabled)
-            .OrderBy(objUser =>
-                objUser.DisplayName);
+    private IEnumerable<Contractor> AssignableContractors =>
+        colContractors
+            .Where(objContractor =>
+                objContractor.Enabled || objContractor.Id == AssignedContractorId)
+            .OrderBy(objContractor =>
+                objContractor.DisplayName);
 
     private Boolean HasActiveFilters =>
         !String.IsNullOrWhiteSpace(
@@ -957,7 +958,7 @@
         !String.IsNullOrWhiteSpace(
             strSelectedStage) ||
         ServiceId.HasValue ||
-        AssignedUserId.HasValue ||
+        AssignedContractorId.HasValue ||
         Unassigned ||
         blnIncludeArchived ||
         Overdue ||
@@ -1015,13 +1016,13 @@
         Task<List<CrmService>> objServicesTask =
             ServiceService.GetServicesAsync();
 
-        Task<List<User>> objUsersTask =
-            UserService.GetUsersAsync(
+        Task<List<Contractor>> objContractorsTask =
+            ContractorService.GetContractorsAsync(
                 true);
 
         await Task.WhenAll(
             objServicesTask,
-            objUsersTask);
+            objContractorsTask);
 
         colServices =
             (await objServicesTask)
@@ -1029,10 +1030,10 @@
                     objService.Name)
                 .ToList();
 
-        colUsers =
-            (await objUsersTask)
-                .OrderBy(objUser =>
-                    objUser.DisplayName)
+        colContractors =
+            (await objContractorsTask)
+                .OrderBy(objContractor =>
+                    objContractor.DisplayName)
                 .ToList();
     }
 
@@ -1071,8 +1072,8 @@
         else
         {
             strSelectedAssignee =
-                AssignedUserId.HasValue
-                    ? AssignedUserId.Value.ToString()
+                AssignedContractorId.HasValue
+                    ? AssignedContractorId.Value.ToString()
                     : String.Empty;
         }
     }
@@ -1116,7 +1117,7 @@
 
     private Task AssigneeChangedAsync()
     {
-        AssignedUserId =
+        AssignedContractorId =
             null;
 
         Unassigned =
@@ -1132,10 +1133,10 @@
         }
         else if (Guid.TryParse(
             strSelectedAssignee,
-            out Guid objAssignedUserId))
+            out Guid objAssignedContractorId))
         {
-            AssignedUserId =
-                objAssignedUserId;
+            AssignedContractorId =
+                objAssignedContractorId;
         }
 
         NavigateToCurrentFilters();
@@ -1161,7 +1162,7 @@
                 Overdue,
                 CompanyId,
                 ServiceId,
-                AssignedUserId,
+                AssignedContractorId,
                 Unassigned),
             replace: true);
     }
@@ -1185,7 +1186,7 @@
                     enmStage: SelectedStage,
                     objCompanyId: CompanyId,
                     objServiceId: ServiceId,
-                    objAssignedUserId: AssignedUserId,
+                    objAssignedContractorId: AssignedContractorId,
                     blnUnassignedOnly: Unassigned,
                     blnIncludeArchived: blnIncludeArchived,
                     blnIncludeDeleted: false,
@@ -1254,7 +1255,7 @@
         ServiceId =
             null;
 
-        AssignedUserId =
+        AssignedContractorId =
             null;
 
         Unassigned =
@@ -1367,16 +1368,16 @@
             colFilters.Add(
                 "that are unassigned");
         }
-        else if (AssignedUserId.HasValue)
+        else if (AssignedContractorId.HasValue)
         {
-            User? objUser =
-                FindUser(
-                    AssignedUserId.Value);
+            Contractor? objContractor =
+                FindContractor(
+                    AssignedContractorId.Value);
 
             colFilters.Add(
-                objUser != null
-                    ? $"assigned to {objUser.DisplayName}"
-                    : "for the selected assignee");
+                objContractor != null
+                    ? $"assigned to {objContractor.DisplayName}"
+                    : "for the selected contractor");
         }
 
         if (Overdue)
@@ -1429,7 +1430,7 @@
         Boolean blnOverdue,
         Guid? objCompanyId,
         Guid? objServiceId,
-        Guid? objAssignedUserId,
+        Guid? objAssignedContractorId,
         Boolean blnUnassigned)
     {
         List<String> colQuery =
@@ -1465,10 +1466,10 @@
             colQuery.Add(
                 "unassigned=true");
         }
-        else if (objAssignedUserId.HasValue)
+        else if (objAssignedContractorId.HasValue)
         {
             colQuery.Add(
-                $"assignedUserId={objAssignedUserId.Value}");
+                $"assignedContractorId={objAssignedContractorId.Value}");
         }
 
         if (colQuery.Count == 0)
@@ -1483,51 +1484,51 @@
                 colQuery);
     }
 
-    private User? FindUser(
-        Guid objUserId)
+    private Contractor? FindContractor(
+        Guid objContractorId)
     {
-        return colUsers.FirstOrDefault(
-            objUser =>
-                objUser.Id ==
-                objUserId);
+        return colContractors.FirstOrDefault(
+            objContractor =>
+                objContractor.Id ==
+                objContractorId);
     }
 
     private String GetAssigneeName(
         Job objJob)
     {
-        if (!objJob.AssignedUserId.HasValue)
+        if (!objJob.AssignedContractorId.HasValue)
         {
             return "Unassigned";
         }
 
-        User? objUser =
-            FindUser(
-                objJob.AssignedUserId.Value);
+        Contractor? objContractor =
+            FindContractor(
+                objJob.AssignedContractorId.Value);
 
-        return objUser?.DisplayName ??
-            "Unknown user";
+        return objContractor?.DisplayName ??
+            "Unknown contractor";
     }
 
     private String GetAssigneeInitials(
         Job objJob)
     {
-        if (!objJob.AssignedUserId.HasValue)
+        if (!objJob.AssignedContractorId.HasValue)
         {
             return "?";
         }
 
-        User? objUser =
-            FindUser(
-                objJob.AssignedUserId.Value);
+        Contractor? objContractor =
+            FindContractor(
+                objJob.AssignedContractorId.Value);
 
-        return objUser?.GetInitials() ??
+        return objContractor?.GetInitials() ??
             "?";
     }
 
     private static String GetMobileAssigneeClass(
         Job objJob)
     {
-        return objJob.AssignedUserId.HasValue
+        return objJob.AssignedContractorId.HasValue
             ? "jobs-mobile-assignee"
             : "jobs-mobile-assignee jobs-mobile-assignee-unassigned";
     }
@@ -1720,34 +1721,42 @@
         };
     }
 
-    private static String GetCloseDateClass(
+    private static IEnumerable<Invoice> GetIssuedInvoices(
         Job objJob)
     {
-        if (!IsOpenJob(objJob) ||
-            !objJob.ExpectedCloseDateUtc.HasValue)
-        {
-            return String.Empty;
-        }
+        return objJob.Invoices.Where(
+            objInvoice =>
+                !objInvoice.Entity.DeletedUtc.HasValue &&
+                objInvoice.Status != InvoiceStatus.Draft &&
+                objInvoice.Status != InvoiceStatus.Void &&
+                objInvoice.IssueDateUtc.HasValue);
+    }
 
-        DateTime dteTodayUtc =
-            DateTime.UtcNow.Date;
+    private static DateTime? GetInvoicedDate(
+        Job objJob)
+    {
+        List<Invoice> colInvoices = GetIssuedInvoices(objJob).ToList();
 
-        DateTime dteCloseDateUtc =
-            objJob.ExpectedCloseDateUtc.Value.Date;
+        IEnumerable<Invoice> colUnpaidInvoices = colInvoices.Where(
+            objInvoice => objInvoice.Status != InvoiceStatus.Paid);
 
-        if (dteCloseDateUtc <
-            dteTodayUtc)
-        {
-            return "jobs-close-date-overdue";
-        }
+        return (colUnpaidInvoices.Any() ? colUnpaidInvoices : colInvoices)
+            .Min(objInvoice => objInvoice.IssueDateUtc);
+    }
 
-        if (dteCloseDateUtc <=
-            dteTodayUtc.AddDays(30))
-        {
-            return "jobs-close-date-soon";
-        }
+    private static String GetInvoicedDateClass(
+        Job objJob)
+    {
+        DateTime dteCutoffUtc = DateTime.UtcNow.Date.AddDays(-14);
 
-        return String.Empty;
+        return objJob.Stage != JobStage.Paid &&
+            objJob.Stage != JobStage.Lost &&
+            GetIssuedInvoices(objJob).Any(
+                objInvoice =>
+                    objInvoice.Status != InvoiceStatus.Paid &&
+                    objInvoice.IssueDateUtc!.Value.Date < dteCutoffUtc)
+                ? "jobs-invoiced-date-overdue"
+                : String.Empty;
     }
 
     private static String FormatMoney(

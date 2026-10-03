@@ -1,5 +1,7 @@
 ﻿using CRM.Core.Entities.Domain;
 using CRM.Core.Jobs.Abstractions;
+using CRM.Core.Contractors.Abstractions;
+using CRM.Core.Contractors.Domain;
 using CRM.Core.Jobs.Domain;
 
 namespace CRM.Core.Jobs.Services
@@ -7,12 +9,15 @@ namespace CRM.Core.Jobs.Services
     public sealed class JobService : IJobService
     {
         private readonly IJobRepository _jobRepository;
+        private readonly IContractorRepository _contractorRepository;
 
         public JobService(
-            IJobRepository objJobRepository)
+            IJobRepository objJobRepository,
+            IContractorRepository objContractorRepository)
         {
             _jobRepository =
                 objJobRepository;
+            _contractorRepository = objContractorRepository;
         }
 
         ///<inheritdoc/>
@@ -32,7 +37,7 @@ namespace CRM.Core.Jobs.Services
             JobStage? enmStage = null,
             Guid? objCompanyId = null,
             Guid? objServiceId = null,
-            Guid? objAssignedUserId = null,
+            Guid? objAssignedContractorId = null,
             Boolean blnUnassignedOnly = false,
             Boolean blnIncludeArchived = false,
             Boolean blnIncludeDeleted = false,
@@ -44,7 +49,7 @@ namespace CRM.Core.Jobs.Services
                 enmStage,
                 objCompanyId,
                 objServiceId,
-                objAssignedUserId,
+                objAssignedContractorId,
                 blnUnassignedOnly,
                 blnIncludeArchived,
                 blnIncludeDeleted,
@@ -70,6 +75,8 @@ namespace CRM.Core.Jobs.Services
                 objJob.Id == Guid.Empty
                     ? Guid.NewGuid()
                     : objJob.Id;
+
+            await ValidateContractorAsync(objJob.AssignedContractorId, null, objToken);
 
             DateTime dteNow =
                 DateTime.UtcNow;
@@ -238,6 +245,8 @@ namespace CRM.Core.Jobs.Services
                 return null;
             }
 
+            await ValidateContractorAsync(objJob.AssignedContractorId, objExistingJob.AssignedContractorId, objToken);
+
             DateTime dteNow =
                 DateTime.UtcNow;
 
@@ -250,8 +259,8 @@ namespace CRM.Core.Jobs.Services
             objExistingJob.ContactId =
                 objJob.ContactId;
 
-            objExistingJob.AssignedUserId =
-                objJob.AssignedUserId;
+            objExistingJob.AssignedContractorId =
+                objJob.AssignedContractorId;
 
             objExistingJob.Name =
                 strJobName;
@@ -515,6 +524,20 @@ namespace CRM.Core.Jobs.Services
         /// Creates a clean snapshot of the service lines supplied
         /// for a job.
         /// </summary>
+        private async Task ValidateContractorAsync(Guid? objContractorId, Guid? objExistingContractorId, CancellationToken objToken)
+        {
+            if (!objContractorId.HasValue) return;
+            Contractor? objContractor = await _contractorRepository.GetContractorAsync(objContractorId.Value, objToken);
+            if (objContractor == null)
+            {
+                throw new ArgumentException("The selected contractor could not be found.");
+            }
+            if (!objContractor.Enabled && objContractorId != objExistingContractorId)
+            {
+                throw new ArgumentException("Choose an active contractor for new assignments.");
+            }
+        }
+
         private static List<JobServiceLink> CleanServiceLinks(
             Guid objJobId,
             IEnumerable<JobServiceLink>? colServiceLinks)

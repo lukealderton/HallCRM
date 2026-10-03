@@ -714,7 +714,7 @@ namespace CRM.Core.Invoices.Services
             DateTime dteDue =
                 dteDueDateUtc?.Date ??
                 dteIssue.AddDays(
-                    30);
+                    14);
 
             if (dteDue <
                 dteIssue)

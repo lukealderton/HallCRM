@@ -1,12 +1,14 @@
 ﻿using CRM.Core.Activities.Abstractions;
 using CRM.Core.Companies.Abstractions;
 using CRM.Core.Contacts.Abstractions;
+using CRM.Core.Contractors.Abstractions;
 using CRM.Core.Entities.Abstractions;
 using CRM.Core.Geocoding.Abstraction;
 using CRM.Core.Invoices.Abstractions;
 using CRM.Core.Jobs.Abstractions;
 using CRM.Core.Logging.Abstraction;
 using CRM.Core.Mailing.Abstraction;
+using CRM.Core.Medias.Abstractions;
 using CRM.Core.Notes.Abstractions;
 using CRM.Core.Notifications.Abstractions;
 using CRM.Core.Payments.Abstractions;
@@ -17,6 +19,7 @@ using CRM.Core.Users.Abstraction.Repositories;
 using CRM.Infrastructure.Activities.Repositories;
 using CRM.Infrastructure.Companies.Repositories;
 using CRM.Infrastructure.Contacts.Repositories;
+using CRM.Infrastructure.Contractors.Repositories;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Entities.Repositories;
 using CRM.Infrastructure.Geocoding.Services;
@@ -26,6 +29,8 @@ using CRM.Infrastructure.Jobs.Repositories;
 using CRM.Infrastructure.Jobs.Services;
 using CRM.Infrastructure.Logging.Repositories;
 using CRM.Infrastructure.Mailing.Services;
+using CRM.Infrastructure.Medias.Repositories;
+using CRM.Infrastructure.Medias.Storage;
 using CRM.Infrastructure.Notes.Repositories;
 using CRM.Infrastructure.Notifications.Services;
 using CRM.Infrastructure.Payments.Repositories;
@@ -67,6 +72,7 @@ namespace CRM.Infrastructure
             colServices.AddScoped<ICompanyRepository,       CompanyRepository>();
             colServices.AddScoped<IContactRepository,       ContactRepository>();
             colServices.AddScoped<IJobRepository,           JobRepository>();
+            colServices.AddScoped<IContractorRepository, ContractorRepository>();
             colServices.AddScoped<INoteRepository,          NoteRepository>();
 
             colServices.AddScoped<ITicketRepository, TicketRepository>();
@@ -85,6 +91,8 @@ namespace CRM.Infrastructure
             colServices.AddScoped<IInvoiceDocumentService, InvoiceDocumentService>();
 
             colServices.AddScoped<IPaymentRepository, PaymentRepository>();
+            colServices.AddScoped<IMediaRepository, EfMediaRepository>();
+            colServices.AddScoped<IMediaStorage, LocalFileMediaStorage>();
 
             return colServices;
         }

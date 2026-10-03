@@ -4,6 +4,8 @@ using CRM.Core.Companies.Abstractions;
 using CRM.Core.Companies.Services;
 using CRM.Core.Contacts.Abstractions;
 using CRM.Core.Contacts.Services;
+using CRM.Core.Contractors.Abstractions;
+using CRM.Core.Contractors.Services;
 using CRM.Core.Entities.Abstractions;
 using CRM.Core.Entities.Services;
 using CRM.Core.Invoices.Abstractions;
@@ -12,6 +14,8 @@ using CRM.Core.Jobs.Abstractions;
 using CRM.Core.Jobs.Services;
 using CRM.Core.Logging.Abstraction;
 using CRM.Core.Logging.Services;
+using CRM.Core.Medias.Abstractions;
+using CRM.Core.Medias.Services;
 using CRM.Core.Notes.Abstractions;
 using CRM.Core.Notes.Services;
 using CRM.Core.Payments.Abstractions;
@@ -42,6 +46,7 @@ namespace CRM.Core
             colServices.AddScoped<ICompanyService,      CompanyService>();
             colServices.AddScoped<IContactService,      ContactService>();
             colServices.AddScoped<IJobService,          JobService>();
+            colServices.AddScoped<IContractorService, ContractorService>();
             colServices.AddScoped<INoteService,         NoteService>();
 
             colServices.AddScoped<ITicketService, TicketService>();
@@ -53,6 +58,7 @@ namespace CRM.Core
             colServices.AddScoped<IInvoiceService, InvoiceService>();
 
             colServices.AddScoped<IPaymentService, PaymentService>();
+            colServices.AddScoped<IMediaService, MediaService>();
 
             return colServices;
         }

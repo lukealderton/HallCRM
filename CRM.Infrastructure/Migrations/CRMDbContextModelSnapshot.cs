@@ -231,6 +231,49 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("T_Contacts", (string)null);
                 });
 
+            modelBuilder.Entity("CRM.Core.Contractors.Domain.Contractor", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CompanyName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Enabled", "Name");
+
+                    b.ToTable("T_Contractor", (string)null);
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.Domain.CrmEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -593,9 +636,9 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("nvarchar(250)")
                         .HasColumnName("jobAddressLine2");
 
-                    b.Property<Guid?>("AssignedUserId")
+                    b.Property<Guid?>("AssignedContractorId")
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("jobAssignedUserId");
+                        .HasColumnName("jobAssignedContractorId");
 
                     b.Property<Guid?>("CompanyId")
                         .HasColumnType("uniqueidentifier");
@@ -659,6 +702,8 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AssignedContractorId");
 
                     b.HasIndex("CompanyId");
 
@@ -751,6 +796,55 @@ namespace CRM.Infrastructure.Migrations
                         .HasDatabaseName("IX_T_Log_logRelType_logRelId_logTimestamp");
 
                     b.ToTable("T_Log", (string)null);
+                });
+
+            modelBuilder.Entity("CRM.Core.Medias.Domain.Media", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.HasIndex("JobId", "DeletedUtc", "CreatedUtc");
+
+                    b.ToTable("T_Media", (string)null);
                 });
 
             modelBuilder.Entity("CRM.Core.Notes.Domain.Note", b =>
@@ -1578,6 +1672,11 @@ namespace CRM.Infrastructure.Migrations
 
             modelBuilder.Entity("CRM.Core.Jobs.Domain.Job", b =>
                 {
+                    b.HasOne("CRM.Core.Contractors.Domain.Contractor", null)
+                        .WithMany()
+                        .HasForeignKey("AssignedContractorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CRM.Core.Companies.Domain.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
@@ -1618,6 +1717,15 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Job");
 
                     b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("CRM.Core.Medias.Domain.Media", b =>
+                {
+                    b.HasOne("CRM.Core.Jobs.Domain.Job", null)
+                        .WithMany()
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CRM.Core.Notes.Domain.Note", b =>

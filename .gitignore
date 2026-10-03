@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 /CRM.Web/appsettings.Development.json
 /CRM.Web/appsettings.Production.json
+
+# Private uploaded media
+**/App_Data/Media/
