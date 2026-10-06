@@ -1,4 +1,4 @@
-﻿using CRM.Core.Invoices.Abstractions;
+using CRM.Core.Invoices.Abstractions;
 using CRM.Core.Invoices.Domain;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -198,6 +198,11 @@ namespace CRM.Infrastructure.Invoices.Services
                                         objInfo,
                                         objInvoice));
 
+                        if (!String.IsNullOrWhiteSpace(objInvoice.JobDescription))
+                        {
+                            objColumn.Item().Element(container =>
+                                ComposeNotes(container, objInvoice.JobDescription, "Job description"));
+                        }
                         objColumn.Item()
                             .Element(
                                 objLines =>
@@ -565,7 +570,7 @@ namespace CRM.Infrastructure.Invoices.Services
 
         private static void ComposeNotes(
             IContainer objContainer,
-            String strNotes)
+            String strNotes, String strTitle = "Notes")
         {
             objContainer
                 .Border(1)
@@ -577,7 +582,7 @@ namespace CRM.Infrastructure.Invoices.Services
                     {
                         objColumn.Item()
                             .Text(
-                                "Notes")
+                                strTitle)
                             .FontSize(8)
                             .SemiBold()
                             .FontColor(

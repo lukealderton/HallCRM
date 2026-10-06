@@ -169,6 +169,8 @@ namespace CRM.Core.Invoices.Services
                     DueDateUtc =
                         null,
 
+                    JobDescription = CleanString(objJob.Description),
+
                     CustomerName =
                         CleanString(
                             strCustomerName),
@@ -450,6 +452,8 @@ namespace CRM.Core.Invoices.Services
 
             objExistingInvoice.Notes =
                 objInvoice.Notes;
+
+            objExistingInvoice.JobDescription = objInvoice.JobDescription;
 
             CleanInvoice(
                 objExistingInvoice);
@@ -934,6 +938,7 @@ namespace CRM.Core.Invoices.Services
         private static void CleanInvoice(
             Invoice objInvoice)
         {
+            objInvoice.JobDescription = CleanString(objInvoice.JobDescription);
             objInvoice.CustomerName =
                 CleanString(
                     objInvoice.CustomerName);

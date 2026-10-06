@@ -181,6 +181,11 @@ namespace CRM.Infrastructure.Quotes
                                         objInfo,
                                         objQuote));
 
+                        if (!String.IsNullOrWhiteSpace(objQuote.JobDescription))
+                        {
+                            objColumn.Item().Element(container =>
+                                ComposeNotes(container, objQuote.JobDescription, "Job description"));
+                        }
                         objColumn.Item()
                             .Element(
                                 objLines =>
@@ -522,7 +527,7 @@ namespace CRM.Infrastructure.Quotes
 
         private static void ComposeNotes(
             IContainer objContainer,
-            String strNotes)
+            String strNotes, String strTitle = "Notes")
         {
             objContainer
                 .Border(1)
@@ -534,7 +539,7 @@ namespace CRM.Infrastructure.Quotes
                     {
                         objColumn.Item()
                             .Text(
-                                "Notes")
+                                strTitle)
                             .FontSize(8)
                             .SemiBold()
                             .FontColor(

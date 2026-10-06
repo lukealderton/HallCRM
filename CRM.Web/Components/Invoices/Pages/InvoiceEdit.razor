@@ -1,4 +1,4 @@
-﻿@page "/invoices/{InvoiceId:guid}/edit"
+@page "/invoices/{InvoiceId:guid}/edit"
 
 @attribute [Authorize]
 @rendermode InteractiveServer
@@ -433,6 +433,10 @@
 
                                 </div>
 
+                                <div class="col-12">
+                                    <label class="form-label" for="jobDescription">Job description</label>
+                                    <InputTextArea id="jobDescription" class="form-control invoice-notes-input" @bind-Value="objInvoice.JobDescription" />
+                                </div>
                                 <div class="col-12">
 
                                     <label class="form-label"

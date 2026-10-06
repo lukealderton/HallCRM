@@ -18,6 +18,7 @@ public sealed class Quote
     public string? County { get; set; }
     public string? Postcode { get; set; }
     public string? Notes { get; set; }
+    public string? JobDescription { get; set; }
     public List<QuoteLine> Lines { get; set; } = [];
     [NotMapped] public decimal Subtotal => Lines.Sum(line => line.LineTotal);
     [NotMapped] public decimal Total => Subtotal;
@@ -41,7 +42,7 @@ public sealed class Quote
             CustomerName = job.Company?.Name ?? job.Contact?.Entity.DisplayName ?? job.Name,
             AddressLine1 = job.AddressLine1, AddressLine2 = job.AddressLine2,
             Town = job.Town, County = job.County, Postcode = job.Postcode,
-            Notes = job.Notes,
+            Notes = job.Notes, JobDescription = job.Description,
             Lines = job.ServiceLinks.OrderBy(line => line.Service.Name).Select((line, index) => new QuoteLine
             {
                 Id = Guid.NewGuid(), Description = line.Service.Name,

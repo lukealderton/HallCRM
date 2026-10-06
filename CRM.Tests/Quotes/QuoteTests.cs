@@ -11,7 +11,7 @@ public sealed class QuoteTests
     private static Job CreateJob() => new()
     {
         Id = Guid.NewGuid(), Name = "Kitchen repair", AddressLine1 = "1 High Street",
-        Notes = "Original scope", Entity = new CrmEntity(),
+        Notes = "Original scope", Description = "Repair and repaint the kitchen", Entity = new CrmEntity(),
         ServiceLinks = [new JobServiceLink
         {
             Service = new CRM.Core.Services.Domain.Service { Name = "Painting" },
@@ -27,6 +27,7 @@ public sealed class QuoteTests
         job.Name = "Changed job";
         job.AddressLine1 = "New address";
         job.Notes = "New scope";
+        job.Description = "Changed description";
         var service = job.ServiceLinks.Single();
         service.Service.Name = "Renamed service";
         service.Quantity = 8m;
@@ -37,6 +38,7 @@ public sealed class QuoteTests
         Assert.AreEqual("Kitchen repair", quote.CustomerName);
         Assert.AreEqual("1 High Street", quote.AddressLine1);
         Assert.AreEqual("Original scope", quote.Notes);
+        Assert.AreEqual("Repair and repaint the kitchen", quote.JobDescription);
         Assert.AreEqual("Painting", quote.Lines.Single().Description);
         Assert.AreEqual(150m, quote.Total);
     }
@@ -81,5 +83,30 @@ public sealed class QuoteTests
         var bytes = await document.GenerateQuoteAsync(quote.Id);
         Assert.IsTrue(bytes.Length > 1000);
         Assert.AreEqual("%PDF-", System.Text.Encoding.ASCII.GetString(bytes, 0, 5));
+    }
+
+    [TestMethod]
+    public async Task InvoiceSnapshotsJobDescriptionOnCreation()
+    {
+        var job = CreateJob();
+        CRM.Core.Invoices.Domain.Invoice? stored = null;
+        var jobs = CRM.Tests.Medias.MediaTests.TestProxy.Create<CRM.Core.Jobs.Abstractions.IJobService>((method, args) =>
+            method.Name == "GetJobByIdAsync" ? Task.FromResult<Job?>(job) : throw new NotSupportedException(method.Name));
+        var repository = CRM.Tests.Medias.MediaTests.TestProxy.Create<CRM.Core.Invoices.Abstractions.IInvoiceRepository>((method, args) =>
+        {
+            switch (method.Name)
+            {
+                case "InvoiceNumberExistsAsync": return Task.FromResult(false);
+                case "AddInvoiceAsync":
+                    stored = (CRM.Core.Invoices.Domain.Invoice)args![0]!;
+                    return Task.CompletedTask;
+                case "GetInvoiceByIdAsync": return Task.FromResult(stored);
+                default: throw new NotSupportedException(method.Name);
+            }
+        });
+        var service = new CRM.Core.Invoices.Services.InvoiceService(repository, jobs);
+        var invoice = await service.CreateFromJobAsync(job.Id);
+        job.Description = "Changed description";
+        Assert.AreEqual("Repair and repaint the kitchen", invoice.JobDescription);
     }
 }

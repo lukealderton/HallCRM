@@ -43,6 +43,8 @@ namespace CRM.Core.Invoices.Domain
 
         public String? Postcode { get; set; }
 
+        public String? JobDescription { get; set; }
+
         public String? Notes { get; set; }
 
         public ICollection<InvoiceLine> Lines { get; set; } = [];

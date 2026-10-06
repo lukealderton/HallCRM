@@ -1,4 +1,4 @@
-﻿@page "/invoices/{InvoiceId:guid}"
+@page "/invoices/{InvoiceId:guid}"
 
 @attribute [Authorize]
 @rendermode InteractiveServer
@@ -1070,6 +1070,13 @@
 
                 </div>
 
+                @if (!String.IsNullOrWhiteSpace(objInvoice.JobDescription))
+                {
+                    <div class="crm-card">
+                        <div class="crm-card-header"><div><h3>Job description</h3></div></div>
+                        <div class="invoice-card-body"><p class="invoice-notes" style="white-space: pre-wrap">@objInvoice.JobDescription</p></div>
+                    </div>
+                }
                 @if (!String.IsNullOrWhiteSpace(
                     objInvoice.Notes))
                 {

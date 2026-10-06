@@ -29,6 +29,11 @@
                 <h2 class="h5">@quote.QuoteNumber</h2>
                 <p>@quote.CustomerName · @quote.JobName · @quote.CreatedUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</p>
                 <p>@string.Join(", ", new[] { quote.AddressLine1, quote.AddressLine2, quote.Town, quote.County, quote.Postcode }.Where(value => !string.IsNullOrWhiteSpace(value)))</p>
+                @if (!string.IsNullOrWhiteSpace(quote.JobDescription))
+                {
+                    <h3 class="h6">Job description</h3>
+                    <p style="white-space: pre-wrap">@quote.JobDescription</p>
+                }
                 <div class="table-responsive">
                     <table class="table">
                         <thead><tr><th>Service</th><th>Quantity</th><th>Unit price</th><th>Total</th></tr></thead>

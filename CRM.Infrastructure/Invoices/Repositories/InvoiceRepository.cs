@@ -354,6 +354,8 @@ namespace CRM.Infrastructure.Invoices.Repositories
             objExistingInvoice.Notes =
                 objInvoice.Notes;
 
+            objExistingInvoice.JobDescription = objInvoice.JobDescription;
+
             objExistingInvoice.Entity.DisplayName =
                 objInvoice.Entity.DisplayName;
 

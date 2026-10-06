@@ -120,6 +120,9 @@ namespace CRM.Infrastructure.Invoices.Configurations
                 .HasMaxLength(
                     4000);
 
+            objBuilder.Property(objInvoice => objInvoice.JobDescription)
+                .HasColumnName("invJobDescription");
+
             objBuilder.HasIndex(
                     objInvoice =>
                         objInvoice.InvoiceNumber)
