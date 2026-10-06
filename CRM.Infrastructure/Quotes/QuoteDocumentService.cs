@@ -393,7 +393,9 @@ namespace CRM.Infrastructure.Quotes
                                             .Element(
                                                 TableCell)
                                             .Text(
-                                                objLine.Description);
+                                                String.IsNullOrWhiteSpace(objLine.ServiceDescription)
+                                                    ? objLine.Description
+                                                    : objLine.Description + Environment.NewLine + objLine.ServiceDescription);
 
                                         objTable.Cell()
                                             .Element(

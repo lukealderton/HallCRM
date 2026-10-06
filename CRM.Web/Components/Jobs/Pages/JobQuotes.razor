@@ -40,7 +40,13 @@
                         <tbody>
                             @foreach (var line in quote.Lines.OrderBy(line => line.SortOrder))
                             {
-                                <tr><td>@line.Description</td><td>@line.Quantity.ToString("0.##")</td><td>@line.UnitPrice.ToString("C")</td><td>@line.LineTotal.ToString("C")</td></tr>
+                                <tr><td>
+                                    <strong>@line.Description</strong>
+                                    @if (!string.IsNullOrWhiteSpace(line.ServiceDescription))
+                                    {
+                                        <p class="mb-0 text-muted" style="white-space: pre-wrap">@line.ServiceDescription</p>
+                                    }
+                                </td><td>@line.Quantity.ToString("0.##")</td><td>@line.UnitPrice.ToString("C")</td><td>@line.LineTotal.ToString("C")</td></tr>
                             }
                         </tbody>
                         <tfoot><tr><th colspan="3">Total</th><th>@quote.Total.ToString("C")</th></tr></tfoot>

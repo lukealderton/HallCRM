@@ -587,6 +587,10 @@
                                                     <strong>
                                                         @objLine.Description
                                                     </strong>
+                                                    @if (!String.IsNullOrWhiteSpace(objLine.ServiceDescription))
+                                                    {
+                                                        <p class="mb-0 text-muted" style="white-space: pre-wrap">@objLine.ServiceDescription</p>
+                                                    }
 
                                                 </td>
 
@@ -624,6 +628,10 @@
                                         <strong>
                                             @objLine.Description
                                         </strong>
+                                                    @if (!String.IsNullOrWhiteSpace(objLine.ServiceDescription))
+                                                    {
+                                                        <p class="mb-0 text-muted" style="white-space: pre-wrap">@objLine.ServiceDescription</p>
+                                                    }
 
                                         <div class="invoice-line-meta">
 

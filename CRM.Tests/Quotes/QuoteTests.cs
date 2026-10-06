@@ -14,7 +14,7 @@ public sealed class QuoteTests
         Notes = "Original scope", Description = "Repair and repaint the kitchen", Entity = new CrmEntity(),
         ServiceLinks = [new JobServiceLink
         {
-            Service = new CRM.Core.Services.Domain.Service { Name = "Painting" },
+            Service = new CRM.Core.Services.Domain.Service { Name = "Painting", Description = "Prepare surfaces and apply two coats." },
             Quantity = 2m, UnitPrice = 75m
         }]
     };
@@ -30,6 +30,7 @@ public sealed class QuoteTests
         job.Description = "Changed description";
         var service = job.ServiceLinks.Single();
         service.Service.Name = "Renamed service";
+        service.Service.Description = "Changed service description";
         service.Quantity = 8m;
         service.UnitPrice = 100m;
         job.ServiceLinks.Clear();
@@ -40,6 +41,7 @@ public sealed class QuoteTests
         Assert.AreEqual("Original scope", quote.Notes);
         Assert.AreEqual("Repair and repaint the kitchen", quote.JobDescription);
         Assert.AreEqual("Painting", quote.Lines.Single().Description);
+        Assert.AreEqual("Prepare surfaces and apply two coats.", quote.Lines.Single().ServiceDescription);
         Assert.AreEqual(150m, quote.Total);
     }
 
@@ -72,6 +74,7 @@ public sealed class QuoteTests
         quote.Lines = Enumerable.Range(0, 100).Select(index => new QuoteLine
         {
             Id = Guid.NewGuid(), SortOrder = index, Description = $"Service {index}",
+            ServiceDescription = "Prepare surfaces.\nApply two coats and clean up.",
             Quantity = 2m, UnitPrice = 75m
         }).ToList();
         var service = CRM.Tests.Medias.MediaTests.TestProxy.Create<IQuoteService>((method, args) =>
@@ -108,5 +111,7 @@ public sealed class QuoteTests
         var invoice = await service.CreateFromJobAsync(job.Id);
         job.Description = "Changed description";
         Assert.AreEqual("Repair and repaint the kitchen", invoice.JobDescription);
+        job.ServiceLinks.Single().Service.Description = "Changed service description";
+        Assert.AreEqual("Prepare surfaces and apply two coats.", invoice.Lines.Single().ServiceDescription);
     }
 }

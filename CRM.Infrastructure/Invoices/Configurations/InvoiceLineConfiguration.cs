@@ -72,6 +72,9 @@ namespace CRM.Infrastructure.Invoices.Configurations
                     2)
                 .IsRequired();
 
+            objBuilder.Property(objLine => objLine.ServiceDescription)
+                .HasColumnName("inlServiceDescription");
+
             objBuilder.HasIndex(
                 objLine =>
                     objLine.InvoiceId);

@@ -401,6 +401,8 @@ namespace CRM.Infrastructure.Invoices.Repositories
                             Description =
                                 objLine.Description,
 
+                            ServiceDescription = objLine.ServiceDescription,
+
                             Quantity =
                                 objLine.Quantity,
 

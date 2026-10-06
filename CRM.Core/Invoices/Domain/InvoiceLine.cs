@@ -23,6 +23,8 @@ namespace CRM.Core.Invoices.Domain
         public Decimal Quantity { get; set; } =
             1m;
 
+        public String? ServiceDescription { get; set; }
+
         public Decimal UnitPrice { get; set; }
 
         [NotMapped]

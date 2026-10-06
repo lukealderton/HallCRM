@@ -436,7 +436,9 @@ namespace CRM.Infrastructure.Invoices.Services
                                             .Element(
                                                 TableCell)
                                             .Text(
-                                                objLine.Description);
+                                                String.IsNullOrWhiteSpace(objLine.ServiceDescription)
+                                                    ? objLine.Description
+                                                    : objLine.Description + Environment.NewLine + objLine.ServiceDescription);
 
                                         objTable.Cell()
                                             .Element(

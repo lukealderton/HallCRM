@@ -863,6 +863,8 @@ namespace CRM.Core.Invoices.Services
                             Description =
                                 objLink.Service.Name.Trim(),
 
+                            ServiceDescription = CleanString(objLink.Service.Description),
+
                             Quantity =
                                 dcmQuantity,
 
@@ -921,6 +923,8 @@ namespace CRM.Core.Invoices.Services
 
                         Description =
                             objLine.Description.Trim(),
+
+                        ServiceDescription = CleanString(objLine.ServiceDescription),
 
                         Quantity =
                             CleanQuantity(

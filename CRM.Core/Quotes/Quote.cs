@@ -46,6 +46,7 @@ public sealed class Quote
             Lines = job.ServiceLinks.OrderBy(line => line.Service.Name).Select((line, index) => new QuoteLine
             {
                 Id = Guid.NewGuid(), Description = line.Service.Name,
+                ServiceDescription = line.Service.Description,
                 Quantity = decimal.Round(line.Quantity, 2, MidpointRounding.AwayFromZero),
                 UnitPrice = decimal.Round(line.UnitPrice!.Value, 2, MidpointRounding.AwayFromZero), SortOrder = index
             }).ToList()
@@ -55,6 +56,7 @@ public sealed class Quote
 
 public sealed class QuoteLine
 {
+    public string? ServiceDescription { get; set; }
     public Guid Id { get; set; }
     public int SortOrder { get; set; }
     public string Description { get; set; } = string.Empty;
