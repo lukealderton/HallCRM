@@ -1,4 +1,4 @@
-﻿@page "/companies/{CompanyId:guid}"
+@page "/companies/{CompanyId:guid}"
 
 @using CRM.Core.Activities.Abstractions
 @using CRM.Core.Activities.Domain
@@ -21,6 +21,8 @@
 @inject IContactService ContactService
 @inject IJobService JobService
 @inject IInvoiceService InvoiceService
+@using CRM.Core.Quotes
+@inject IQuoteService QuoteService
 @inject IActivityService ActivityService
 @inject ITicketService TicketService
 @inject NavigationManager objNavigationManager
@@ -868,6 +870,46 @@
                             }
 
                         </div>
+                        <div class="company-finance-history">
+                            <div class="company-finance-history-heading">
+                                <div>
+                                    <h4>Recent quotes</h4>
+                                    <span>Latest quotes for this company.</span>
+                                </div>
+                            </div>
+                            @if (colQuotes.Count == 0)
+                            {
+                                <div class="company-finance-empty">
+                                    <span class="material-symbols-outlined">request_quote</span>
+                                    <div>
+                                        <strong>No quotes yet</strong>
+                                        <span>Quotes created for this company’s jobs will appear here.</span>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="company-invoice-list">
+                                    @foreach (Quote objQuote in colQuotes)
+                                    {
+                                        <a href="@($"/jobs/{objQuote.JobId}/quotes")" class="company-invoice-item">
+                                            <span class="company-invoice-icon">
+                                                <span class="material-symbols-outlined">request_quote</span>
+                                            </span>
+                                            <span class="company-invoice-main">
+                                                <span class="company-invoice-title-row company-quote-title"><strong>@objQuote.QuoteNumber</strong></span>
+                                                <span class="company-invoice-meta">
+                                                    <span>@objQuote.JobName</span>
+                                                    <span>Created @objQuote.CreatedUtc.ToLocalTime().ToString("dd MMM yyyy")</span>
+                                                </span>
+                                            </span>
+                                            <span class="company-invoice-money"><strong>@objQuote.Total.ToString("C")</strong></span>
+                                            <span class="material-symbols-outlined company-invoice-arrow">chevron_right</span>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                        </div>
 
                     </div>
 
@@ -1552,6 +1594,8 @@
     private List<Invoice> colInvoices =
         [];
 
+    private List<Quote> colQuotes = [];
+
     private Boolean blnLoading =
         true;
 
@@ -1621,6 +1665,8 @@
 
         colInvoices =
             [];
+
+        colQuotes = [];
 
         HeaderState.SetHeader(
             "Company",
@@ -1694,6 +1740,9 @@
             InvoiceService.GetInvoicesAsync(
                 objCompanyId: CompanyId);
 
+        Task<List<Quote>> objQuotesTask =
+            QuoteService.GetRecentForCompanyAsync(CompanyId);
+
         Task<TicketSearchResult> objTicketsTask =
             TicketService.GetTicketsAsync(
                 new TicketSearchRequest
@@ -1707,6 +1756,7 @@
             objJobsTask,
             objActivitiesTask,
             objInvoicesTask,
+            objQuotesTask,
             objTicketsTask);
 
         colContacts =
@@ -1720,6 +1770,8 @@
 
         colInvoices =
             await objInvoicesTask;
+
+        colQuotes = await objQuotesTask;
 
         TicketSearchResult objTicketResult =
             await objTicketsTask;

@@ -67,6 +67,7 @@ public interface IQuoteService
     Task<Quote> CreateFromJobAsync(Guid jobId, Guid? userId = null, CancellationToken token = default);
     Task<Quote?> GetByIdAsync(Guid id, CancellationToken token = default);
     Task<List<Quote>> GetForJobAsync(Guid jobId, CancellationToken token = default);
+    Task<List<Quote>> GetRecentForCompanyAsync(Guid companyId, CancellationToken token = default);
 }
 
 public interface IQuoteDocumentService

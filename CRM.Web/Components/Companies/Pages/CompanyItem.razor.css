@@ -1399,3 +1399,7 @@ span:not(.company-related-count) {
         grid-template-columns: 1fr;
     }
 }
+
+.company-quote-title > strong {
+    overflow-wrap: anywhere;
+}

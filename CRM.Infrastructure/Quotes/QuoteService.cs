@@ -7,6 +7,15 @@ namespace CRM.Infrastructure.Quotes;
 
 public sealed class QuoteService(IDbContextFactory<CRMDbContext> factory, IJobService jobs) : IQuoteService
 {
+    public async Task<List<Quote>> GetRecentForCompanyAsync(Guid companyId, CancellationToken token = default)
+    {
+        await using var db = await factory.CreateDbContextAsync(token);
+        return await db.Quotes.AsNoTracking().Include(quote => quote.Lines)
+            .Where(quote => db.Jobs.Any(job => job.Id == quote.JobId && job.CompanyId == companyId))
+            .OrderByDescending(quote => quote.CreatedUtc).ThenByDescending(quote => quote.Id)
+            .Take(5).ToListAsync(token);
+    }
+
     public async Task<Quote> CreateFromJobAsync(Guid jobId, Guid? userId = null, CancellationToken token = default)
     {
         var job = await jobs.GetJobByIdAsync(jobId, token)
