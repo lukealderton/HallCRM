@@ -1,4 +1,4 @@
-﻿using CRM.Core.Activities.Domain;
+using CRM.Core.Activities.Domain;
 using CRM.Core.Companies.Domain;
 using CRM.Core.Contacts.Domain;
 using CRM.Core.Contractors.Domain;
@@ -71,11 +71,29 @@ namespace CRM.Infrastructure.Data
         public DbSet<Invoice> Invoices => Set<Invoice>();
         public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
 
+        public DbSet<CRM.Core.Quotes.Quote> Quotes => Set<CRM.Core.Quotes.Quote>();
         public DbSet<Payment> Payments => Set<Payment>();
 
         protected override void OnModelCreating(ModelBuilder objModelBuilder)
         {
             base.OnModelCreating(objModelBuilder);
+            objModelBuilder.Entity<CRM.Core.Quotes.Quote>(quote =>
+            {
+                quote.ToTable("Quotes");
+                quote.HasKey(q => q.Id);
+                quote.Property(q => q.QuoteNumber).HasMaxLength(64);
+                quote.HasIndex(q => q.QuoteNumber).IsUnique();
+                quote.HasIndex(q => q.JobId);
+                quote.HasOne<Job>().WithMany().HasForeignKey(q => q.JobId).OnDelete(DeleteBehavior.Restrict);
+                quote.OwnsMany(q => q.Lines, line =>
+                {
+                    line.ToTable("QuoteLines");
+                    line.WithOwner().HasForeignKey("QuoteId");
+                    line.HasKey(l => l.Id);
+                    line.Property(l => l.Quantity).HasPrecision(18, 2);
+                    line.Property(l => l.UnitPrice).HasPrecision(18, 2);
+                });
+            });
 
             objModelBuilder.ApplyConfiguration(new UserConfiguration());
             objModelBuilder.ApplyConfiguration(new RoleConfiguration());

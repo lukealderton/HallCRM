@@ -1,4 +1,4 @@
-﻿using CRM.Core.Activities.Abstractions;
+using CRM.Core.Activities.Abstractions;
 using CRM.Core.Companies.Abstractions;
 using CRM.Core.Contacts.Abstractions;
 using CRM.Core.Contractors.Abstractions;
@@ -87,6 +87,8 @@ namespace CRM.Infrastructure
 
             colServices.AddScoped<IJobSheetService, JobSheetService>();
 
+            colServices.AddScoped<CRM.Core.Quotes.IQuoteDocumentService, CRM.Infrastructure.Quotes.QuoteDocumentService>();
+            colServices.AddScoped<CRM.Core.Quotes.IQuoteService, CRM.Infrastructure.Quotes.QuoteService>();
             colServices.AddScoped<IInvoiceRepository, InvoiceRepository>();
             colServices.AddScoped<IInvoiceDocumentService, InvoiceDocumentService>();
 

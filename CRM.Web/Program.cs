@@ -101,6 +101,15 @@ objApp.MapMediaEndpoints();
 
 QuestPDF.Settings.License = LicenseType.Community;
 
+objApp.MapGet("/quotes/{quoteId:guid}/quote.pdf", async (
+    Guid quoteId, CRM.Core.Quotes.IQuoteService quotes,
+    CRM.Core.Quotes.IQuoteDocumentService documents, CancellationToken token) =>
+{
+    var quote = await quotes.GetByIdAsync(quoteId, token);
+    if (quote == null) return Results.NotFound();
+    var pdf = await documents.GenerateQuoteAsync(quoteId, token);
+    return Results.File(pdf, "application/pdf", $"{quote.QuoteNumber}.pdf");
+}).RequireAuthorization();
 objApp.MapGet(
     "/jobs/{jobId:guid}/job-sheet.pdf",
     async (
