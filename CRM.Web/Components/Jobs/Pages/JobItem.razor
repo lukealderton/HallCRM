@@ -4,6 +4,8 @@
 @rendermode InteractiveServer
 
 @using CRM.Core.Invoices.Abstractions
+@using CRM.Core.Quotes
+@inject IQuoteService QuoteService
 @using CRM.Core.Invoices.Domain
 @using CRM.Core.Jobs.Abstractions
 @using CRM.Core.Jobs.Domain
@@ -331,6 +333,14 @@
             </div>
 
             <div class="job-profile-actions">
+                <a href="@($"/jobs/{JobId}/quotes")" class="btn btn-soft-primary">
+                    <span class="material-symbols-outlined">request_quote</span>
+                    View quotes
+                </a>
+                <a href="#job-invoices" class="btn btn-soft-primary">
+                    <span class="material-symbols-outlined">receipt_long</span>
+                    View invoices
+                </a>
 
                 <a href="@GetJobSheetUrl()"
                    class="btn btn-soft-primary"
@@ -829,12 +839,12 @@
                             </h3>
 
                             <p>
-                                Invoices, payments and outstanding balance for this job.
+                                Quotes, invoices, payments and outstanding balance for this job.
                             </p>
 
                         </div>
 
-                        <a class="btn btn-soft-primary btn-sm" href="@($"/jobs/{JobId}/quotes")">Quotes</a>
+                        <a class="btn btn-soft-primary btn-sm" href="@($"/jobs/{JobId}/quotes")">View quotes</a>
                         <button type="button"
                                 class="btn btn-soft-primary btn-sm"
                                 disabled="@(blnCreatingInvoice || !CanCreateInvoice)"
@@ -1008,6 +1018,39 @@
                         }
 
                         <div class="job-finance-history">
+                            <div class="job-finance-history-heading">
+                                <div>
+                                    <h4>Quotes</h4>
+                                    <span>Saved quotes created from this job.</span>
+                                </div>
+                                <a href="@($"/jobs/{JobId}/quotes")" class="btn btn-soft-primary btn-sm">View all quotes</a>
+                            </div>
+                            @if (colQuotes.Count == 0)
+                            {
+                                <div class="job-invoices-empty">
+                                    <span class="material-symbols-outlined">request_quote</span>
+                                    <div><strong>No quotes yet</strong><span>Use View quotes to create a quote from the job’s services.</span></div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="job-invoices-list">
+                                    @foreach (Quote quote in colQuotes)
+                                    {
+                                        <a href="@($"/jobs/{JobId}/quotes#quote-{quote.Id}")" class="job-invoice-item job-quote-item">
+                                            <div class="job-invoice-icon"><span class="material-symbols-outlined">request_quote</span></div>
+                                            <div class="job-invoice-main">
+                                                <strong>@quote.QuoteNumber</strong>
+                                                <span>Created @quote.CreatedUtc.ToLocalTime().ToString("dd MMM yyyy")</span>
+                                            </div>
+                                            <div class="job-invoice-total"><strong>@quote.Total.ToString("C")</strong></div>
+                                            <span class="material-symbols-outlined job-invoice-arrow">chevron_right</span>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="job-finance-history" id="job-invoices">
 
                             <div class="job-finance-history-heading">
 
@@ -1633,6 +1676,8 @@
 
     private Contractor? objAssignedContractor;
 
+    private List<Quote> colQuotes = [];
+
     private List<Invoice> colInvoices =
         [];
 
@@ -1702,6 +1747,7 @@
 
         colInvoices =
             [];
+        colQuotes = [];
 
         HeaderState.SetHeader(
             "Job",
@@ -1727,6 +1773,8 @@
                 return;
             }
 
+            Task<List<Quote>> objQuotesTask = QuoteService.GetForJobAsync(JobId);
+
             Task<List<Invoice>> objInvoicesTask =
                 InvoiceService.GetInvoicesAsync(
                     objJobId: JobId);
@@ -1738,8 +1786,9 @@
                         objJob.AssignedContractorId.Value);
             }
 
-            colInvoices =
-                await objInvoicesTask;
+            await Task.WhenAll(objInvoicesTask, objQuotesTask);
+            colInvoices = await objInvoicesTask;
+            colQuotes = await objQuotesTask;
 
             strPageTitle =
                 objJob.Name;

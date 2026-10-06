@@ -24,7 +24,7 @@
     }
     @foreach (var quote in quotes)
     {
-        <article class="card mb-3">
+        <article class="card mb-3" id="@($"quote-{quote.Id}")">
             <div class="card-body">
                 <h2 class="h5">@quote.QuoteNumber</h2>
                 <p>@quote.CustomerName · @quote.JobName · @quote.CreatedUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</p>
