@@ -1,3 +1,4 @@
+using CRM.Core.Common.Abstraction;
 using CRM.Core.Quotes;
 
 using QuestPDF.Fluent;
@@ -9,11 +10,14 @@ namespace CRM.Infrastructure.Quotes
     public sealed class QuoteDocumentService
         : IQuoteDocumentService
     {
+        private readonly IAppPathProvider _paths;
+
         private readonly IQuoteService _quoteService;
 
         public QuoteDocumentService(
-            IQuoteService objQuoteService)
+            IQuoteService objQuoteService, IAppPathProvider paths)
         {
+            _paths = paths;
             _quoteService =
                 objQuoteService;
         }
@@ -37,6 +41,9 @@ namespace CRM.Infrastructure.Quotes
 
             if (objQuote == null)
                 throw new InvalidOperationException("The selected quote could not be found.");
+            Byte[] logo = await File.ReadAllBytesAsync(
+                Path.Combine(_paths.WebRootPath, "images", "logo-trans.png"), objToken);
+
             IDocument objDocument =
                 Document.Create(
                     objContainer =>
@@ -66,7 +73,7 @@ namespace CRM.Infrastructure.Quotes
                                         objHeader =>
                                             ComposeHeader(
                                                 objHeader,
-                                                objQuote));
+                                                objQuote, logo));
 
                                 objPage.Content()
                                     .PaddingTop(14)
@@ -90,7 +97,7 @@ namespace CRM.Infrastructure.Quotes
 
         private static void ComposeHeader(
             IContainer objContainer,
-            Quote objQuote)
+            Quote objQuote, Byte[] logo)
         {
             objContainer
                 .Row(
@@ -100,13 +107,7 @@ namespace CRM.Infrastructure.Quotes
                             .Column(
                                 objColumn =>
                                 {
-                                    objColumn.Item()
-                                        .PaddingBottom(8)
-                                        .Text("Hall Home Maintenance")
-                                        .FontSize(16)
-                                        .SemiBold()
-                                        .FontColor(
-                                            Colors.Grey.Darken3);
+                                    objColumn.Item().PaddingBottom(8).Width(200).Height(100).Image(logo).FitArea();
 
                                     objColumn.Item()
                                         .Text("QUOTE")

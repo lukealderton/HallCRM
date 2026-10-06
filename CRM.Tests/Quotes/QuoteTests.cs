@@ -82,10 +82,11 @@ public sealed class QuoteTests
                 ? Task.FromResult<Quote?>(quote)
                 : throw new NotSupportedException(method.Name));
         QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
-        var document = new CRM.Infrastructure.Quotes.QuoteDocumentService(service);
+        var document = new CRM.Infrastructure.Quotes.QuoteDocumentService(service, new DocumentPaths());
         var bytes = await document.GenerateQuoteAsync(quote.Id);
         Assert.IsTrue(bytes.Length > 1000);
         Assert.AreEqual("%PDF-", System.Text.Encoding.ASCII.GetString(bytes, 0, 5));
+        Assert.IsTrue(System.Text.Encoding.Latin1.GetString(bytes).Contains("/Subtype /Image"));
     }
 
     [TestMethod]
@@ -113,5 +114,30 @@ public sealed class QuoteTests
         Assert.AreEqual("Repair and repaint the kitchen", invoice.JobDescription);
         job.ServiceLinks.Single().Service.Description = "Changed service description";
         Assert.AreEqual("Prepare surfaces and apply two coats.", invoice.Lines.Single().ServiceDescription);
+    }
+
+    [TestMethod]
+    public async Task InvoicePdfIncludesLogo()
+    {
+        var invoice = new CRM.Core.Invoices.Domain.Invoice
+        {
+            Id = Guid.NewGuid(), InvoiceNumber = "INV-TEST", Entity = new CrmEntity(),
+            Status = CRM.Core.Invoices.Domain.InvoiceStatus.Issued,
+            CustomerName = "Test customer", Job = CreateJob(),
+            Lines = [new CRM.Core.Invoices.Domain.InvoiceLine { Description = "Painting", Quantity = 1m, UnitPrice = 75m }]
+        };
+        var service = CRM.Tests.Medias.MediaTests.TestProxy.Create<CRM.Core.Invoices.Abstractions.IInvoiceService>((method, args) =>
+            method.Name == "GetInvoiceByIdAsync" ? Task.FromResult<CRM.Core.Invoices.Domain.Invoice?>(invoice) : throw new NotSupportedException(method.Name));
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+        var document = new CRM.Infrastructure.Invoices.Services.InvoiceDocumentService(service, new DocumentPaths());
+        var bytes = await document.GenerateInvoiceAsync(invoice.Id);
+        Assert.AreEqual("%PDF-", System.Text.Encoding.ASCII.GetString(bytes, 0, 5));
+        Assert.IsTrue(System.Text.Encoding.Latin1.GetString(bytes).Contains("/Subtype /Image"));
+    }
+
+    private sealed class DocumentPaths : CRM.Core.Common.Abstraction.IAppPathProvider
+    {
+        public string ContentRootPath => AppContext.BaseDirectory;
+        public string WebRootPath => Path.Combine(AppContext.BaseDirectory, "test-assets");
     }
 }

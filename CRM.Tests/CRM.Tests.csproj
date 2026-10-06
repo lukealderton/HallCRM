@@ -15,4 +15,7 @@
     <ProjectReference Include="../CRM.Infrastructure/CRM.Infrastructure.csproj" />
     <ProjectReference Include="../CRM.Web/CRM.Web.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="../CRM.Web/wwwroot/images/logo-trans.png" Link="test-assets/images/logo-trans.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

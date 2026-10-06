@@ -1,3 +1,4 @@
+using CRM.Core.Common.Abstraction;
 using CRM.Core.Invoices.Abstractions;
 using CRM.Core.Invoices.Domain;
 using QuestPDF.Fluent;
@@ -9,11 +10,14 @@ namespace CRM.Infrastructure.Invoices.Services
     public sealed class InvoiceDocumentService
         : IInvoiceDocumentService
     {
+        private readonly IAppPathProvider _paths;
+
         private readonly IInvoiceService _invoiceService;
 
         public InvoiceDocumentService(
-            IInvoiceService objInvoiceService)
+            IInvoiceService objInvoiceService, IAppPathProvider paths)
         {
+            _paths = paths;
             _invoiceService =
                 objInvoiceService;
         }
@@ -49,6 +53,9 @@ namespace CRM.Infrastructure.Invoices.Services
                     "Draft invoices cannot be generated as customer invoices.");
             }
 
+            Byte[] logo = await File.ReadAllBytesAsync(
+                Path.Combine(_paths.WebRootPath, "images", "logo-trans.png"), objToken);
+
             IDocument objDocument =
                 Document.Create(
                     objContainer =>
@@ -78,7 +85,7 @@ namespace CRM.Infrastructure.Invoices.Services
                                         objHeader =>
                                             ComposeHeader(
                                                 objHeader,
-                                                objInvoice));
+                                                objInvoice, logo));
 
                                 objPage.Content()
                                     .PaddingTop(14)
@@ -102,7 +109,7 @@ namespace CRM.Infrastructure.Invoices.Services
 
         private static void ComposeHeader(
             IContainer objContainer,
-            Invoice objInvoice)
+            Invoice objInvoice, Byte[] logo)
         {
             objContainer
                 .Row(
@@ -112,13 +119,7 @@ namespace CRM.Infrastructure.Invoices.Services
                             .Column(
                                 objColumn =>
                                 {
-                                    objColumn.Item()
-                                        .PaddingBottom(8)
-                                        .Text("Hall Home Maintenance")
-                                        .FontSize(16)
-                                        .SemiBold()
-                                        .FontColor(
-                                            Colors.Grey.Darken3);
+                                    objColumn.Item().PaddingBottom(8).Width(200).Height(100).Image(logo).FitArea();
 
                                     objColumn.Item()
                                         .Text("INVOICE")
