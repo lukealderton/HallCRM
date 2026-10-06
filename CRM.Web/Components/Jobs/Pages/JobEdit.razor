@@ -297,6 +297,11 @@
 
                                         </div>
 
+                                        <button type="button" class="btn btn-soft-primary btn-sm" disabled="@blnSaving" @onclick="OpenNewService">
+                                            <span class="material-symbols-outlined">add</span>
+                                            New service
+                                        </button>
+
                                         @if (dicServiceLines.Count > 0)
                                         {
                                             <span class="job-services-count">
@@ -325,7 +330,7 @@
                                                 </strong>
 
                                                 <span>
-                                                    Add services before assigning them to jobs.
+                                                    Use New service to create and select work for this job.
                                                 </span>
 
                                             </div>
@@ -982,6 +987,10 @@
         </EditForm>
     }
 
+    @if (blnAddingService)
+    {
+        <CRM.Web.Components.Services.Shared.ServiceQuickAdd OnCreated="ServiceCreated" OnCancel="CloseNewService" />
+    }
 </section>
 
 @code {
@@ -1005,6 +1014,20 @@
 
     private List<CrmService> colServices =
         [];
+
+    private Boolean blnAddingService;
+
+    private void OpenNewService() => blnAddingService = true;
+
+    private void CloseNewService() => blnAddingService = false;
+
+    private void ServiceCreated(CrmService service)
+    {
+        colServices.Add(service);
+        colServices = colServices.OrderBy(item => item.Name).ToList();
+        SetServiceSelected(service.Id, true);
+        blnAddingService = false;
+    }
 
     private List<Contractor> colContractors =
         [];

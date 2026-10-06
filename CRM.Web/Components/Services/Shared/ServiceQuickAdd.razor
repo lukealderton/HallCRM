@@ -1,0 +1,81 @@
+@using System.ComponentModel.DataAnnotations
+@using CrmService = CRM.Core.Services.Domain.Service
+
+<div class="modal-backdrop show"></div>
+<div class="modal d-block" role="dialog" aria-modal="true" aria-labelledby="new-service-title" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <EditForm Model="model" OnValidSubmit="SaveAsync" FormName="QuickAddService">
+                <DataAnnotationsValidator />
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="new-service-title">New service</h2>
+                    <button type="button" class="btn-close" aria-label="Close" disabled="@saving" @onclick="CancelAsync"></button>
+                </div>
+                <div class="modal-body">
+                    <p>This service will be saved to your services and selected for this job.</p>
+                    @if (error != null) { <div class="alert alert-danger" role="alert">@error</div> }
+                    <ValidationSummary />
+                    <fieldset disabled="@saving">
+                        <div class="mb-3">
+                            <label class="form-label" for="new-service-name">Name</label>
+                            <InputText id="new-service-name" class="form-control" @bind-Value="model.Name" maxlength="200" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="new-service-description">Description</label>
+                            <InputTextArea id="new-service-description" class="form-control" @bind-Value="model.Description" rows="3" maxlength="2000" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="new-service-price">Default price (£)</label>
+                            <InputNumber id="new-service-price" class="form-control" @bind-Value="model.DefaultPrice" min="0" step="0.01" />
+                            <div class="form-text">Optional. You can change the agreed price on this job.</div>
+                        </div>
+                        <div>
+                            <label class="form-label" for="new-service-notes">Internal notes</label>
+                            <InputTextArea id="new-service-notes" class="form-control" @bind-Value="model.Notes" rows="2" maxlength="4000" />
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" disabled="@saving" @onclick="CancelAsync">Cancel</button>
+                    <button type="submit" class="btn btn-primary" disabled="@saving">@(saving ? "Saving…" : "Save and select service")</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<CrmService> OnCreated { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    private readonly NewServiceModel model = new();
+    private bool saving;
+    private string? error;
+
+    private Task CancelAsync() => saving ? Task.CompletedTask : OnCancel.InvokeAsync();
+
+    private async Task SaveAsync()
+    {
+        if (saving) return;
+        saving = true;
+        error = null;
+        try
+        {
+            var service = await ServiceService.AddServiceAsync(new CrmService
+            {
+                Name = model.Name, Description = model.Description,
+                DefaultPrice = model.DefaultPrice, Notes = model.Notes
+            }, await UserState.GetCurrentUserIdAsync());
+            await OnCreated.InvokeAsync(service);
+        }
+        catch (Exception) { error = "Unable to save the service. Please try again."; }
+        finally { saving = false; }
+    }
+
+    private sealed class NewServiceModel
+    {
+        [Required, StringLength(200)] public string Name { get; set; } = string.Empty;
+        [StringLength(2000)] public string? Description { get; set; }
+        [Range(typeof(decimal), "0", "9999999999999999.99")] public decimal? DefaultPrice { get; set; }
+        [StringLength(4000)] public string? Notes { get; set; }
+    }
+}
