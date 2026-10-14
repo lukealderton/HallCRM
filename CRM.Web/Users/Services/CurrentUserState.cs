@@ -44,25 +44,7 @@ namespace CRM.Web.Users.Services
                 AuthenticationState objAuthenticationState = await _objAuthenticationStateProvider.GetAuthenticationStateAsync();
                 ClaimsPrincipal objPrincipal = objAuthenticationState.User;
 
-                if (objPrincipal?.Identity?.IsAuthenticated != true)
-                {
-                    return null;
-                }
-
-                // NameIdentifier is T_User.usrId, not the domain ID used by audit foreign keys.
-                String? strIdentityUserId = objPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                User? objUser = null;
-
-                if (!String.IsNullOrWhiteSpace(strIdentityUserId))
-                {
-                    objUser = await _userService.GetUserByIdentityIdAsync(strIdentityUserId, objToken);
-                }
-                else if (Guid.TryParse(objPrincipal.FindFirst("Id")?.Value, out Guid objDomainUserId)
-                    && objDomainUserId != Guid.Empty)
-                {
-                    // Support older principals carrying only the custom domain-user claim.
-                    objUser = await _userService.GetUserAsync(objDomainUserId, objToken);
-                }
+                User? objUser = await objPrincipal.GetCrmUserAsync(_userService, objToken);
 
                 if (objUser == null || objUser.Id == Guid.Empty)
                 {

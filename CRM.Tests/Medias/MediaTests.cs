@@ -15,6 +15,8 @@ using CRM.Core.Users.Abstraction.Services;
 using CRM.Core.Users.Domain;
 using CRM.Infrastructure.Medias.Storage;
 using CRM.Web.Medias;
+using CRM.Web.Users.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +31,8 @@ namespace CRM.Tests.Medias;
 public sealed class MediaTests
 {
     private readonly Guid objUserId = Guid.NewGuid();
+    private readonly String strIdentityId = Guid.NewGuid().ToString();
+    private IUserService objUsers = null!;
     private readonly Job objJob = new() { Id = Guid.NewGuid(), Entity = new CrmEntity() };
     private readonly MemoryMediaRepository objRepository = new();
     private readonly CRMConfiguration objConfiguration = new();
@@ -49,10 +53,16 @@ public sealed class MediaTests
             objMethod.Name == nameof(IJobService.GetJobByIdAsync)
                 ? Task.FromResult((Guid)colArgs![0]! == objJob.Id ? objJob : null)
                 : throw new NotSupportedException());
-        IUserService objUsers = TestProxy.Create<IUserService>((objMethod, colArgs) =>
-            objMethod.Name == nameof(IUserService.GetUserAsync)
-                ? Task.FromResult<User?>((Guid)colArgs![0]! == objUserId ? new User { Id = objUserId, Enabled = blnUserEnabled } : null)
-                : throw new NotSupportedException());
+        objUsers = TestProxy.Create<IUserService>((objMethod, colArgs) =>
+        {
+            Boolean blnFound = objMethod.Name switch
+            {
+                nameof(IUserService.GetUserAsync) => (Guid)colArgs![0]! == objUserId,
+                nameof(IUserService.GetUserByIdentityIdAsync) => (String)colArgs![0]! == strIdentityId,
+                _ => throw new NotSupportedException()
+            };
+            return Task.FromResult<User?>(blnFound ? new User { Id = objUserId, Enabled = blnUserEnabled } : null);
+        });
         objService = new(objRepository, objStorage, objJobs, objUsers, objOptions, null);
     }
 
@@ -207,12 +217,32 @@ public sealed class MediaTests
     }
 
     [TestMethod]
+    public async Task UploadResolvesLoginIdAndRechecksEnabledStatusAfterCachingUser()
+    {
+        CurrentUserState objState = new(objUsers, new MediaAuthenticationStateProvider(strIdentityId));
+        Guid? objRequesterId = await objState.GetCurrentUserIdAsync();
+        Assert.AreEqual(objUserId, objRequesterId);
+
+        Media objMedia = await objService.SaveMediaAsync(objJob.Id, objRequesterId!.Value,
+            "report.pdf", new MemoryStream("%PDF-1.7\nvalid"u8.ToArray()));
+        Assert.AreEqual(objUserId, objMedia.OwnerId);
+        Assert.AreEqual(1, (await objService.GetByJobIdAsync(objJob.Id, objRequesterId.Value)).Count);
+
+        blnUserEnabled = false;
+        Guid? objCachedId = await objState.GetCurrentUserIdAsync();
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => objService.SaveMediaAsync(
+            objJob.Id, objCachedId!.Value, "blocked.pdf", new MemoryStream("%PDF-1.7\nvalid"u8.ToArray())));
+        Assert.AreEqual(1, objRepository.Items.Count);
+    }
+
+    [TestMethod]
     public async Task HttpMediaRouteRequiresAuthenticationSupportsRangesAndDownloads()
     {
         Media objMedia = await SavePdfAsync();
         WebApplicationBuilder objBuilder = WebApplication.CreateBuilder();
         objBuilder.Logging.ClearProviders();
         objBuilder.Services.AddSingleton<IMediaService>(objService);
+        objBuilder.Services.AddSingleton<IUserService>(objUsers);
         objBuilder.Services.AddAuthentication("MediaTest").AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>("MediaTest", _ => { });
         objBuilder.Services.AddAuthorization();
         await using WebApplication objApp = objBuilder.Build();
@@ -226,7 +256,11 @@ public sealed class MediaTests
         using HttpResponseMessage objAnonymous = await objClient.GetAsync(objMedia.Url);
         Assert.AreEqual(HttpStatusCode.Unauthorized, objAnonymous.StatusCode);
 
-        objClient.DefaultRequestHeaders.Add("X-Media-Test-User", objUserId.ToString());
+        objClient.DefaultRequestHeaders.Add("X-Media-Test-User", Guid.NewGuid().ToString());
+        using HttpResponseMessage objUnknown = await objClient.GetAsync(objMedia.Url);
+        Assert.AreEqual(HttpStatusCode.Forbidden, objUnknown.StatusCode);
+        objClient.DefaultRequestHeaders.Remove("X-Media-Test-User");
+        objClient.DefaultRequestHeaders.Add("X-Media-Test-User", strIdentityId);
         using HttpResponseMessage objDownload = await objClient.GetAsync(objMedia.Url + "?download=true");
         Assert.AreEqual(HttpStatusCode.OK, objDownload.StatusCode);
         Assert.AreEqual("application/pdf", objDownload.Content.Headers.ContentType?.MediaType);
@@ -256,6 +290,13 @@ public sealed class MediaTests
         using HttpResponseMessage objDeleted = await objClient.GetAsync(objMedia.Url);
         Assert.AreEqual(HttpStatusCode.NotFound, objDeleted.StatusCode);
         await objApp.StopAsync();
+    }
+
+    private sealed class MediaAuthenticationStateProvider(String strIdentityId) : AuthenticationStateProvider
+    {
+        public override Task<AuthenticationState> GetAuthenticationStateAsync() => Task.FromResult(
+            new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(
+                [new Claim(ClaimTypes.NameIdentifier, strIdentityId)], "Test"))));
     }
 
     private Task<Media> SavePdfAsync() => objService.SaveMediaAsync(

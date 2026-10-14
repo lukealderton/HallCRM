@@ -1,5 +1,8 @@
 using System.Security.Claims;
 using CRM.Core.Medias.Abstractions;
+using CRM.Core.Users.Abstraction.Services;
+using CRM.Core.Users.Domain;
+using CRM.Web.Users.Services;
 
 namespace CRM.Web.Medias;
 
@@ -9,18 +12,17 @@ public static class MediaEndpoints
     {
         objEndpoints.MapGet("/api/media/{mediaId:guid}", async (
             Guid mediaId, Boolean? download, ClaimsPrincipal objPrincipal,
-            IMediaService objMediaService, HttpContext objContext, CancellationToken objToken) =>
+            IMediaService objMediaService, IUserService objUsers, HttpContext objContext, CancellationToken objToken) =>
         {
-            String? strUserId = objPrincipal.FindFirst("Id")?.Value
-                ?? objPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!Guid.TryParse(strUserId, out Guid objRequesterId))
+            User? objUser = await objPrincipal.GetCrmUserAsync(objUsers, objToken);
+            if (objUser?.Enabled != true)
             {
                 return Results.Forbid();
             }
 
             try
             {
-                MediaReadResult? objResult = await objMediaService.OpenForReadAsync(mediaId, objRequesterId, objToken);
+                MediaReadResult? objResult = await objMediaService.OpenForReadAsync(mediaId, objUser.Id, objToken);
                 if (objResult == null)
                 {
                     return Results.NotFound();
