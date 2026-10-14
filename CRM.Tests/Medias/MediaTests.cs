@@ -53,7 +53,7 @@ public sealed class MediaTests
             objMethod.Name == nameof(IUserService.GetUserAsync)
                 ? Task.FromResult<User?>((Guid)colArgs![0]! == objUserId ? new User { Id = objUserId, Enabled = blnUserEnabled } : null)
                 : throw new NotSupportedException());
-        objService = new(objRepository, objStorage, objJobs, objUsers, objOptions, NullLogger<MediaService>.Instance);
+        objService = new(objRepository, objStorage, objJobs, objUsers, objOptions, null);
     }
 
     [TestCleanup]

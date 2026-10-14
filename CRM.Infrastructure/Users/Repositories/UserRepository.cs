@@ -2,6 +2,7 @@
 using CRM.Core.Users.Abstraction.Repositories;
 using CRM.Core.Users.Domain;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Infrastructure.Users.Repositories
@@ -91,6 +92,21 @@ namespace CRM.Infrastructure.Users.Repositories
             return colDisplayNamesByUserId;
         }
 
+        public async Task<User?> GetUserByIdentityIdAsync(
+            String strIdentityUserId,
+            CancellationToken objToken = default)
+        {
+            if (String.IsNullOrWhiteSpace(strIdentityUserId))
+            {
+                return null;
+            }
+
+            await using CRMDbContext objContext = await _dbContextFactory.CreateDbContextAsync(objToken);
+
+            return await GetUserQuery(objContext.Users.Where(x => x.Id == strIdentityUserId))
+                .FirstOrDefaultAsync(objToken);
+        }
+
         public async Task<User?> GetUserAsync(
             Guid objUserId,
             CancellationToken objToken = default)
@@ -102,7 +118,7 @@ namespace CRM.Infrastructure.Users.Repositories
 
             await using CRMDbContext objDbContext = await _dbContextFactory.CreateDbContextAsync(objToken);
 
-            return await GetUserQuery(objDbContext)
+            return await GetUserQuery(objDbContext.Users)
                 .FirstOrDefaultAsync(x => x.Id == objUserId, objToken);
         }
 
@@ -123,7 +139,7 @@ namespace CRM.Infrastructure.Users.Repositories
             await using CRMDbContext objContext =
                 await _dbContextFactory.CreateDbContextAsync(objToken);
 
-            return await GetUserQuery(objContext)
+            return await GetUserQuery(objContext.Users)
                 .Where(x => colIds.Contains(x.Id))
                 .OrderBy(x => x.Surname)
                 .ThenBy(x => x.Forename)
@@ -139,7 +155,7 @@ namespace CRM.Infrastructure.Users.Repositories
                 await _dbContextFactory.CreateDbContextAsync(objToken);
 
             IQueryable<User> colQuery =
-                GetUserQuery(objContext);
+                GetUserQuery(objContext.Users);
 
             if (!blnIncludeDisabled)
             {
@@ -154,9 +170,9 @@ namespace CRM.Infrastructure.Users.Repositories
         }
 
         private static IQueryable<User> GetUserQuery(
-            CRMDbContext objContext)
+            IQueryable<ApplicationUser> colUsers)
         {
-            return objContext.Users
+            return colUsers
                 .AsNoTracking()
                 .Select(x => new User
                 {

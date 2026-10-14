@@ -35,6 +35,18 @@ namespace CRM.Core.Users.Services
             return _userRepository.GetDisplayNamesByUserIdsAsync(colUserIds, objToken);
         }
 
+        public Task<User?> GetUserByIdentityIdAsync(
+            String strIdentityUserId,
+            CancellationToken objToken = default)
+        {
+            if (String.IsNullOrWhiteSpace(strIdentityUserId))
+            {
+                return Task.FromResult<User?>(null);
+            }
+
+            return _userRepository.GetUserByIdentityIdAsync(strIdentityUserId, objToken);
+        }
+
         public Task<User?> GetUserAsync(
             Guid objUserId,
             CancellationToken objToken = default)

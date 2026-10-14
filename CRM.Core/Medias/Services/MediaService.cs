@@ -1,10 +1,10 @@
 using CRM.Core.Common.Configuration;
 using CRM.Core.Jobs.Abstractions;
 using CRM.Core.Jobs.Domain;
+using CRM.Core.Logging.Abstraction;
 using CRM.Core.Medias.Abstractions;
 using CRM.Core.Medias.Domain;
 using CRM.Core.Users.Abstraction.Services;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace CRM.Core.Medias.Services;
@@ -16,7 +16,7 @@ public sealed class MediaService(
     IJobService objJobService,
     IUserService objUserService,
     IOptions<CRMConfiguration> objOptions,
-    ILogger<MediaService> objLogger) : IMediaService
+    ILogService? objLogService) : IMediaService
 {
     public async Task<List<Media>> GetByJobIdAsync(Guid objJobId, Guid objRequesterId, CancellationToken objToken = default)
     {
@@ -135,7 +135,10 @@ public sealed class MediaService(
         }
         catch (Exception objError)
         {
-            objLogger.LogError(objError, "Failed to remove media file {MediaKey}", strKey);
+            if (objLogService != null)
+            {
+                await objLogService.LogErrorAsync(objError, strMessage: $"Failed to remove media file {strKey}");
+            }
         }
     }
 

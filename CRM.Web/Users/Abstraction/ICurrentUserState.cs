@@ -4,6 +4,9 @@ namespace CRM.Web.Users.Abstraction
 {
     public interface ICurrentUserState
     {
+        /// <summary>
+        /// Gets the CRM domain user ID used by entity audit fields, not the login account ID.
+        /// </summary>
         Task<Guid?> GetCurrentUserIdAsync(CancellationToken objToken = default);
         Task<User?> GetAsync(CancellationToken token = default);
         Task<User?> RefreshAsync(CancellationToken token = default);
@@ -20,7 +23,7 @@ namespace CRM.Web.Users.Abstraction
         void Clear();
 
         /// <summary>
-        /// The current user id
+        /// The current CRM domain user ID
         /// </summary>
         Guid? CurrentUserId { get; }
 

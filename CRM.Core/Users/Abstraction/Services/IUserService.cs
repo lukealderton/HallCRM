@@ -6,6 +6,13 @@ namespace CRM.Core.Users.Abstraction.Services
     public interface IUserService
     {
         /// <summary>
+        /// Resolves a login account ID to its CRM user, whose Id is the domain user ID.
+        /// </summary>
+        Task<User?> GetUserByIdentityIdAsync(
+            String strIdentityUserId,
+            CancellationToken objToken = default);
+
+        /// <summary>
         /// Gets a dictionary of user display names by their user IDs.
         /// </summary>
         /// <param name="colUserIds"></param>

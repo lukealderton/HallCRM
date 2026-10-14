@@ -17,10 +17,4 @@
     <ProjectReference Include="..\CRM.Primitives\CRM.Primitives.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Microsoft.Extensions.Logging.Abstractions">
-      <HintPath>C:\Nuget\microsoft.extensions.logging.abstractions\10.0.12\lib\net10.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

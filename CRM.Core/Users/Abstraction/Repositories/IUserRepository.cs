@@ -4,6 +4,10 @@ namespace CRM.Core.Users.Abstraction.Repositories
 {
     public interface IUserRepository
     {
+        Task<User?> GetUserByIdentityIdAsync(
+            String strIdentityUserId,
+            CancellationToken objToken = default);
+
         Task<Dictionary<Guid, String>> GetDisplayNamesByUserIdsAsync(
             IReadOnlyCollection<Guid> colUserIds,
             CancellationToken objToken = default);

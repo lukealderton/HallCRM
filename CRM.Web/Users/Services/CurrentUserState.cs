@@ -49,15 +49,28 @@ namespace CRM.Web.Users.Services
                     return null;
                 }
 
-                String? strUserId = objPrincipal.FindFirst("Id")?.Value
-                    ?? objPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                // NameIdentifier is T_User.usrId, not the domain ID used by audit foreign keys.
+                String? strIdentityUserId = objPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                User? objUser = null;
 
-                if (!Guid.TryParse(strUserId, out Guid objUserId) || objUserId == Guid.Empty)
+                if (!String.IsNullOrWhiteSpace(strIdentityUserId))
+                {
+                    objUser = await _userService.GetUserByIdentityIdAsync(strIdentityUserId, objToken);
+                }
+                else if (Guid.TryParse(objPrincipal.FindFirst("Id")?.Value, out Guid objDomainUserId)
+                    && objDomainUserId != Guid.Empty)
+                {
+                    // Support older principals carrying only the custom domain-user claim.
+                    objUser = await _userService.GetUserAsync(objDomainUserId, objToken);
+                }
+
+                if (objUser == null || objUser.Id == Guid.Empty)
                 {
                     return null;
                 }
 
-                _objCurrentUserId = objUserId;
+                _objCurrentUser = objUser;
+                _objCurrentUserId = objUser.Id;
                 return _objCurrentUserId;
             }
             finally

@@ -1837,14 +1837,14 @@
 
         try
         {
-            Guid? objContractorId =
+            Guid? objUserId =
                 await CurrentUserState
                     .GetCurrentUserIdAsync();
 
             Invoice objInvoice =
                 await InvoiceService.CreateFromJobAsync(
                     JobId,
-                    objContractorId);
+                    objUserId);
 
             Navigation.NavigateTo(
                 GetInvoiceUrl(
